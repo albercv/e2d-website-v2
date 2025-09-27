@@ -1,0 +1,133 @@
+{
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "projects": "Projects",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "documentation": "Documentation"
+  },
+  "hero": {
+    "title": "Automate your SME: more sales, fewer tasks",
+    "subtitle": "Voice agents, WhatsApp chatbots and automations that transform your business. Specialized in clinics, real estate and consultancies.",
+    "cta": "Book a demo",
+    "ctaSecondary": "View projects"
+  },
+  "services": {
+    "title": "Services that transform your business",
+    "subtitle": "Technology solutions designed for Spanish SMEs",
+    "web": {
+      "title": "Web Development",
+      "description": "Next.js, technical SEO, performance and WCAG AA accessibility",
+      "cta": "Learn more"
+    },
+    "erp": {
+      "title": "ERP Systems",
+      "description": "Integrated inventory, billing and purchasing",
+      "cta": "Learn more"
+    },
+    "crm": {
+      "title": "Custom CRM",
+      "description": "Sales pipeline and follow-up automations",
+      "cta": "Learn more"
+    },
+    "automation": {
+      "title": "Automations",
+      "description": "n8n, voicebots, WhatsApp bots, scraping and outreach",
+      "cta": "Learn more"
+    }
+  },
+  "projects": {
+    "title": "Success stories",
+    "subtitle": "Real results for Spanish SMEs"
+  },
+  "about": {
+    "title": "Alberto Carrasco",
+    "subtitle": "Full-Stack Architect specialized in automation",
+    "description": "Expert in React, Next.js, n8n and vector databases. Focus on ROI and GDPR compliance for Spanish SMEs."
+  },
+  "process": {
+    "title": "How I work",
+    "subtitle": "Proven 5-step process",
+    "steps": {
+      "diagnosis": "Diagnosis",
+      "prototype": "Prototype",
+      "integration": "Integration",
+      "measurement": "Measurement",
+      "scale": "Scale & SOPs"
+    }
+  },
+  "footer": {
+    "contact": "hello@evolve2digital.com",
+    "legal": "Legal Notice",
+    "privacy": "Privacy",
+    "cookies": "Cookies"
+  },
+  "agent": {
+    "title": "E2D Assistant",
+    "placeholder": "How can I help you?",
+    "send": "Send",
+    "handoff": "Continue on WhatsApp",
+    "consent": "I accept the privacy policy",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company (optional)",
+    "submit": "Send inquiry"
+  },
+  "cookies": {
+    "title": "Cookie Management",
+    "description": "We use cookies to improve your experience. You can accept all cookies or customize your preferences.",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all",
+    "customize": "Customize",
+    "settings": {
+      "title": "Cookie Settings",
+      "necessary": {
+        "title": "Necessary Cookies",
+        "description": "Essential for the basic functionality of the website."
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "Help us understand how you interact with our website."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "Used to display relevant ads and measure campaigns."
+      },
+      "required": "Required",
+      "cancel": "Cancel",
+      "save": "Save preferences"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "sections": {
+      "introduction": {
+        "title": "Introduction"
+      },
+      "dataCollection": {
+        "title": "Data Collection"
+      },
+      "dataUsage": {
+        "title": "Data Usage"
+      },
+      "legalBasis": {
+        "title": "Legal Basis"
+      },
+      "cookies": {
+        "title": "Cookie Policy"
+      },
+      "rights": {
+        "title": "Your Rights"
+      },
+      "security": {
+        "title": "Security"
+      },
+      "contact": {
+        "title": "Contact"
+      }
+    }
+  }
+}

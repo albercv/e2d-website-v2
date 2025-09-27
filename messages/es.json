@@ -1,0 +1,133 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "projects": "Proyectos",
+    "about": "Sobre mí",
+    "blog": "Blog",
+    "contact": "Contacto",
+    "documentation": "Documentación"
+  },
+  "hero": {
+    "title": "Automatiza tu pyme: más ventas, menos tareas",
+    "subtitle": "Agentes de voz, chatbots WhatsApp y automatizaciones que transforman tu negocio. Especializado en clínicas, inmobiliarias y asesorías.",
+    "cta": "Reserva una demo",
+    "ctaSecondary": "Ver proyectos"
+  },
+  "services": {
+    "title": "Servicios que transforman tu negocio",
+    "subtitle": "Soluciones tecnológicas diseñadas para PYMEs españolas",
+    "web": {
+      "title": "Desarrollo Web",
+      "description": "Next.js, SEO técnico, performance y accesibilidad WCAG AA",
+      "cta": "Ver más"
+    },
+    "erp": {
+      "title": "Sistemas ERP",
+      "description": "Inventarios, facturación y compras integradas",
+      "cta": "Ver más"
+    },
+    "crm": {
+      "title": "CRM Personalizado",
+      "description": "Pipeline de ventas y automatizaciones de seguimiento",
+      "cta": "Ver más"
+    },
+    "automation": {
+      "title": "Automatizaciones",
+      "description": "n8n, voicebots, WhatsApp bots, scraping y outreach",
+      "cta": "Ver más"
+    }
+  },
+  "projects": {
+    "title": "Casos de éxito",
+    "subtitle": "Resultados reales para PYMEs españolas"
+  },
+  "about": {
+    "title": "Alberto Carrasco",
+    "subtitle": "Arquitecto Full-Stack especializado en automatización",
+    "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas."
+  },
+  "process": {
+    "title": "Mi forma de trabajar",
+    "subtitle": "Proceso probado en 5 pasos",
+    "steps": {
+      "diagnosis": "Diagnóstico",
+      "prototype": "Prototipo",
+      "integration": "Integración",
+      "measurement": "Medición",
+      "scale": "Escala & SOPs"
+    }
+  },
+  "footer": {
+    "contact": "hello@evolve2digital.com",
+    "legal": "Aviso Legal",
+    "privacy": "Privacidad",
+    "cookies": "Cookies"
+  },
+  "agent": {
+    "title": "Asistente E2D",
+    "placeholder": "¿En qué puedo ayudarte?",
+    "send": "Enviar",
+    "handoff": "Continuar en WhatsApp",
+    "consent": "Acepto la política de privacidad",
+    "email": "Email",
+    "phone": "Teléfono",
+    "company": "Empresa (opcional)",
+    "submit": "Enviar consulta"
+  },
+  "cookies": {
+    "title": "Gestión de Cookies",
+    "description": "Utilizamos cookies para mejorar su experiencia. Puede aceptar todas las cookies o personalizar sus preferencias.",
+    "acceptAll": "Aceptar todas",
+    "rejectAll": "Rechazar todas",
+    "customize": "Personalizar",
+    "settings": {
+      "title": "Configuración de Cookies",
+      "necessary": {
+        "title": "Cookies Necesarias",
+        "description": "Esenciales para el funcionamiento básico del sitio web."
+      },
+      "analytics": {
+        "title": "Cookies Analíticas",
+        "description": "Nos ayudan a entender cómo interactúa con nuestro sitio web."
+      },
+      "marketing": {
+        "title": "Cookies de Marketing",
+        "description": "Utilizadas para mostrar anuncios relevantes y medir campañas."
+      },
+      "required": "Requeridas",
+      "cancel": "Cancelar",
+      "save": "Guardar preferencias"
+    }
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización",
+    "sections": {
+      "introduction": {
+        "title": "Introducción"
+      },
+      "dataCollection": {
+        "title": "Recopilación de Datos"
+      },
+      "dataUsage": {
+        "title": "Uso de Datos"
+      },
+      "legalBasis": {
+        "title": "Base Legal"
+      },
+      "cookies": {
+        "title": "Política de Cookies"
+      },
+      "rights": {
+        "title": "Sus Derechos"
+      },
+      "security": {
+        "title": "Seguridad"
+      },
+      "contact": {
+        "title": "Contacto"
+      }
+    }
+  }
+}
