@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { LanguageSwitcher } from "./language-switcher"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 
 export function Navigation() {
   const t = useTranslations("navigation")
@@ -16,7 +17,7 @@ export function Navigation() {
     { key: "projects", href: "#projects" },
     { key: "about", href: "#about" },
     { key: "blog", href: "/blog" },
-    { key: "documentation", href: "/docs" },
+    // Removed documentation link as requested
   ]
 
   return (
@@ -25,8 +26,15 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="#" className="text-2xl font-bold text-foreground">
-              E2D
+            <a href="/" aria-label="E2D - Inicio" className="inline-flex items-center">
+              <Image
+                src="/e2d_logo.webp"
+                alt="E2D logo"
+                width={128}
+                height={32}
+                className="h-8 w-auto"
+                priority
+              />
             </a>
           </div>
 

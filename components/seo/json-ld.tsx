@@ -9,7 +9,7 @@ export function OrganizationSchema({ locale }: OrganizationSchemaProps) {
     name: "E2D - Evolve2Digital",
     alternateName: "E2D",
     url: `https://evolve2digital.com/${locale}`,
-    logo: "https://evolve2digital.com/logo.png",
+    logo: "/e2d_logo.webp",
     description:
       locale === "es"
         ? "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías."
@@ -250,8 +250,8 @@ export function BlogPostSchema({
       name: "E2D - Evolve2Digital",
       logo: {
         "@type": "ImageObject",
-        url: "https://evolve2digital.com/logo.png",
-      },
+        url: "/e2d_logo.webp",
+      }
     },
     datePublished,
     dateModified: dateModified || datePublished,

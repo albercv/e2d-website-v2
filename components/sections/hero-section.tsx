@@ -7,6 +7,7 @@ import { Suspense } from "react"
 import { Hero3DLazy } from "@/components/performance/lazy-components"
 import { ArrowRight, Play } from "lucide-react"
 import { useComponentDebugLogger } from '@/lib/component-debug-logger'
+import { AuroraBackground } from "@/components/visual/aurora-background"
 
 export function HeroSection() {
   const t = useTranslations("hero")
@@ -20,6 +21,9 @@ export function HeroSection() {
           <Hero3DLazy />
         </Suspense>
       </div>
+
+      {/* Aurora Background */}
+      <AuroraBackground />
 
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 z-10 opacity-20">
@@ -38,8 +42,8 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto"
         >
@@ -66,8 +70,8 @@ export function HeroSection() {
 
         {/* Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
         >

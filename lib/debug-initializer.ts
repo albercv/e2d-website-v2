@@ -128,6 +128,12 @@ class DebugInitializer {
       }
     }
 
+    // Dev-only memory monitoring configuration (menos sensible)
+    let lastMemoryWarnAt = 0
+    let prevUsedMB = 0
+    const MEMORY_WARN_THRESHOLD_MB = 200 // subir umbral para reducir falsos positivos en dev
+    const MEMORY_WARN_COOLDOWN_MS = 120000 // 2 minutos entre avisos
+
     // Monitorear uso de memoria
     setInterval(() => {
       if ('memory' in performance) {
@@ -138,12 +144,19 @@ class DebugInitializer {
           limit: Math.round(memory.jsHeapSizeLimit / 1048576) // MB
         }
 
-        // Alertar si el uso de memoria es alto
-        if (memoryUsage.used > 100) { // Más de 100MB
+        const now = Date.now()
+        const isRising = memoryUsage.used >= prevUsedMB
+        const cooldownPassed = now - lastMemoryWarnAt > MEMORY_WARN_COOLDOWN_MS
+
+        // Alertar solo si supera umbral, está en tendencia ascendente y respetamos cooldown
+        if (memoryUsage.used > MEMORY_WARN_THRESHOLD_MB && isRising && cooldownPassed) {
           debugLogger.warn('performance', 'High memory usage detected', memoryUsage)
+          lastMemoryWarnAt = now
         }
+
+        prevUsedMB = memoryUsage.used
       }
-    }, 10000) // Cada 10 segundos
+    }, 30000) // Cada 30 segundos
   }
 
   private setupStateChangeDetection() {
@@ -152,13 +165,26 @@ class DebugInitializer {
     let domChangeCount = 0
 
     const observer = new MutationObserver((mutations) => {
+      // Filtrar cambios significativos (evitar atributos/estilos, scripts y estilos)
+      const significantChange = mutations.some((mutation) => {
+        if (mutation.type !== 'childList') return false
+        if (!mutation.addedNodes || mutation.addedNodes.length === 0) return false
+        return Array.from(mutation.addedNodes).some((node) => {
+          if (node.nodeType !== Node.ELEMENT_NODE) return false
+          const tag = (node as Element).tagName
+          return tag !== 'SCRIPT' && tag !== 'STYLE' && tag !== 'LINK'
+        })
+      })
+
+      if (!significantChange) return
+
       const now = Date.now()
       const timeSinceLastChange = now - lastDOMChangeTime
       
-      if (timeSinceLastChange < 100) { // Cambios muy frecuentes
+      if (timeSinceLastChange < 150) { // menos sensible
         domChangeCount++
         
-        if (domChangeCount > 10) {
+        if (domChangeCount > 20) { // requiere más cambios antes de alertar
           debugLogger.warn('render', 'Frequent DOM changes detected - possible render loop', {
             changeCount: domChangeCount,
             timeSinceLastChange,
@@ -167,7 +193,7 @@ class DebugInitializer {
           domChangeCount = 0 // Reset counter
         }
       } else {
-        domChangeCount = 1 // Reset if enough time has passed
+        domChangeCount = 1 // Reset si ha pasado suficiente tiempo
       }
       
       lastDOMChangeTime = now
@@ -175,8 +201,8 @@ class DebugInitializer {
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
-      attributes: true
+      subtree: true
+      // Eliminamos attributes para evitar ruido por cambios de clases/estilos
     })
   }
 

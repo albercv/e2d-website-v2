@@ -1,41 +1,19 @@
 "use client"
 
-import { useEffect } from "react"
+// Preload hints for critical assets
+// Docstring: Este módulo inyecta preloads para assets críticos. Efecto lateral: inserta <link rel="preload"> en head.
 
 export function PreloadResources() {
-  useEffect(() => {
-    // Note: Geist fonts are loaded via the geist package in layout.tsx
-    // No need to preload them manually here
+  // Mantener pequeño para no saturar conexiones móviles
+  const imagePreloads = ["/AlbertoCarrasco_pic.webp"]
 
-    // Preload critical images that exist
-    const imagePreloads = ["/professional-headshot-alberto-carrasco.jpg"]
-
-    imagePreloads.forEach((image) => {
-      // Check if already preloaded
-      const existing = document.querySelector(`link[href="${image}"][rel="preload"]`)
-      if (!existing) {
-        const link = document.createElement("link")
-        link.rel = "preload"
-        link.href = image
-        link.as = "image"
-        document.head.appendChild(link)
-      }
-    })
-
-    // Temporarily disable prefetch to diagnose the issue
-    // const prefetchPages = ["/es/blog", "/en/blog", "/es/docs", "/en/docs"]
-
-    // prefetchPages.forEach((page) => {
-    //   // Check if already prefetched
-    //   const existing = document.querySelector(`link[href="${page}"][rel="prefetch"]`)
-    //   if (!existing) {
-    //     const link = document.createElement("link")
-    //     link.rel = "prefetch"
-    //     link.href = page
-    //     document.head.appendChild(link)
-    //   }
-    // })
-  }, [])
-
-  return null
+  return (
+    <>
+      {imagePreloads.map((src) => (
+        <link key={src} rel="preload" as="image" href={src} />
+      ))}
+      {/* Prefetch páginas clave si es necesario */}
+      {/* const prefetchPages = ["/es/blog", "/en/blog"] */}
+    </>
+  )
 }

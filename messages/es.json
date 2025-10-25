@@ -5,8 +5,7 @@
     "projects": "Proyectos",
     "about": "Sobre mí",
     "blog": "Blog",
-    "contact": "Contacto",
-    "documentation": "Documentación"
+    "contact": "Contacto"
   },
   "hero": {
     "title": "Automatiza tu pyme: más ventas, menos tareas",
@@ -44,7 +43,7 @@
   },
   "about": {
     "title": "Alberto Carrasco",
-    "subtitle": "Arquitecto Full-Stack especializado en automatización",
+    "subtitle": "Desarrollador fullstack experto en React Javascript, Springboot Java, N8N, IA openAI, Claude y Gemini",
     "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas."
   },
   "process": {

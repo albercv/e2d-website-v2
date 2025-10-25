@@ -5,8 +5,7 @@
     "projects": "Projects",
     "about": "About",
     "blog": "Blog",
-    "contact": "Contact",
-    "documentation": "Documentation"
+    "contact": "Contact"
   },
   "hero": {
     "title": "Automate your SME: more sales, fewer tasks",
@@ -92,7 +91,6 @@
         "description": "Help us understand how you interact with our website."
       },
       "marketing": {
-        "title": "Marketing Cookies",
         "description": "Used to display relevant ads and measure campaigns."
       },
       "required": "Required",
