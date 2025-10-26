@@ -155,7 +155,7 @@ export function Orb({ hue = 202, hoverIntensity = 3.2, rotateOnHover = true, for
 
     vec4 mainImage(vec2 fragCoord) {
       vec2 center = iResolution.xy * 0.5;
-      float size = min(iResolution.x, iResolution.y) * 1.2;
+      float size = iResolution.y * 0.9;
       vec2 uv = (fragCoord - center) / size * 2.0;
       
       float angle = rot;
