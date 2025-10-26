@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Lightbulb, Puzzle, BarChart, Rocket } from "lucide-react"
+import { useComponentDebugLogger } from "@/lib/component-debug-logger";
 
 const processSteps = [
   {
@@ -39,10 +40,11 @@ const processSteps = [
 ]
 
 export function ProcessSection() {
-  const t = useTranslations("process")
+  const t = useTranslations("process");
+  const { renderCount } = useComponentDebugLogger('ProcessSection');
 
   return (
-    <section id="process" className="py-24 bg-muted/30">
+    <section id="process" className="py-24 bg-muted/30 border-t border-yellow-500">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -115,7 +117,7 @@ export function ProcessSection() {
             </div>
             <div>
               <div className="text-2xl font-bold text-[#05b4ba] mb-2">24/7</div>
-              <div className="text-sm text-muted-foreground">Soporte post-implementación</div>
+              <p className="text-sm text-muted-foreground">Soporte post-implementación</p>
             </div>
           </div>
         </motion.div>

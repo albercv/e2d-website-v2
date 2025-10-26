@@ -2,12 +2,14 @@
 
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { useComponentDebugLogger } from "@/lib/component-debug-logger";
 
 export function AboutSection() {
-  const t = useTranslations("about")
+  const t = useTranslations("about");
+  const { renderCount } = useComponentDebugLogger('AboutSection');
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-background">
+    <section id="about" className="py-16 sm:py-24 bg-background border-t border-yellow-500">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-square w-full max-w-sm mx-auto md:mx-0 overflow-hidden">

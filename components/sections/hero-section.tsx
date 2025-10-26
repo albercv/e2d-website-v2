@@ -3,44 +3,30 @@
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { Hero3DLazy } from "@/components/performance/lazy-components"
 import { ArrowRight, Play } from "lucide-react"
-import { useComponentDebugLogger } from '@/lib/component-debug-logger'
-import { AuroraBackground } from "@/components/visual/aurora-background"
+import { useComponentDebugLogger } from "@/lib/component-debug-logger";
+import { Orb } from "@/components/ui/orb";
 
 export function HeroSection() {
-  const t = useTranslations("hero")
-  const { renderCount } = useComponentDebugLogger('HeroSection')
+  const t = useTranslations("hero");
+  const { renderCount } = useComponentDebugLogger('HeroSection');
+  const [isHovering, setIsHovering] = useState(false);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* 3D Background */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background border-t border-yellow-500">
+      {/* Orb Background */}
       <div className="absolute inset-0 z-0">
-        <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-background to-muted" />}>
-          <Hero3DLazy />
-        </Suspense>
-      </div>
-
-      {/* Aurora Background */}
-      <AuroraBackground />
-
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 z-10 opacity-20">
-        <div
-          className="w-full h-full"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(5, 180, 186, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(5, 180, 186, 0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: "50px 50px",
-          }}
-        />
+        <Orb hoverIntensity={0.5} forceHoverState={isHovering} />
       </div>
 
       {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div 
+        className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 text-center py-12"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

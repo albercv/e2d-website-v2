@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TrendingUp, Phone, Calendar } from "lucide-react"
+import { useComponentDebugLogger } from "@/lib/component-debug-logger";
 
 const projects = [
   {
@@ -24,23 +25,16 @@ const projects = [
     metric: "-28%",
     icon: Calendar,
     stack: ["WhatsApp API", "n8n", "Supabase", "Twilio"],
+    url: "/es/blog/automatizar-whatsapp-clinicas",
   },
-  {
-    title: "Automatización Gestoría",
-    challenge: "12h/semana en tareas repetitivas",
-    solution: "Workflows n8n + scraping + notificaciones",
-    result: "-12h/semana tareas repetitivas",
-    metric: "-12h",
-    icon: TrendingUp,
-    stack: ["n8n", "Puppeteer", "Google Sheets", "Slack"],
-  },
-]
+];
 
 export function ProjectsSection() {
-  const t = useTranslations("projects")
+  const t = useTranslations("projects");
+  const { renderCount } = useComponentDebugLogger('ProjectsSection');
 
   return (
-    <section id="projects" className="py-24 bg-muted/30">
+    <section id="projects" className="py-24 bg-muted/30 border-t border-yellow-500">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
