@@ -5,7 +5,8 @@ import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Code, Database, Users, Zap } from "lucide-react"
-import { useComponentDebugLogger } from "@/lib/component-debug-logger";
+import { useComponentDebugLogger } from "@/lib/component-debug-logger"
+import { Badge } from "@/components/ui/badge"
 
 const services = [
   {
@@ -31,8 +32,8 @@ const services = [
 ]
 
 export function ServicesSection() {
-  const t = useTranslations("services");
-  const { renderCount } = useComponentDebugLogger('ServicesSection');
+  const t = useTranslations("services")
+  const { renderCount } = useComponentDebugLogger("ServicesSection")
 
   return (
     <section id="services" className="py-24 bg-background">
@@ -58,9 +59,18 @@ export function ServicesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
+                className="relative"
               >
                 <Card className="h-full bg-card border-border hover:border-[#05b4ba]/50 transition-colors group">
                   <CardHeader className="text-center">
+                    {service.key === "automation" && (
+                      <Badge
+                        variant="default"
+                        className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white border-none"
+                      >
+                        + IA
+                      </Badge>
+                    )}
                     <div className="mx-auto mb-4 p-3 rounded-lg bg-muted group-hover:bg-[#05b4ba]/10 transition-colors">
                       <Icon className="h-8 w-8 text-[#05b4ba]" />
                     </div>

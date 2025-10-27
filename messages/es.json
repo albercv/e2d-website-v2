@@ -32,14 +32,34 @@
       "cta": "Ver más"
     },
     "automation": {
-      "title": "Automatizaciones",
-      "description": "n8n, voicebots, WhatsApp bots, scraping y outreach",
+      "title": "Automatización con IA",
+      "description": "Agentes de voz y WhatsApp bots para cualificación y agendamiento",
       "cta": "Ver más"
     }
   },
   "projects": {
     "title": "Casos de éxito",
-    "subtitle": "Resultados reales para PYMEs españolas"
+    "subtitle": "Una selección de proyectos que demuestran mi capacidad para resolver problemas complejos con soluciones innovadoras.",
+    "abyfoods": {
+      "title": "Abyfoods - Web Corporativa",
+      "description": "Diseño elegante y optimizado para SEO y IA, reflejando el glamour de la marca.",
+      "tags": ["SEO", "IA", "Diseño a medida"]
+    },
+    "augustcollection": {
+      "title": "August Collection - E-commerce",
+      "description": "Plataforma de venta con IA integrada, optimizada para móviles y alto rendimiento.",
+      "tags": ["E-commerce", "IA integrada", "Optimización móvil"]
+    },
+    "ferdyCoach": {
+      "title": "Ferdy Coach - CMS y Ventas",
+      "description": "CMS personalizado para gestionar posts y ventas, con un diseño 100% original.",
+      "tags": ["CMS", "Diseño original", "Optimización móvil"]
+    },
+    "chatbotWhatsapp": {
+      "title": "Dashboard para WhatsApp Bot",
+      "description": "Panel de control para gestionar un bot de WhatsApp, con estadísticas y visor de conversaciones.",
+      "tags": ["Dashboard", "WhatsApp API", "Estadísticas"]
+    }
   },
   "about": {
     "title": "Alberto Carrasco",

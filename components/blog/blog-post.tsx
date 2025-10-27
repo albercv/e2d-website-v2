@@ -99,6 +99,7 @@ export function BlogPost({ post }: BlogPostProps) {
                   width={800}
                   height={450}
                   className="w-full h-full object-cover"
+                  unoptimized={post.cover.includes(".svg")}
                 />
               </div>
             )}

@@ -11,11 +11,11 @@
     "title": "Automate your SME: more sales, fewer tasks",
     "subtitle": "Voice agents, WhatsApp chatbots and automations that transform your business. Specialized in clinics, real estate and consultancies.",
     "cta": "Book a demo",
-    "ctaSecondary": "View projects"
+    "ctaSecondary": "See projects"
   },
   "services": {
     "title": "Services that transform your business",
-    "subtitle": "Technology solutions designed for Spanish SMEs",
+    "subtitle": "Technology solutions tailored for Spanish SMEs",
     "web": {
       "title": "Web Development",
       "description": "Next.js, technical SEO, performance and WCAG AA accessibility",
@@ -23,7 +23,7 @@
     },
     "erp": {
       "title": "ERP Systems",
-      "description": "Integrated inventory, billing and purchasing",
+      "description": "Inventory, invoicing and integrated purchasing",
       "cta": "Learn more"
     },
     "crm": {
@@ -32,22 +32,42 @@
       "cta": "Learn more"
     },
     "automation": {
-      "title": "Automations",
-      "description": "n8n, voicebots, WhatsApp bots, scraping and outreach",
+      "title": "Automation with AI",
+      "description": "Voice agents and WhatsApp bots for qualification and scheduling",
       "cta": "Learn more"
     }
   },
   "projects": {
     "title": "Success stories",
-    "subtitle": "Real results for Spanish SMEs"
+    "subtitle": "A selection of projects that demonstrate my ability to solve complex problems with innovative solutions.",
+    "abyfoods": {
+      "title": "Abyfoods - Corporate Website",
+      "description": "Elegant design optimized for SEO and AI, reflecting the brand's glamour.",
+      "tags": ["SEO", "AI", "Custom Design"]
+    },
+    "augustcollection": {
+      "title": "August Collection - E-commerce",
+      "description": "Sales platform with integrated AI, optimized for mobile and high performance.",
+      "tags": ["E-commerce", "Integrated AI", "Mobile Optimization"]
+    },
+    "ferdyCoach": {
+      "title": "Ferdy Coach - CMS & Sales",
+      "description": "Custom CMS to manage posts and sales, with a 100% original design.",
+      "tags": ["CMS", "Original Design", "Mobile Optimization"]
+    },
+    "chatbotWhatsapp": {
+      "title": "WhatsApp Bot Dashboard",
+      "description": "Control panel to manage a WhatsApp bot, with statistics and conversation viewer.",
+      "tags": ["Dashboard", "WhatsApp API", "Statistics"]
+    }
   },
   "about": {
     "title": "Alberto Carrasco",
-    "subtitle": "Full-Stack Architect specialized in automation",
-    "description": "Expert in React, Next.js, n8n and vector databases. Focus on ROI and GDPR compliance for Spanish SMEs."
+    "subtitle": "Fullstack developer expert in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude and Gemini",
+    "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs."
   },
   "process": {
-    "title": "How I work",
+    "title": "My work process",
     "subtitle": "Proven 5-step process",
     "steps": {
       "diagnosis": "Diagnosis",
@@ -72,7 +92,7 @@
     "email": "Email",
     "phone": "Phone",
     "company": "Company (optional)",
-    "submit": "Send inquiry"
+    "submit": "Submit inquiry"
   },
   "cookies": {
     "title": "Cookie Management",
@@ -84,14 +104,15 @@
       "title": "Cookie Settings",
       "necessary": {
         "title": "Necessary Cookies",
-        "description": "Essential for the basic functionality of the website."
+        "description": "Essential for the basic functioning of the website."
       },
       "analytics": {
         "title": "Analytics Cookies",
         "description": "Help us understand how you interact with our website."
       },
       "marketing": {
-        "description": "Used to display relevant ads and measure campaigns."
+        "title": "Marketing Cookies",
+        "description": "Used to show relevant ads and measure campaigns."
       },
       "required": "Required",
       "cancel": "Cancel",

@@ -1,25 +1,22 @@
-/**
- * Sistema de Debug Logger para diagnosticar problemas de recarga constante
- * 
- * Proporciona logging estructurado para:
- * - Montaje/desmontaje de componentes
- * - Cambios de estado
- * - Eventos de Fast Refresh
- * - Errores de hidratación
- * - Bucles de renderizado
- */
+/* Debug Logger - structured logging and diagnostics */
 
-export interface LogEvent {
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+export type LogCategory = 'component' | 'hmr' | 'hydration' | 'render' | 'performance' | 'debug'
+
+interface LogEvent {
+  id: string
   timestamp: string
-  level: 'info' | 'warn' | 'error' | 'debug'
-  category: 'component' | 'hmr' | 'hydration' | 'render' | 'file-change' | 'performance' | 'debug'
+  level: LogLevel
+  category: LogCategory
   message: string
   data?: Record<string, any>
-  stack?: string
 }
 
 class DebugLogger {
   private logs: LogEvent[] = []
+  private renderLoopCount = 0
+  private lastRenderLoopTime = 0
+  
   private maxLogs = 1000
   private isEnabled = process.env.NODE_ENV === 'development'
 
@@ -44,12 +41,12 @@ class DebugLogger {
     data?: Record<string, any>
   ): LogEvent {
     return {
+      id: Math.random().toString(36).slice(2),
       timestamp: new Date().toISOString(),
       level,
       category,
       message,
-      data,
-      stack: level === 'error' ? new Error().stack : undefined
+      data
     }
   }
 
@@ -74,12 +71,22 @@ class DebugLogger {
     const reset = '\x1b[0m'
     const color = colors[event.level]
     
-    console.log(
-      `${color}[${event.level.toUpperCase()}]${reset} ` +
-      `${color}[${event.category}]${reset} ` +
-      `${event.message}`,
-      event.data ? event.data : ''
-    )
+    // Suppress interception to avoid recursive logging when debug-initializer intercepts console.log
+    if (typeof window !== 'undefined') {
+      ;(window as any).__suppressConsoleInterception = true
+    }
+    try {
+      console.log(
+        `${color}[${event.level.toUpperCase()}]${reset} ` +
+        `${color}[${event.category}]${reset} ` +
+        `${event.message}`,
+        event.data ? event.data : ''
+      )
+    } finally {
+      if (typeof window !== 'undefined') {
+        ;(window as any).__suppressConsoleInterception = false
+      }
+    }
   }
 
   // Métodos públicos de logging
@@ -204,40 +211,28 @@ class DebugLogger {
 
   clearLogs() {
     this.logs = []
-    console.log('🧹 Debug logs cleared')
+    // Suppress interception to avoid recursive logging when debug-initializer intercepts console.log
+    if (typeof window !== 'undefined') {
+      ;(window as any).__suppressConsoleInterception = true
+    }
+    try {
+      console.log('🧹 Debug logs cleared')
+    } finally {
+      if (typeof window !== 'undefined') {
+        ;(window as any).__suppressConsoleInterception = false
+      }
+    }
   }
 }
 
-// Singleton instance
 export const debugLogger = new DebugLogger()
 
-// Hook para usar en componentes React
 export function useDebugLogger(componentName: string) {
-  if (typeof window === 'undefined') return debugLogger
-
-  const renderCount = React.useRef(0)
-  
-  React.useEffect(() => {
-    renderCount.current++
-    debugLogger.componentMount(componentName)
-    debugLogger.componentRender(componentName, renderCount.current)
-    
-    return () => {
-      debugLogger.componentUnmount(componentName)
-    }
-  }, [componentName])
-
-  React.useEffect(() => {
-    debugLogger.componentRender(componentName, renderCount.current)
-  })
-
-  return debugLogger
-}
-
-// Importar React solo si está disponible
-let React: any
-try {
-  React = require('react')
-} catch {
-  // React no disponible en el servidor
+  // Simple helper hook for React components
+  return {
+    logRender: () => debugLogger.debug('component', `${componentName} rendered`),
+    logMount: () => debugLogger.info('component', `${componentName} mounted`),
+    logUnmount: () => debugLogger.info('component', `${componentName} unmounted`),
+    logError: (error: Error) => debugLogger.error('component', `${componentName} error: ${error.message}`)
+  }
 }

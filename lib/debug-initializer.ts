@@ -47,6 +47,11 @@ class DebugInitializer {
     // Interceptar console.log para detectar mensajes de Next.js
     const originalLog = console.log
     console.log = (...args) => {
+      // Skip interception for our own debug logger outputs to avoid recursion
+      if (typeof window !== 'undefined' && (window as any).__suppressConsoleInterception) {
+        return originalLog.apply(console, args)
+      }
+
       const message = args.join(' ')
       
       // Detectar mensajes específicos de Next.js
