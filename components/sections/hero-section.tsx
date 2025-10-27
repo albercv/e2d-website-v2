@@ -15,7 +15,7 @@ export function HeroSection() {
   const [isHovering, setIsHovering] = useState(false);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background border-t border-yellow-500">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       {/* Orb Background */}
       <div className="absolute inset-0 z-0">
         <Orb hoverIntensity={0.5} forceHoverState={isHovering} />

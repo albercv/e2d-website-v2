@@ -9,7 +9,7 @@ export function AboutSection() {
   const { renderCount } = useComponentDebugLogger('AboutSection');
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-background border-t border-yellow-500">
+    <section id="about" className="py-16 sm:py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative aspect-square w-full max-w-sm mx-auto md:mx-0 overflow-hidden">

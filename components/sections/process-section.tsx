@@ -44,7 +44,7 @@ export function ProcessSection() {
   const { renderCount } = useComponentDebugLogger('ProcessSection');
 
   return (
-    <section id="process" className="py-24 bg-muted/30 border-t border-yellow-500">
+    <section id="process" className="py-24 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
