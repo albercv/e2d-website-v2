@@ -1,6 +1,5 @@
 import type React from "react"
 import { NextIntlClientProvider } from "next-intl"
-import { getMessages } from "next-intl/server"
 import { notFound } from "next/navigation"
 import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/seo/json-ld"
 import { CookieBanner } from "@/components/gdpr/cookie-banner"
@@ -22,11 +21,11 @@ export default async function LocaleLayout({  children,
   // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale)) notFound()
 
-  // Providing all messages to the client side is the easiest way to get started
-  const messages = await getMessages()
+  // Explicitly load messages for the active route locale to avoid defaulting to 'es'
+  const messages = (await import(`@/messages/${locale}.json`)).default
 
   return (
-    <NextIntlClientProvider messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       {children}
       <CookieBanner />
       <DebugProvider />

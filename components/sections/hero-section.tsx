@@ -63,19 +63,19 @@ export function HeroSection() {
         >
           <div className="text-center">
             <div className="text-3xl font-bold text-[#05b4ba] mb-2">+35%</div>
-            <div className="text-sm text-muted-foreground">Más citas</div>
+            <div className="text-sm text-muted-foreground">{t("stats.moreAppointments")}</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-[#05b4ba] mb-2">-40%</div>
-            <div className="text-sm text-muted-foreground">Llamadas perdidas</div>
+            <div className="text-sm text-muted-foreground">{t("stats.missedCalls")}</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-[#05b4ba] mb-2">-28%</div>
-            <div className="text-sm text-muted-foreground">No-shows</div>
+            <div className="text-sm text-muted-foreground">{t("stats.noShows")}</div>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-[#05b4ba] mb-2">-12h</div>
-            <div className="text-sm text-muted-foreground">Tareas/semana</div>
+            <div className="text-sm text-muted-foreground">{t("stats.tasksPerWeek")}</div>
           </div>
         </motion.div>
       </div>

@@ -1,13 +1,18 @@
 "use client"
 
 import Image from "next/image"
+import { useLocale, useTranslations } from "next-intl"
 
 export function Footer() {
+  const locale = useLocale()
+  const tNav = useTranslations("navigation")
+  const tFooter = useTranslations("footer")
+
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-6 sm:py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <a href="/" className="flex items-center gap-3">
+          <a href={`/${locale}`} className="flex items-center gap-3">
             <Image
               src="/e2d_logo.webp"
               alt="E2D logo"
@@ -18,21 +23,21 @@ export function Footer() {
             />
           </a>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="/blog" className="hover:text-foreground transition-colors">
-              Blog
+            <a href={`/${locale}/blog`} className="hover:text-foreground transition-colors">
+              {tNav("blog")}
             </a>
-            <a href="#services" className="hover:text-foreground transition-colors">
-              Servicios
+            <a href={`/${locale}#services`} className="hover:text-foreground transition-colors">
+              {tNav("services")}
             </a>
-            <a href="#projects" className="hover:text-foreground transition-colors">
-              Proyectos
+            <a href={`/${locale}#projects`} className="hover:text-foreground transition-colors">
+              {tNav("projects")}
             </a>
-            <a href="#about" className="hover:text-foreground transition-colors">
-              Sobre mí
+            <a href={`/${locale}#about`} className="hover:text-foreground transition-colors">
+              {tNav("about")}
             </a>
             {/* Removed documentation link as requested */}
           </div>
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} E2D. Todos los derechos reservados.</p>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} E2D. {tFooter("copyright")}</p>
         </div>
       </div>
     </footer>

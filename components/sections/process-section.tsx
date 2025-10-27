@@ -11,31 +11,26 @@ const processSteps = [
     key: "diagnosis",
     icon: Search,
     color: "#05b4ba",
-    description: "Análisis de objetivos, sistemas actuales y requisitos GDPR",
   },
   {
     key: "prototype",
     icon: Lightbulb,
     color: "#293039",
-    description: "Demo funcional para validar la solución antes de la implementación",
   },
   {
     key: "integration",
     icon: Puzzle,
     color: "#05b4ba",
-    description: "Conexión con calendario, WhatsApp, voz, Sheets y bases de datos",
   },
   {
     key: "measurement",
     icon: BarChart,
     color: "#293039",
-    description: "KPIs de conversión, no-shows, tiempo ahorrado y ROI",
   },
   {
     key: "scale",
     icon: Rocket,
     color: "#05b4ba",
-    description: "Documentación, training del equipo y soporte continuo",
   },
 ]
 
@@ -89,7 +84,7 @@ export function ProcessSection() {
                     </CardHeader>
 
                     <CardContent className="text-center pt-0">
-                      <p className="text-sm text-muted-foreground text-pretty">{step.description}</p>
+                      <p className="text-sm text-muted-foreground text-pretty">{t(`descriptions.${step.key}`)}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -108,16 +103,16 @@ export function ProcessSection() {
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div>
-              <div className="text-2xl font-bold text-[#05b4ba] mb-2">2-4 semanas</div>
-              <div className="text-sm text-muted-foreground">Tiempo de implementación</div>
+              <div className="text-2xl font-bold text-[#05b4ba] mb-2">{t("benefits.duration.value")}</div>
+              <div className="text-sm text-muted-foreground">{t("benefits.duration.label")}</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#05b4ba] mb-2">100%</div>
-              <div className="text-sm text-muted-foreground">Transparencia en el proceso</div>
+              <div className="text-2xl font-bold text-[#05b4ba] mb-2">{t("benefits.transparency.value")}</div>
+              <div className="text-sm text-muted-foreground">{t("benefits.transparency.label")}</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-[#05b4ba] mb-2">24/7</div>
-              <p className="text-sm text-muted-foreground">Soporte post-implementación</p>
+              <div className="text-2xl font-bold text-[#05b4ba] mb-2">{t("benefits.support.value")}</div>
+              <p className="text-sm text-muted-foreground">{t("benefits.support.label")}</p>
             </div>
           </div>
         </motion.div>
