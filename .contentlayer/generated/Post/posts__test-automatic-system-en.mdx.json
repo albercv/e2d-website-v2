@@ -1,0 +1,35 @@
+{
+  "title": "Automatic System Test",
+  "description": "Testing the automatic regeneration system for SEO and MCP documentation",
+  "date": "2024-10-28T00:00:00.000Z",
+  "locale": "en",
+  "slug": "test-automatic-system-en",
+  "tags": [
+    "testing",
+    "automation",
+    "seo",
+    "mcp"
+  ],
+  "author": "Test Author",
+  "published": true,
+  "body": {
+    "raw": "\n# Automatic System Test\n\nThis is a test post in English to verify that the automatic regeneration system works correctly for both Spanish and English content.\n\n## Features Being Tested\n\n- Automatic sitemap regeneration\n- RSS feed updates\n- MCP documentation updates\n- File watcher functionality\n\n## Expected Results\n\n1. The sitemap should include this new post\n2. The English RSS feed should be updated\n3. MCP documentation should remain consistent\n4. All changes should be detected automatically\n\nThis post will be deleted after testing is complete.\n",
+    "code": "var Component=(()=>{var u=Object.create;var o=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var p=Object.getOwnPropertyNames;var g=Object.getPrototypeOf,f=Object.prototype.hasOwnProperty;var x=(t,e)=>()=>(e||t((e={exports:{}}).exports,e),e.exports),y=(t,e)=>{for(var i in e)o(t,i,{get:e[i],enumerable:!0})},r=(t,e,i,l)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let s of p(e))!f.call(t,s)&&s!==i&&o(t,s,{get:()=>e[s],enumerable:!(l=m(e,s))||l.enumerable});return t};var T=(t,e,i)=>(i=t!=null?u(g(t)):{},r(e||!t||!t.__esModule?o(i,\"default\",{value:t,enumerable:!0}):i,t)),S=t=>r(o({},\"__esModule\",{value:!0}),t);var c=x((j,a)=>{a.exports=_jsx_runtime});var M={};y(M,{default:()=>d,frontmatter:()=>_});var n=T(c()),_={title:\"Automatic System Test\",description:\"Testing the automatic regeneration system for SEO and MCP documentation\",date:\"2024-10-28\",locale:\"en\",slug:\"test-automatic-system-en\",tags:[\"testing\",\"automation\",\"seo\",\"mcp\"],author:\"Test Author\",published:!0};function h(t){let e={h1:\"h1\",h2:\"h2\",li:\"li\",ol:\"ol\",p:\"p\",ul:\"ul\",...t.components};return(0,n.jsxs)(n.Fragment,{children:[(0,n.jsx)(e.h1,{children:\"Automatic System Test\"}),`\n`,(0,n.jsx)(e.p,{children:\"This is a test post in English to verify that the automatic regeneration system works correctly for both Spanish and English content.\"}),`\n`,(0,n.jsx)(e.h2,{children:\"Features Being Tested\"}),`\n`,(0,n.jsxs)(e.ul,{children:[`\n`,(0,n.jsx)(e.li,{children:\"Automatic sitemap regeneration\"}),`\n`,(0,n.jsx)(e.li,{children:\"RSS feed updates\"}),`\n`,(0,n.jsx)(e.li,{children:\"MCP documentation updates\"}),`\n`,(0,n.jsx)(e.li,{children:\"File watcher functionality\"}),`\n`]}),`\n`,(0,n.jsx)(e.h2,{children:\"Expected Results\"}),`\n`,(0,n.jsxs)(e.ol,{children:[`\n`,(0,n.jsx)(e.li,{children:\"The sitemap should include this new post\"}),`\n`,(0,n.jsx)(e.li,{children:\"The English RSS feed should be updated\"}),`\n`,(0,n.jsx)(e.li,{children:\"MCP documentation should remain consistent\"}),`\n`,(0,n.jsx)(e.li,{children:\"All changes should be detected automatically\"}),`\n`]}),`\n`,(0,n.jsx)(e.p,{children:\"This post will be deleted after testing is complete.\"})]})}function d(t={}){let{wrapper:e}=t.components||{};return e?(0,n.jsx)(e,{...t,children:(0,n.jsx)(h,{...t})}):h(t)}return S(M);})();\n;return Component;"
+  },
+  "_id": "posts/test-automatic-system-en.mdx",
+  "_raw": {
+    "sourceFilePath": "posts/test-automatic-system-en.mdx",
+    "sourceFileName": "test-automatic-system-en.mdx",
+    "sourceFileDir": "posts",
+    "contentType": "mdx",
+    "flattenedPath": "posts/test-automatic-system-en"
+  },
+  "type": "Post",
+  "url": "/en/blog/test-automatic-system-en",
+  "readingTime": {
+    "minutes": 0,
+    "words": 80,
+    "text": "menos de un minuto leyendo"
+  },
+  "wordCount": 89
+}

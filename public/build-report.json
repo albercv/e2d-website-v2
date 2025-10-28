@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-10-28T18:44:43.736Z",
+  "duration": "2ms",
+  "success": true,
+  "files": {
+    "sitemap": {
+      "path": "public/sitemap.xml",
+      "urls": 8
+    },
+    "rss": {
+      "es": {
+        "path": "public/rss-es.xml",
+        "items": 1
+      },
+      "en": {
+        "path": "public/rss-en.xml",
+        "items": 1
+      }
+    }
+  }
+}

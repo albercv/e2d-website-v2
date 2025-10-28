@@ -1,0 +1,34 @@
+{
+  "title": "Test Auto-Regeneration System",
+  "description": "Post de prueba para verificar que el sistema de regeneración automática de SEO funciona correctamente",
+  "date": "2024-01-15T00:00:00.000Z",
+  "locale": "es",
+  "slug": "test-auto-regeneration-system",
+  "tags": [
+    "test",
+    "automation",
+    "seo"
+  ],
+  "author": "Alberto Carrasco",
+  "published": true,
+  "body": {
+    "raw": "\n# Test de Regeneración Automática\n\nEste es un post de prueba para verificar que el sistema de regeneración automática de archivos SEO funciona correctamente.\n\n## Características que se deben regenerar automáticamente:\n\n1. **Sitemap.xml** - Debe incluir este nuevo post\n2. **RSS feeds** - Tanto español como inglés deben actualizarse\n3. **Documentación MCP** - Debe regenerarse si hay cambios en los endpoints\n\n## Proceso de prueba\n\nCuando se guarde este archivo, el file watcher debería:\n\n- Detectar el cambio en `content/posts/`\n- Esperar 2 segundos (debounce)\n- Ejecutar la regeneración completa\n- Actualizar todos los archivos SEO\n\n¡Vamos a ver si funciona! 🚀",
+    "code": "var Component=(()=>{var h=Object.create;var o=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var p=Object.getOwnPropertyNames;var g=Object.getPrototypeOf,f=Object.prototype.hasOwnProperty;var b=(r,e)=>()=>(e||r((e={exports:{}}).exports,e),e.exports),x=(r,e)=>{for(var t in e)o(r,t,{get:e[t],enumerable:!0})},c=(r,e,t,i)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let a of p(e))!f.call(r,a)&&a!==t&&o(r,a,{get:()=>e[a],enumerable:!(i=m(e,a))||i.enumerable});return r};var v=(r,e,t)=>(t=r!=null?h(g(r)):{},c(e||!r||!r.__esModule?o(t,\"default\",{value:r,enumerable:!0}):t,r)),S=r=>c(o({},\"__esModule\",{value:!0}),r);var l=b((D,s)=>{s.exports=_jsx_runtime});var j={};x(j,{default:()=>u,frontmatter:()=>_});var n=v(l()),_={title:\"Test Auto-Regeneration System\",description:\"Post de prueba para verificar que el sistema de regeneraci\\xF3n autom\\xE1tica de SEO funciona correctamente\",date:\"2024-01-15\",published:!0,featured:!1,author:\"Alberto Carrasco\",tags:[\"test\",\"automation\",\"seo\"],locale:\"es\",slug:\"test-auto-regeneration-system\"};function d(r){let e={code:\"code\",h1:\"h1\",h2:\"h2\",li:\"li\",ol:\"ol\",p:\"p\",strong:\"strong\",ul:\"ul\",...r.components};return(0,n.jsxs)(n.Fragment,{children:[(0,n.jsx)(e.h1,{children:\"Test de Regeneraci\\xF3n Autom\\xE1tica\"}),`\n`,(0,n.jsx)(e.p,{children:\"Este es un post de prueba para verificar que el sistema de regeneraci\\xF3n autom\\xE1tica de archivos SEO funciona correctamente.\"}),`\n`,(0,n.jsx)(e.h2,{children:\"Caracter\\xEDsticas que se deben regenerar autom\\xE1ticamente:\"}),`\n`,(0,n.jsxs)(e.ol,{children:[`\n`,(0,n.jsxs)(e.li,{children:[(0,n.jsx)(e.strong,{children:\"Sitemap.xml\"}),\" - Debe incluir este nuevo post\"]}),`\n`,(0,n.jsxs)(e.li,{children:[(0,n.jsx)(e.strong,{children:\"RSS feeds\"}),\" - Tanto espa\\xF1ol como ingl\\xE9s deben actualizarse\"]}),`\n`,(0,n.jsxs)(e.li,{children:[(0,n.jsx)(e.strong,{children:\"Documentaci\\xF3n MCP\"}),\" - Debe regenerarse si hay cambios en los endpoints\"]}),`\n`]}),`\n`,(0,n.jsx)(e.h2,{children:\"Proceso de prueba\"}),`\n`,(0,n.jsx)(e.p,{children:\"Cuando se guarde este archivo, el file watcher deber\\xEDa:\"}),`\n`,(0,n.jsxs)(e.ul,{children:[`\n`,(0,n.jsxs)(e.li,{children:[\"Detectar el cambio en \",(0,n.jsx)(e.code,{children:\"content/posts/\"})]}),`\n`,(0,n.jsx)(e.li,{children:\"Esperar 2 segundos (debounce)\"}),`\n`,(0,n.jsx)(e.li,{children:\"Ejecutar la regeneraci\\xF3n completa\"}),`\n`,(0,n.jsx)(e.li,{children:\"Actualizar todos los archivos SEO\"}),`\n`]}),`\n`,(0,n.jsx)(e.p,{children:\"\\xA1Vamos a ver si funciona! \\u{1F680}\"})]})}function u(r={}){let{wrapper:e}=r.components||{};return e?(0,n.jsx)(e,{...r,children:(0,n.jsx)(d,{...r})}):d(r)}return S(j);})();\n;return Component;"
+  },
+  "_id": "posts/test-auto-regeneration.mdx",
+  "_raw": {
+    "sourceFilePath": "posts/test-auto-regeneration.mdx",
+    "sourceFileName": "test-auto-regeneration.mdx",
+    "sourceFileDir": "posts",
+    "contentType": "mdx",
+    "flattenedPath": "posts/test-auto-regeneration"
+  },
+  "type": "Post",
+  "url": "/es/blog/test-auto-regeneration-system",
+  "readingTime": {
+    "minutes": 0,
+    "words": 92,
+    "text": "menos de un minuto leyendo"
+  },
+  "wordCount": 103
+}

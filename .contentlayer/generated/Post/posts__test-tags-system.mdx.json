@@ -1,0 +1,36 @@
+{
+  "title": "Test Tags System",
+  "description": "Testing the automatic tag processing and MCP documentation system",
+  "date": "2024-10-28T00:00:00.000Z",
+  "locale": "en",
+  "slug": "test-tags-system",
+  "cover": "/images/blog/default-cover.jpg",
+  "tags": [
+    "automation",
+    "testing",
+    "mcp",
+    "seo"
+  ],
+  "author": "Test Author",
+  "published": true,
+  "body": {
+    "raw": "\n# Test Tags System\n\nThis post is created to test the automatic tag processing system and verify that MCP documentation is updated accordingly.\n\n## Features Being Tested\n\n- Tag processing\n- MCP documentation updates\n- SEO regeneration\n- RSS feed updates\n\nThe system should automatically detect this new post and update all relevant documentation.\n",
+    "code": "var Component=(()=>{var h=Object.create;var i=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var g=Object.getOwnPropertyNames;var p=Object.getPrototypeOf,y=Object.prototype.hasOwnProperty;var T=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports),x=(e,t)=>{for(var s in t)i(e,s,{get:t[s],enumerable:!0})},r=(e,t,s,o)=>{if(t&&typeof t==\"object\"||typeof t==\"function\")for(let a of g(t))!y.call(e,a)&&a!==s&&i(e,a,{get:()=>t[a],enumerable:!(o=m(t,a))||o.enumerable});return e};var f=(e,t,s)=>(s=e!=null?h(p(e)):{},r(t||!e||!e.__esModule?i(s,\"default\",{value:e,enumerable:!0}):s,e)),_=e=>r(i({},\"__esModule\",{value:!0}),e);var d=T((S,c)=>{c.exports=_jsx_runtime});var M={};x(M,{default:()=>u,frontmatter:()=>j});var n=f(d()),j={title:\"Test Tags System\",description:\"Testing the automatic tag processing and MCP documentation system\",date:\"2024-10-28\",locale:\"en\",slug:\"test-tags-system\",cover:\"/images/blog/default-cover.jpg\",tags:[\"automation\",\"testing\",\"mcp\",\"seo\"],author:\"Test Author\",published:!0};function l(e){let t={h1:\"h1\",h2:\"h2\",li:\"li\",p:\"p\",ul:\"ul\",...e.components};return(0,n.jsxs)(n.Fragment,{children:[(0,n.jsx)(t.h1,{children:\"Test Tags System\"}),`\n`,(0,n.jsx)(t.p,{children:\"This post is created to test the automatic tag processing system and verify that MCP documentation is updated accordingly.\"}),`\n`,(0,n.jsx)(t.h2,{children:\"Features Being Tested\"}),`\n`,(0,n.jsxs)(t.ul,{children:[`\n`,(0,n.jsx)(t.li,{children:\"Tag processing\"}),`\n`,(0,n.jsx)(t.li,{children:\"MCP documentation updates\"}),`\n`,(0,n.jsx)(t.li,{children:\"SEO regeneration\"}),`\n`,(0,n.jsx)(t.li,{children:\"RSS feed updates\"}),`\n`]}),`\n`,(0,n.jsx)(t.p,{children:\"The system should automatically detect this new post and update all relevant documentation.\"})]})}function u(e={}){let{wrapper:t}=e.components||{};return t?(0,n.jsx)(t,{...e,children:(0,n.jsx)(l,{...e})}):l(e)}return _(M);})();\n;return Component;"
+  },
+  "_id": "posts/test-tags-system.mdx",
+  "_raw": {
+    "sourceFilePath": "posts/test-tags-system.mdx",
+    "sourceFileName": "test-tags-system.mdx",
+    "sourceFileDir": "posts",
+    "contentType": "mdx",
+    "flattenedPath": "posts/test-tags-system"
+  },
+  "type": "Post",
+  "url": "/en/blog/test-tags-system",
+  "readingTime": {
+    "minutes": 0,
+    "words": 48,
+    "text": "menos de un minuto leyendo"
+  },
+  "wordCount": 56
+}
