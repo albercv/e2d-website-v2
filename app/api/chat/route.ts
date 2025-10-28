@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const WEBHOOK_URL = "https://api.evolve2digital.com/webhook/userMessage"
+const WEBHOOK_URL = process.env.E2D_CHAT_WEBHOOK_URL || "https://api.evolve2digital.com/webhook/userMessage"
 
 function getAuthHeader() {
   const user = process.env.E2D_CHAT_USER

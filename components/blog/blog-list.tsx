@@ -57,13 +57,14 @@ export function BlogList({ posts, locale }: BlogListProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
         {filteredPosts.map((post, index) => (
           <motion.div
             key={post.slug}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
+            className="h-full"
           >
             <BlogCard post={post} />
           </motion.div>

@@ -12,8 +12,8 @@ export function OrganizationSchema({ locale }: OrganizationSchemaProps) {
     logo: "/e2d_logo.webp",
     description:
       locale === "es"
-        ? "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías."
-        : "Automate your SME: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
+        ? "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías."
+        : "Automate your company: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
     founder: {
       "@type": "Person",
       name: "Alberto Carrasco",
@@ -159,8 +159,8 @@ export function WebsiteSchema({ locale }: WebsiteSchemaProps) {
     url: `https://evolve2digital.com/${locale}`,
     description:
       locale === "es"
-        ? "Automatiza tu pyme: más ventas, menos tareas. Especialistas en automatización para PYMEs españolas."
-        : "Automate your SME: more sales, fewer tasks. Automation specialists for Spanish SMEs.",
+        ? "Automatiza tu empresa: más ventas, menos tareas. Especialistas en automatización para PYMEs españolas."
+        : "Automate your company: more sales, fewer tasks. Automation specialists for Spanish companies",
     inLanguage: locale === "es" ? "es-ES" : "en-US",
     isPartOf: {
       "@type": "WebSite",

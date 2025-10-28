@@ -19,9 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "E2D - Evolve2Digital | Automatiza tu PYME",
+  title: "E2D - Evolve2Digital | Automatiza tu empresa",
   description:
-    "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
+    "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
   generator: "E2D - Evolve2Digital",
   keywords: ["automatización", "chatbots", "WhatsApp", "voicebots", "PYME", "clínicas", "inmobiliarias"],
   authors: [{ name: "Alberto Carrasco", url: "https://evolve2digital.com" }],
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
     alternateLocale: "en_US",
     url: "https://evolve2digital.com",
     siteName: "E2D - Evolve2Digital",
-    title: "E2D - Automatiza tu PYME con IA",
-    description: "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
+    title: "E2D - Automatiza tu empresa con IA",
+    description: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "E2D - Automatiza tu PYME con IA",
-    description: "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
+    title: "E2D - Automatiza tu empresa con IA",
+    description: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
   },
   robots: {
     index: true,
