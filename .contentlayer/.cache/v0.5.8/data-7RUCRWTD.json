@@ -49,7 +49,7 @@
         "date": "2025-10-28T00:00:00.000Z",
         "locale": "es",
         "slug": "ia-webs",
-        "cover": "http://localhost:3000/e2d_logo.webp",
+        "cover": "http://localhost:3002/e2d_logo.webp",
         "tags": [
           "web",
           "IA",
@@ -59,7 +59,7 @@
         "published": true,
         "body": {
           "raw": "\n\n\nLas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IA\n",
-          "code": "var Component=(()=>{var r=Object.create;var c=Object.defineProperty;var l=Object.getOwnPropertyDescriptor;var i=Object.getOwnPropertyNames;var u=Object.getPrototypeOf,p=Object.prototype.hasOwnProperty;var d=(s,e)=>()=>(e||s((e={exports:{}}).exports,e),e.exports),m=(s,e)=>{for(var o in e)c(s,o,{get:e[o],enumerable:!0})},w=(s,e,o,b)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let n of i(e))!p.call(s,n)&&n!==o&&c(s,n,{get:()=>e[n],enumerable:!(b=l(e,n))||b.enumerable});return s};var x=(s,e,o)=>(o=s!=null?r(u(s)):{},w(e||!s||!s.__esModule?c(o,\"default\",{value:s,enumerable:!0}):o,s)),h=s=>w(c({},\"__esModule\",{value:!0}),s);var A=d((j,t)=>{t.exports=_jsx_runtime});var f={};m(f,{default:()=>L,frontmatter:()=>_});var a=x(A()),_={title:\"Las webs con IA\",description:\"Las webs con IA\",date:\"2025-10-28\",locale:\"es\",slug:\"ia-webs\",author:\"Alberto Carrasco\",published:!0,cover:\"http://localhost:3000/e2d_logo.webp\",tags:[\"web\",\"IA\",\"desarrolloweb\"]};function I(s){let e={p:\"p\",...s.components};return(0,a.jsx)(e.p,{children:\"Las webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IA\"})}function L(s={}){let{wrapper:e}=s.components||{};return e?(0,a.jsx)(e,{...s,children:(0,a.jsx)(I,{...s})}):I(s)}return h(f);})();\n;return Component;"
+          "code": "var Component=(()=>{var r=Object.create;var c=Object.defineProperty;var l=Object.getOwnPropertyDescriptor;var i=Object.getOwnPropertyNames;var u=Object.getPrototypeOf,p=Object.prototype.hasOwnProperty;var d=(s,e)=>()=>(e||s((e={exports:{}}).exports,e),e.exports),m=(s,e)=>{for(var o in e)c(s,o,{get:e[o],enumerable:!0})},w=(s,e,o,b)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let n of i(e))!p.call(s,n)&&n!==o&&c(s,n,{get:()=>e[n],enumerable:!(b=l(e,n))||b.enumerable});return s};var x=(s,e,o)=>(o=s!=null?r(u(s)):{},w(e||!s||!s.__esModule?c(o,\"default\",{value:s,enumerable:!0}):o,s)),h=s=>w(c({},\"__esModule\",{value:!0}),s);var A=d((j,t)=>{t.exports=_jsx_runtime});var f={};m(f,{default:()=>L,frontmatter:()=>_});var a=x(A()),_={title:\"Las webs con IA\",description:\"Las webs con IA\",date:\"2025-10-28\",locale:\"es\",slug:\"ia-webs\",author:\"Alberto Carrasco\",published:!0,cover:\"http://localhost:3002/e2d_logo.webp\",tags:[\"web\",\"IA\",\"desarrolloweb\"]};function I(s){let e={p:\"p\",...s.components};return(0,a.jsx)(e.p,{children:\"Las webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IALas webs con IA\"})}function L(s={}){let{wrapper:e}=s.components||{};return e?(0,a.jsx)(e,{...s,children:(0,a.jsx)(I,{...s})}):I(s)}return h(f);})();\n;return Component;"
         },
         "_id": "ia-webs.es.mdx",
         "_raw": {
@@ -78,7 +78,7 @@
         },
         "wordCount": 99
       },
-      "documentHash": "1761652934961",
+      "documentHash": "1761655490208",
       "hasWarnings": false,
       "documentTypeName": "Post"
     },

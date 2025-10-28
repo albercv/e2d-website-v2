@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     const header = { alg: "HS256", typ: "JWT" }
     const now = Math.floor(Date.now() / 1000)
-    const exp = now + 7 * 24 * 60 * 60 // 7 días
+    const exp = now + 24 * 60 * 60 // 24 horas
     const payload = { sub: ADMIN_EMAIL, iat: now, exp }
 
     const headerB64 = base64url(Buffer.from(JSON.stringify(header)))
@@ -42,8 +42,8 @@ export async function POST(req: Request) {
 
     const res = NextResponse.json({ ok: true })
 
-    // 7 días
-    const maxAge = 7 * 24 * 60 * 60
+    // Expira en 24 horas
+    const maxAge = 24 * 60 * 60
 
     res.cookies.set("admin_session", token, {
       httpOnly: true,
