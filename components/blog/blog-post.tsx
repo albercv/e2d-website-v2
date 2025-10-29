@@ -10,6 +10,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { MDXComponents } from "./mdx-components"
 import { BlogPostSchema, BreadcrumbSchema } from "@/components/seo/json-ld"
+import { useTranslations } from "next-intl"
 
 interface BlogPostProps {
   post: Post
@@ -17,10 +18,11 @@ interface BlogPostProps {
 
 export function BlogPost({ post }: BlogPostProps) {
   const MDXContent = useMDXComponent(post.body.code)
+  const t = useTranslations("blog")
 
   const breadcrumbItems = [
-    { name: "Inicio", url: `/${post.locale}` },
-    { name: "Blog", url: `/${post.locale}/blog` },
+    { name: t("breadcrumb.home"), url: `/${post.locale}` },
+    { name: t("breadcrumb.blog"), url: `/${post.locale}/blog` },
     { name: post.title, url: `/${post.locale}/blog/${post.slug}` },
   ]
 
@@ -60,7 +62,7 @@ export function BlogPost({ post }: BlogPostProps) {
             <Link href={`/${post.locale}/blog`}>
               <Button variant="ghost" className="text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {post.locale === "es" ? "Volver al blog" : "Back to blog"}
+                {t("back")}
               </Button>
             </Link>
 
@@ -117,17 +119,13 @@ export function BlogPost({ post }: BlogPostProps) {
             className="mt-12 p-8 bg-muted/30 rounded-lg text-center"
           >
             <h3 className="text-2xl font-bold text-foreground mb-4">
-              {post.locale === "es"
-                ? "¿Te interesa automatizar tu negocio?"
-                : "Interested in automating your business?"}
+              {t("cta.title")}
             </h3>
             <p className="text-muted-foreground mb-6">
-              {post.locale === "es"
-                ? "Reserva una demo gratuita y descubre cómo podemos ayudarte"
-                : "Book a free demo and discover how we can help you"}
+              {t("cta.subtitle")}
             </p>
             <Button className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">
-              {post.locale === "es" ? "Reservar demo" : "Book demo"}
+              {t("cta.button")}
             </Button>
           </motion.div>
         </motion.div>

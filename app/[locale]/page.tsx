@@ -2,9 +2,9 @@ import { HeroSection } from "@/components/sections/hero-section"
 import { ServicesSection } from "@/components/sections/services-section"
 import { Footer } from "@/components/layout/footer"
 import { Navigation } from "@/components/layout/navigation"
-import { AIAgentButton } from "@/components/ai-agent/ai-agent-button"
 import { Suspense } from "react"
 import { ProjectsSectionLazy, AboutSectionLazy, ProcessSectionLazy } from "@/components/performance/lazy-components"
+import { E2DChat } from "@/components/chat/e2d-chat"
 
 export default function HomePage() {
   return (
@@ -24,7 +24,7 @@ export default function HomePage() {
         </Suspense>
       </main>
       <Footer />
-      <AIAgentButton />
+      <E2DChat />
     </div>
   )
 }

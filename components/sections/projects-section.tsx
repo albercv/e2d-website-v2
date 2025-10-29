@@ -53,7 +53,7 @@ export function ProjectsSection() {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
           {projects.map((project, index) => (
             <motion.div
               key={index}
@@ -61,9 +61,10 @@ export function ProjectsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
+              className="h-full"
             >
-              <ElectricBorder color="#05b4ba" speed={1} chaos={0.6} thickness={2} className="rounded-xl hover-only" style={{ borderRadius: 12 }}>
-                <Card className="h-full bg-card border-border hover:border-[#05b4ba]/50 transition-colors group overflow-hidden rounded-xl">
+              <ElectricBorder color="#05b4ba" speed={1} chaos={0.6} thickness={2} className="rounded-xl hover-only h-full block" style={{ borderRadius: 12 }}>
+                <Card className="h-full min-h-[440px] flex flex-col bg-card border-border hover:border-[#05b4ba]/50 transition-colors group overflow-hidden rounded-xl">
                   <div className="relative h-48 w-full">
                     <Image
                       src={project.image}
@@ -75,10 +76,10 @@ export function ProjectsSection() {
                   <CardHeader>
                     <CardTitle className="text-xl font-semibold text-foreground">{project.title}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-muted-foreground mb-4">{project.description}</CardDescription>
+                  <CardContent className="mt-auto">
+                    <CardDescription className="text-muted-foreground mb-4 line-clamp-3">{project.description}</CardDescription>
                     <div className="flex flex-wrap gap-2">
-                      {project.tags.map((tag: string, i: number) => (
+                      {project.tags.slice(0, 3).map((tag: string, i: number) => (
                         <Badge key={i} variant="secondary" className="bg-muted text-muted-foreground">
                           {tag}
                         </Badge>

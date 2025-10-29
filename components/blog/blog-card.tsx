@@ -11,8 +11,8 @@ interface BlogCardProps {
 
 export function BlogCard({ post }: BlogCardProps) {
   return (
-    <Link href={post.url} className="block group">
-      <Card className="h-full bg-card border-border hover:border-[#05b4ba]/50 transition-colors">
+    <Link href={post.url} className="block group h-full">
+      <Card className="h-full flex flex-col bg-card border-border hover:border-[#05b4ba]/50 transition-colors">
         {post.cover && (
           <div className="aspect-video overflow-hidden rounded-t-lg">
             <Image
@@ -26,7 +26,7 @@ export function BlogCard({ post }: BlogCardProps) {
           </div>
         )}
 
-        <CardHeader>
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
@@ -43,11 +43,11 @@ export function BlogCard({ post }: BlogCardProps) {
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="flex-1 flex flex-col">
           <CardDescription className="text-muted-foreground mb-4 line-clamp-3">{post.description}</CardDescription>
 
           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-auto flex flex-wrap gap-2">
               {post.tags.slice(0, 3).map((tag) => (
                 <Badge key={tag} variant="secondary" className="bg-muted text-muted-foreground">
                   {tag}

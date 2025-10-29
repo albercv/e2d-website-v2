@@ -1,59 +1,12 @@
+import { JsonLdGenerator, defaultJsonLdConfig, type BlogPostData } from '@/lib/json-ld-generator'
+
 interface OrganizationSchemaProps {
   locale: string
 }
 
 export function OrganizationSchema({ locale }: OrganizationSchemaProps) {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "E2D - Evolve2Digital",
-    alternateName: "E2D",
-    url: `https://evolve2digital.com/${locale}`,
-    logo: "/e2d_logo.webp",
-    description:
-      locale === "es"
-        ? "Automatiza tu pyme: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías."
-        : "Automate your SME: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
-    founder: {
-      "@type": "Person",
-      name: "Alberto Carrasco",
-      jobTitle: "Full-Stack Architect & Automation Specialist",
-    },
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+34-600-000-000",
-      contactType: "customer service",
-      email: "hello@evolve2digital.com",
-      availableLanguage: ["Spanish", "English"],
-    },
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "ES",
-      addressLocality: "España",
-    },
-    sameAs: [
-      "https://github.com/albertocarrasco",
-      "https://linkedin.com/in/albertocarrasco",
-      "https://twitter.com/albertocarrasco",
-    ],
-    serviceArea: {
-      "@type": "Country",
-      name: "Spain",
-    },
-    areaServed: "Spain",
-    knowsAbout: [
-      "Web Development",
-      "Process Automation",
-      "WhatsApp Bots",
-      "Voice Bots",
-      "CRM Systems",
-      "ERP Systems",
-      "React",
-      "Next.js",
-      "n8n",
-      "GDPR Compliance",
-    ],
-  }
+  const generator = new JsonLdGenerator(defaultJsonLdConfig)
+  const schema = generator.generateOrganizationSchema(locale)
 
   return (
     <script
@@ -159,8 +112,8 @@ export function WebsiteSchema({ locale }: WebsiteSchemaProps) {
     url: `https://evolve2digital.com/${locale}`,
     description:
       locale === "es"
-        ? "Automatiza tu pyme: más ventas, menos tareas. Especialistas en automatización para PYMEs españolas."
-        : "Automate your SME: more sales, fewer tasks. Automation specialists for Spanish SMEs.",
+        ? "Automatiza tu empresa: más ventas, menos tareas. Especialistas en automatización para PYMEs españolas."
+        : "Automate your company: more sales, fewer tasks. Automation specialists for Spanish companies",
     inLanguage: locale === "es" ? "es-ES" : "en-US",
     isPartOf: {
       "@type": "WebSite",
@@ -223,6 +176,10 @@ interface BlogPostSchemaProps {
   url: string
   image?: string
   locale: string
+  tags?: string[]
+  wordCount?: number
+  readingTime?: any
+  category?: string
 }
 
 export function BlogPostSchema({
@@ -234,47 +191,29 @@ export function BlogPostSchema({
   url,
   image,
   locale,
+  tags,
+  wordCount,
+  readingTime,
+  category,
 }: BlogPostSchemaProps) {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: title,
+  const generator = new JsonLdGenerator(defaultJsonLdConfig)
+  
+  const blogPostData: BlogPostData = {
+    title,
     description,
-    author: {
-      "@type": "Person",
-      name: author,
-      url: "https://evolve2digital.com",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "E2D - Evolve2Digital",
-      logo: {
-        "@type": "ImageObject",
-        url: "/e2d_logo.webp",
-      }
-    },
+    author,
     datePublished,
-    dateModified: dateModified || datePublished,
+    dateModified,
     url,
-    image: image || "https://evolve2digital.com/og-image.png",
-    inLanguage: locale === "es" ? "es-ES" : "en-US",
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": url,
-    },
-    articleSection: locale === "es" ? "Automatización" : "Automation",
-    keywords: [
-      "automatización",
-      "chatbots",
-      "WhatsApp",
-      "voicebots",
-      "PYME",
-      "desarrollo web",
-      "React",
-      "Next.js",
-      "n8n",
-    ],
+    image,
+    locale,
+    tags,
+    wordCount,
+    readingTime,
+    category,
   }
+  
+  const schema = generator.generateBlogPostSchema(blogPostData)
 
   return (
     <script

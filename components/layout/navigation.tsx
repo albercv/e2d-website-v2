@@ -1,23 +1,29 @@
 "use client"
 
 import { useState } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { LanguageSwitcher } from "./language-switcher"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
+import { ContactModal } from "@/components/contact/contact-modal"
 
 export function Navigation() {
   const t = useTranslations("navigation")
   const [isOpen, setIsOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const locale = useLocale()
+  const pathname = usePathname()
+
+  const isBlog = /^\/(es|en)\/blog(\b|\/)/.test(pathname || "")
 
   const navItems = [
-    { key: "services", href: "#services" },
-    { key: "projects", href: "#projects" },
-    { key: "about", href: "#about" },
-    { key: "blog", href: "/blog" },
-    // Removed documentation link as requested
+    { key: "services", href: `/${locale}#services` },
+    { key: "projects", href: `/${locale}#projects` },
+    { key: "about", href: `/${locale}#about` },
+    { key: "blog", href: `/${locale}/blog` },
   ]
 
   return (
@@ -26,7 +32,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" aria-label="E2D - Inicio" className="inline-flex items-center">
+            <a href={`/${locale}`} aria-label="E2D - Inicio" className="inline-flex items-center">
               <Image
                 src="/e2d_logo.webp"
                 alt="E2D logo"
@@ -41,7 +47,7 @@ export function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              {navItems.map((item) => (
+              {!isBlog && navItems.map((item) => (
                 <a
                   key={item.key}
                   href={item.href}
@@ -56,7 +62,10 @@ export function Navigation() {
           {/* Desktop CTA and Language */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
-            <Button className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+            <Button onClick={() => setContactOpen(true)} className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+            <Button variant="outline" asChild>
+              <a href="/admin">Admin</a>
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -78,7 +87,7 @@ export function Navigation() {
             className="md:hidden bg-background border-b border-border"
           >
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navItems.map((item) => (
+              {!isBlog && navItems.map((item) => (
                 <a
                   key={item.key}
                   href={item.href}
@@ -90,12 +99,17 @@ export function Navigation() {
               ))}
               <div className="flex items-center space-x-4 px-3 py-2">
                 <LanguageSwitcher />
-                <Button className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+                <Button onClick={() => { setContactOpen(true); setIsOpen(false) }} className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+                <Button variant="outline" asChild>
+                  <a href="/admin" onClick={() => setIsOpen(false)}>Admin</a>
+                </Button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ContactModal open={contactOpen} onOpenChange={setContactOpen} />
     </nav>
   )
 }

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "E2D - Evolve2Digital",
     short_name: "E2D",
-    description: "Automatiza tu pyme: más ventas, menos tareas. Especialistas en automatización para PYMEs.",
+    description: "Automatiza tu empresa: más ventas, menos tareas. Especialistas en automatización para PYMEs.",
     start_url: "/es",
     display: "standalone",
     background_color: "#0a0a0a",

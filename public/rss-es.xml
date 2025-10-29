@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[E2D Blog - Automatización y Tecnología]]></title>
+    <description><![CDATA[Artículos sobre automatización, chatbots, desarrollo web y tecnología para PYMEs españolas. Guías prácticas, casos de uso y tendencias en IA.]]></description>
+    <link>https://evolve2digital.com/es/blog</link>
+    <atom:link href="https://evolve2digital.com/es/rss.xml" rel="self" type="application/rss+xml" />
+    <language>es-ES</language>
+    <lastBuildDate>Tue, 28 Oct 2025 19:38:25 GMT</lastBuildDate>
+    <managingEditor>hello@evolve2digital.com (Alberto Carrasco)</managingEditor>
+    <webMaster>hello@evolve2digital.com (Alberto Carrasco)</webMaster>
+    <generator>E2D RSS Generator v2.0 - AI Optimized</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <ttl>60</ttl>
+    <category><![CDATA[Automatización]]></category>
+    <category><![CDATA[Tecnología]]></category>
+    <category><![CDATA[IA]]></category>
+    <category><![CDATA[Desarrollo Web]]></category>
+    <category><![CDATA[PYMEs]]></category>
+    <category><![CDATA[Chatbots]]></category>
+    <category><![CDATA[WhatsApp]]></category>
+    <category><![CDATA[n8n]]></category>
+    <image>
+      <url>https://evolve2digital.com/e2d_logo.webp</url>
+      <title><![CDATA[E2D - Evolve2Digital]]></title>
+      <link>https://evolve2digital.com/es</link>
+      <width>144</width>
+      <height>144</height>
+    </image>
+    <item>
+      <title><![CDATA[Arquitectura de Microservicios: Construyendo Sistemas Escalables para Empresas Modernas]]></title>
+      <description><![CDATA[Descubre cómo la arquitectura de microservicios transforma el desarrollo de software empresarial, habilitando escalabilidad, flexibilidad y ciclos de despliegue más rápidos para negocios modernos.]]></description>
+      <link>https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables</link>
+      <guid isPermaLink="true">https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables</guid>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 GMT</pubDate>
+      <author>hello@evolve2digital.com (Alberto Carrasco)</author>
+      <category><![CDATA[microservicios]]></category>
+      <category><![CDATA[arquitectura]]></category>
+      <category><![CDATA[escalabilidad]]></category>
+      <category><![CDATA[empresa]]></category>
+      <category><![CDATA[devops]]></category>
+      <category><![CDATA[nube]]></category>
+      <category><![CDATA[Automatización]]></category>
+      <category><![CDATA[Tecnología]]></category>
+      <enclosure url="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2134&q=80" type="image/webp" length="0" />
+      <dc:type>guide</dc:type>
+      <dc:readingTime>6</dc:readingTime>
+      <dc:wordCount>1345</dc:wordCount>
+      <dc:difficulty>intermediate</dc:difficulty>
+      <dc:topics>microservicios,arquitectura,escalabilidad,empresa,devops,nube,ai</dc:topics>
+      <dc:lastUpdated>2024-12-28T00:00:00.000Z</dc:lastUpdated>
+    </item>
+    <item>
+      <title><![CDATA[Desarrollo Cloud-Native: La Guía Completa Empresarial para Arquitectura de Software Moderna]]></title>
+      <description><![CDATA[Domina los principios, herramientas y estrategias del desarrollo cloud-native para construir aplicaciones resilientes y escalables que aprovechen todo el poder de la computación en la nube para el éxito empresarial.]]></description>
+      <link>https://evolve2digital.com/es/blog/desarrollo-cloud-native-guia-empresarial</link>
+      <guid isPermaLink="true">https://evolve2digital.com/es/blog/desarrollo-cloud-native-guia-empresarial</guid>
+      <pubDate>Sat, 28 Dec 2024 00:00:00 GMT</pubDate>
+      <author>hello@evolve2digital.com (Alberto Carrasco)</author>
+      <category><![CDATA[cloud-native]]></category>
+      <category><![CDATA[kubernetes]]></category>
+      <category><![CDATA[contenedores]]></category>
+      <category><![CDATA[devops]]></category>
+      <category><![CDATA[empresarial]]></category>
+      <category><![CDATA[escalabilidad]]></category>
+      <category><![CDATA[Automatización]]></category>
+      <category><![CDATA[Tecnología]]></category>
+      <enclosure url="https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80" type="image/webp" length="0" />
+      <dc:type>guide</dc:type>
+      <dc:readingTime>11</dc:readingTime>
+      <dc:wordCount>2350</dc:wordCount>
+      <dc:difficulty>intermediate</dc:difficulty>
+      <dc:topics>cloud-native,kubernetes,contenedores,devops,empresarial,escalabilidad,ai</dc:topics>
+      <dc:lastUpdated>2024-12-28T00:00:00.000Z</dc:lastUpdated>
+    </item>
+    <item>
+      <title><![CDATA[Automatización DevOps: Aumentando la Eficiencia Empresarial un 300%]]></title>
+      <description><![CDATA[Aprende cómo la automatización DevOps puede transformar las operaciones de tu empresa, reducir el tiempo de despliegue un 90% y aumentar la confiabilidad del sistema al 99.9%.]]></description>
+      <link>https://evolve2digital.com/es/blog/automatizacion-devops-eficiencia-empresarial</link>
+      <guid isPermaLink="true">https://evolve2digital.com/es/blog/automatizacion-devops-eficiencia-empresarial</guid>
+      <pubDate>Mon, 22 Jan 2024 00:00:00 GMT</pubDate>
+      <author>hello@evolve2digital.com (Alberto Carrasco)</author>
+      <category><![CDATA[DevOps]]></category>
+      <category><![CDATA[Automatización]]></category>
+      <category><![CDATA[Empresa]]></category>
+      <category><![CDATA[Eficiencia]]></category>
+      <category><![CDATA[CI/CD]]></category>
+      <category><![CDATA[Automatización]]></category>
+      <category><![CDATA[Tecnología]]></category>
+      <enclosure url="https://images.unsplash.com/photo-1518186285589-2f7649de83e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80" type="image/webp" length="0" />
+      <dc:type>guide</dc:type>
+      <dc:readingTime>4</dc:readingTime>
+      <dc:wordCount>973</dc:wordCount>
+      <dc:difficulty>intermediate</dc:difficulty>
+      <dc:topics>DevOps,Automatización,Empresa,Eficiencia,CI/CD,automation,ai</dc:topics>
+      <dc:lastUpdated>2024-01-22T00:00:00.000Z</dc:lastUpdated>
+    </item>
+    <item>
+      <title><![CDATA[Desarrollo Ágil: Transformando Procesos Empresariales en 2024]]></title>
+      <description><![CDATA[Descubre cómo las metodologías de desarrollo ágil pueden revolucionar tus procesos empresariales, aumentar la productividad un 40% y acelerar el time-to-market.]]></description>
+      <link>https://evolve2digital.com/es/blog/desarrollo-agil-transformacion-empresarial</link>
+      <guid isPermaLink="true">https://evolve2digital.com/es/blog/desarrollo-agil-transformacion-empresarial</guid>
+      <pubDate>Sat, 20 Jan 2024 00:00:00 GMT</pubDate>
+      <author>hello@evolve2digital.com (Alberto Carrasco)</author>
+      <category><![CDATA[Agile]]></category>
+      <category><![CDATA[Desarrollo]]></category>
+      <category><![CDATA[Empresa]]></category>
+      <category><![CDATA[Transformación]]></category>
+      <category><![CDATA[Productividad]]></category>
+      <category><![CDATA[Automatización]]></category>
+      <category><![CDATA[Tecnología]]></category>
+      <enclosure url="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80" type="image/webp" length="0" />
+      <dc:type>guide</dc:type>
+      <dc:readingTime>2</dc:readingTime>
+      <dc:wordCount>583</dc:wordCount>
+      <dc:difficulty>intermediate</dc:difficulty>
+      <dc:topics>Agile,Desarrollo,Empresa,Transformación,Productividad,ai</dc:topics>
+      <dc:lastUpdated>2024-01-20T00:00:00.000Z</dc:lastUpdated>
+    </item>
+  </channel>
+</rss>

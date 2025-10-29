@@ -68,7 +68,7 @@ export function ServicesSection() {
                         variant="default"
                         className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-violet-500 text-white border-none"
                       >
-                        + IA
+                        + {t("automation.badge")}
                       </Badge>
                     )}
                     <div className="mx-auto mb-4 p-3 rounded-lg bg-muted group-hover:bg-[#05b4ba]/10 transition-colors">

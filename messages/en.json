@@ -8,10 +8,16 @@
     "contact": "Contact"
   },
   "hero": {
-    "title": "Automate your SME: more sales, fewer tasks",
+    "title": "Automate your company: more sales, fewer tasks",
     "subtitle": "Voice agents, WhatsApp chatbots and automations that transform your business. Specialized in clinics, real estate and consultancies.",
     "cta": "Book a demo",
-    "ctaSecondary": "See projects"
+    "ctaSecondary": "See projects",
+    "stats": {
+      "moreAppointments": "More appointments",
+      "missedCalls": "Missed calls",
+      "noShows": "No-shows",
+      "tasksPerWeek": "Tasks/week"
+    }
   },
   "services": {
     "title": "Services that transform your business",
@@ -34,7 +40,8 @@
     "automation": {
       "title": "Automation with AI",
       "description": "Voice agents and WhatsApp bots for qualification and scheduling",
-      "cta": "Learn more"
+      "cta": "Learn more",
+      "badge": "AI"
     }
   },
   "projects": {
@@ -66,6 +73,26 @@
     "subtitle": "Fullstack developer expert in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude and Gemini",
     "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs."
   },
+  "blog": {
+    "list": {
+      "title": "Blog",
+      "subtitle": "Articles about automation, web development and technology for SMEs"
+    },
+    "search": {
+      "placeholder": "Search articles, topics or tags...",
+      "empty": "No articles match your search."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "blog": "Blog"
+    },
+    "back": "Back to blog",
+    "cta": {
+      "title": "Interested in automating your business?",
+      "subtitle": "Book a free demo and discover how we can help you",
+      "button": "Book demo"
+    }
+  },
   "process": {
     "title": "My work process",
     "subtitle": "Proven 5-step process",
@@ -75,13 +102,35 @@
       "integration": "Integration",
       "measurement": "Measurement",
       "scale": "Scale & SOPs"
+    },
+    "descriptions": {
+      "diagnosis": "Analysis of objectives, current systems and GDPR requirements",
+      "prototype": "Functional demo to validate the solution before implementation",
+      "integration": "Integration with calendar, WhatsApp, voice, Sheets and databases",
+      "measurement": "KPIs on conversion, no-shows, time saved and ROI",
+      "scale": "Documentation, team training and ongoing support"
+    },
+    "benefits": {
+      "duration": {
+        "value": "2-4 weeks",
+        "label": "Implementation time"
+      },
+      "transparency": {
+        "value": "100%",
+        "label": "Process transparency"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Post-implementation support"
+      }
     }
   },
   "footer": {
     "contact": "hello@evolve2digital.com",
     "legal": "Legal Notice",
     "privacy": "Privacy",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "copyright": "All rights reserved."
   },
   "agent": {
     "title": "E2D Assistant",

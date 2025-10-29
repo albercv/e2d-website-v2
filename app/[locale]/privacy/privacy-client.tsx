@@ -32,7 +32,7 @@ export default function PrivacyClientPage() {
                   <br />
                   E2D - Evolve2Digital
                   <br />
-                  Email: alberto@evolve2digital.com
+                  Email: hello@evolve2digital.com
                   <br />
                   Teléfono: +34 123 456 789
                 </p>
