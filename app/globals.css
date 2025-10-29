@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("../styles/orb.css");
+@import url("../styles/futuristic-tooltip.css");
+
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;

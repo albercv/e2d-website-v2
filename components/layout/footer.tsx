@@ -37,7 +37,16 @@ export function Footer() {
                     {tFooter("contact")}
                   </a>
                 </p>
-                <p>Valencia, España</p>
+                <p>
+                  <a 
+                    href="https://wa.me/34123456789"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground transition-colors flex items-center gap-1"
+                  >
+                    📱 WhatsApp
+                  </a>
+                </p>
               </div>
             </div>
 

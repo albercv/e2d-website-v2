@@ -9,7 +9,7 @@
   },
   "hero": {
     "title": "Automate your company: more sales, fewer tasks",
-    "subtitle": "Voice agents, WhatsApp chatbots and automations that transform your business. Specialized in clinics, real estate and consultancies.",
+    "subtitle": "Voice agents, WhatsApp chatbots and automations that transform any business. Custom solutions for companies looking to grow.",
     "cta": "Book a demo",
     "ctaSecondary": "See projects",
     "stats": {
@@ -25,21 +25,25 @@
     "web": {
       "title": "Web Development",
       "description": "Next.js, technical SEO, performance and WCAG AA accessibility",
+      "tooltip": "Professional website development with modern technologies like React and Next.js. Advanced SEO optimization for Google, Bing, and AI search engines (AEO). Responsive design, high loading speed, and guaranteed WCAG AA accessibility compliance.",
       "cta": "Learn more"
     },
     "erp": {
       "title": "ERP Systems",
       "description": "Inventory, invoicing and integrated purchasing",
+      "tooltip": "Enterprise Resource Planning System. Ideal for restaurants (inventory control), stores (stock and sales management), or workshops (materials tracking and billing).",
       "cta": "Learn more"
     },
     "crm": {
       "title": "Custom CRM",
       "description": "Sales pipeline and follow-up automations",
+      "tooltip": "Customer Relationship Management System. Perfect for real estate (lead tracking), clinics (patient history), or consultancies (project and client management).",
       "cta": "Learn more"
     },
     "automation": {
       "title": "Automation with AI",
       "description": "Voice agents and WhatsApp bots for qualification and scheduling",
+      "tooltip": "Custom artificial intelligence solutions: conversational chatbots, virtual assistants, business process automation, AI document analysis, automated content generation, and workflow optimization to boost productivity and efficiency.",
       "cta": "Learn more",
       "badge": "AI"
     }

@@ -9,7 +9,7 @@
   },
   "hero": {
     "title": "Automatiza tu empresa: más ventas, menos tareas",
-    "subtitle": "Agentes de voz, chatbots WhatsApp y automatizaciones que transforman tu negocio. Especializado en clínicas, inmobiliarias y asesorías.",
+    "subtitle": "Agentes de voz, chatbots WhatsApp y automatizaciones que transforman cualquier negocio. Soluciones personalizadas para empresas que buscan crecer.",
     "cta": "Reserva una demo",
     "ctaSecondary": "Ver proyectos",
     "stats": {
@@ -25,21 +25,25 @@
     "web": {
       "title": "Desarrollo Web",
       "description": "Next.js, SEO técnico, performance y accesibilidad WCAG AA",
+      "tooltip": "Desarrollo de sitios web profesionales con tecnologías modernas como React y Next.js. Optimización SEO avanzada para Google, Bing y motores de IA (AEO). Diseño responsive, alta velocidad de carga y accesibilidad WCAG AA garantizada.",
       "cta": "Ver más"
     },
     "erp": {
       "title": "Sistemas ERP",
       "description": "Inventarios, facturación y compras integradas",
+      "tooltip": "Sistema de Planificación de Recursos Empresariales. Ideal para restaurantes (control de inventario), tiendas (gestión de stock y ventas), o talleres (seguimiento de materiales y facturación).",
       "cta": "Ver más"
     },
     "crm": {
       "title": "CRM Personalizado",
       "description": "Pipeline de ventas y automatizaciones de seguimiento",
+      "tooltip": "Sistema de Gestión de Relaciones con Clientes. Perfecto para inmobiliarias (seguimiento de leads), clínicas (historial de pacientes), o consultorías (gestión de proyectos y clientes).",
       "cta": "Ver más"
     },
     "automation": {
       "title": "Automatización con IA",
       "description": "Agentes de voz y WhatsApp bots para cualificación y agendamiento",
+      "tooltip": "Soluciones de inteligencia artificial personalizadas: chatbots conversacionales, asistentes virtuales, automatización de procesos empresariales, análisis de documentos con IA, generación de contenido automatizada y optimización de flujos de trabajo para aumentar la productividad.",
       "cta": "Ver más",
       "badge": "IA"
     }

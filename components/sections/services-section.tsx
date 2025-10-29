@@ -4,9 +4,11 @@ import { useTranslations } from "next-intl"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Code, Database, Users, Zap } from "lucide-react"
+import { Tooltip } from "react-tooltip"
+import { Code, Database, Users, Zap, HelpCircle } from "lucide-react"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
 import { Badge } from "@/components/ui/badge"
+import 'react-tooltip/dist/react-tooltip.css'
 
 const services = [
   {
@@ -74,18 +76,45 @@ export function ServicesSection() {
                     <div className="mx-auto mb-4 p-3 rounded-lg bg-muted group-hover:bg-[#05b4ba]/10 transition-colors">
                       <Icon className="h-8 w-8 text-[#05b4ba]" />
                     </div>
-                    <CardTitle className="text-xl font-semibold text-foreground">{t(`${service.key}.title`)}</CardTitle>
+                    <CardTitle className="text-xl font-semibold text-foreground flex items-center justify-center gap-2">
+                      {t(`${service.key}.title`)}
+                      {(service.key === "erp" || service.key === "crm" || service.key === "web" || service.key === "automation") && (
+                        <>
+                          <HelpCircle 
+                            className="h-4 w-4 text-muted-foreground hover:text-[#05b4ba] cursor-help" 
+                            data-tooltip-id={`tooltip-${service.key}`}
+                            data-tooltip-content={t(`${service.key}.tooltip`)}
+                          />
+                          <Tooltip
+                            id={`tooltip-${service.key}`}
+                            place="top"
+                            style={{
+                              backgroundColor: 'rgba(5, 180, 186, 0.95)',
+                              color: '#ffffff',
+                              borderRadius: '12px',
+                              padding: '12px 16px',
+                              fontSize: '12px',
+                              fontWeight: '500',
+                              maxWidth: '280px',
+                              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(5, 180, 186, 0.2)',
+                              backdropFilter: 'blur(8px)',
+                              border: '1px solid rgba(5, 180, 186, 0.3)',
+                              zIndex: 9999
+                            }}
+                            opacity={1}
+                            offset={8}
+                            delayShow={200}
+                            delayHide={100}
+                            className="futuristic-tooltip"
+                          />
+                        </>
+                      )}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="text-center">
                     <CardDescription className="text-muted-foreground mb-6 text-pretty">
                       {t(`${service.key}.description`)}
                     </CardDescription>
-                    <Button
-                      variant="outline"
-                      className="border-[#05b4ba] text-[#05b4ba] hover:bg-[#05b4ba]/10 bg-transparent"
-                    >
-                      {t(`${service.key}.cta`)}
-                    </Button>
                   </CardContent>
                 </Card>
               </motion.div>

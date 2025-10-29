@@ -1,0 +1,60 @@
+/* Futuristic Tooltip Styles */
+.futuristic-tooltip {
+  animation: tooltipFadeIn 0.3s ease-out;
+  position: relative;
+}
+
+.futuristic-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    rgba(5, 180, 186, 0.6), 
+    rgba(147, 51, 234, 0.6), 
+    rgba(5, 180, 186, 0.6)
+  );
+  border-radius: 14px;
+  z-index: -1;
+  animation: borderGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes borderGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(5, 180, 186, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(5, 180, 186, 0.6), 0 0 30px rgba(147, 51, 234, 0.3);
+  }
+}
+
+/* Hover effect for the help icon */
+.cursor-help:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+  filter: drop-shadow(0 0 8px rgba(5, 180, 186, 0.5));
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .futuristic-tooltip::before {
+    background: linear-gradient(45deg, 
+      rgba(5, 180, 186, 0.8), 
+      rgba(147, 51, 234, 0.8), 
+      rgba(5, 180, 186, 0.8)
+    );
+  }
+}

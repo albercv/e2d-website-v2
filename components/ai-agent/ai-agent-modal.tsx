@@ -27,19 +27,19 @@ interface ChatMessage {
 
 const commonIntentions = {
   es: [
-    "Voicebot para inmobiliaria",
-    "WhatsApp bot para clínica",
-    "Automatización de procesos",
-    "Desarrollo web React/Next.js",
-    "Integración con CRM",
+    "Automatización para mi negocio",
+    "WhatsApp bot personalizado",
+    "Agente de voz inteligente",
+    "Desarrollo web moderno",
+    "Integración con sistemas",
     "Presupuesto personalizado",
   ],
   en: [
-    "Voicebot for real estate",
-    "WhatsApp bot for clinic",
-    "Process automation",
-    "React/Next.js web development",
-    "CRM integration",
+    "Business automation",
+    "Custom WhatsApp bot",
+    "Intelligent voice agent",
+    "Modern web development",
+    "System integration",
     "Custom quote",
   ],
 }
@@ -514,49 +514,49 @@ function getAgentResponse(userMessage: string, locale: string): string {
   const responses = {
     es: {
       voicebot:
-        "¡Excelente! Los voicebots para inmobiliarias pueden aumentar las citas hasta un 35%. Te ayudo a implementar una solución personalizada. ¿Qué tipo de propiedades gestionas?",
+        "¡Excelente! Los agentes de voz pueden aumentar la eficiencia de tu negocio hasta un 35%. Te ayudo a implementar una solución personalizada. ¿Qué tipo de negocio tienes?",
       whatsapp:
-        "Los bots de WhatsApp para clínicas reducen los no-shows hasta un 28%. ¿Cuántas citas gestionas mensualmente? Esto me ayudará a dimensionar la solución.",
+        "Los bots de WhatsApp pueden reducir la carga de trabajo hasta un 28% y mejorar la atención al cliente. ¿Cuántas consultas recibes mensualmente?",
       automatizacion:
         "La automatización puede ahorrarte hasta 12 horas semanales. ¿Qué procesos repetitivos tienes actualmente en tu negocio?",
-      web: "Desarrollo sitios web con Next.js optimizados para SEO y conversión. ¿Necesitas una web nueva o mejorar la actual?",
-      crm: "Un CRM personalizado puede aumentar tus ventas un 20%. ¿Cómo gestionas actualmente tus clientes y leads?",
+      web: "Desarrollo sitios web modernos optimizados para SEO y conversión. ¿Necesitas una web nueva o mejorar la actual?",
+      crm: "Un sistema personalizado puede aumentar tus ventas un 20%. ¿Cómo gestionas actualmente tus clientes y leads?",
       presupuesto:
         "Perfecto, puedo prepararte un presupuesto personalizado. ¿Podrías contarme más sobre tu proyecto específico?",
       default:
-        "Gracias por tu consulta. Soy especialista en automatización para PYMEs. ¿Podrías contarme más sobre tu negocio y qué procesos te gustaría automatizar?",
+        "Gracias por tu consulta. Soy especialista en automatización empresarial. ¿Podrías contarme más sobre tu negocio y qué procesos te gustaría automatizar?",
     },
     en: {
       voicebot:
-        "Excellent! Voicebots for real estate can increase appointments by up to 35%. I'll help you implement a custom solution. What type of properties do you manage?",
+        "Excellent! Voice agents can increase your business efficiency by up to 35%. I'll help you implement a custom solution. What type of business do you have?",
       whatsapp:
-        "WhatsApp bots for clinics reduce no-shows by up to 28%. How many appointments do you manage monthly? This will help me size the solution.",
+        "WhatsApp bots can reduce workload by up to 28% and improve customer service. How many inquiries do you receive monthly?",
       automatizacion:
         "Automation can save you up to 12 hours weekly. What repetitive processes do you currently have in your business?",
-      web: "I develop Next.js websites optimized for SEO and conversion. Do you need a new website or improve the current one?",
-      crm: "A custom CRM can increase your sales by 20%. How do you currently manage your customers and leads?",
+      web: "I develop modern websites optimized for SEO and conversion. Do you need a new website or improve the current one?",
+      crm: "A custom system can increase your sales by 20%. How do you currently manage your customers and leads?",
       presupuesto: "Perfect, I can prepare a personalized quote. Could you tell me more about your specific project?",
       default:
-        "Thanks for your inquiry. I specialize in automation for SMEs. Could you tell me more about your business and what processes you'd like to automate?",
+        "Thanks for your inquiry. I specialize in business automation. Could you tell me more about your business and what processes you'd like to automate?",
     },
   }
 
   const localeResponses = responses[locale as keyof typeof responses] || responses.es
   const message = userMessage.toLowerCase()
 
-  if (message.includes("voicebot") || message.includes("inmobiliaria") || message.includes("real estate")) {
+  if (message.includes("voicebot") || message.includes("voz") || message.includes("voice") || message.includes("agente")) {
     return localeResponses.voicebot
   }
-  if (message.includes("whatsapp") || message.includes("clínica") || message.includes("clinic")) {
+  if (message.includes("whatsapp") || message.includes("bot") || message.includes("chat")) {
     return localeResponses.whatsapp
   }
   if (message.includes("automatización") || message.includes("automation") || message.includes("proceso")) {
     return localeResponses.automatizacion
   }
-  if (message.includes("web") || message.includes("react") || message.includes("next")) {
+  if (message.includes("web") || message.includes("desarrollo") || message.includes("development")) {
     return localeResponses.web
   }
-  if (message.includes("crm") || message.includes("cliente")) {
+  if (message.includes("crm") || message.includes("sistema") || message.includes("integración")) {
     return localeResponses.crm
   }
   if (message.includes("presupuesto") || message.includes("quote") || message.includes("precio")) {
