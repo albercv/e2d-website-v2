@@ -131,4 +131,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2025-10-29T10:02:05.050Z*
+*Documentación generada automáticamente el 2025-10-29T15:00:33.428Z*

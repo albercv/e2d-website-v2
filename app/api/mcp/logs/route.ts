@@ -33,15 +33,17 @@ function checkAuth(request: NextRequest): boolean {
     return false
   }
   
+  // Validar credenciales del entorno antes de procesar el header
+  const adminUser = process.env.MCP_ADMIN_USER
+  const adminPass = process.env.MCP_ADMIN_PASSWORD
+  if (!adminUser || !adminPass) {
+    throw new Error('MCP_ADMIN_CREDENTIALS_NOT_CONFIGURED')
+  }
+
   try {
     const base64Credentials = authHeader.split(' ')[1]
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii')
     const [username, password] = credentials.split(':')
-    
-    // Credenciales simples para admin (en producción usar algo más seguro)
-    const adminUser = process.env.MCP_ADMIN_USER || 'admin'
-    const adminPass = process.env.MCP_ADMIN_PASSWORD || 'mcp-admin-2024'
-    
     return username === adminUser && password === adminPass
   } catch {
     return false
@@ -238,6 +240,19 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     console.error('MCP Logs Admin Error:', error)
+
+    if (error instanceof Error && error.message === 'MCP_ADMIN_CREDENTIALS_NOT_CONFIGURED') {
+      return NextResponse.json(
+        {
+          error: 'Configuration error',
+          message: 'MCP admin credentials are not configured. Please set MCP_ADMIN_USER and MCP_ADMIN_PASSWORD in your environment.'
+        },
+        {
+          status: 500,
+          headers: corsHeaders
+        }
+      )
+    }
     
     return NextResponse.json(
       {
