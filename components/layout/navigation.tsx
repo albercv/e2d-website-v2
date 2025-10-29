@@ -113,7 +113,8 @@ export function Navigation() {
                   {t("contact")}
                 </Button>
                 <Button variant="outline" asChild>
-                  <a href="/admin" onClick={() => setIsOpen(false)}>Admin</a>
+                -                  <a href={`/${locale}/admin`} onClick={() => setIsOpen(false)}>Admin</a>
+                +                  <a href="/admin" onClick={() => setIsOpen(false)}>Admin</a>
                 </Button>
               </div>
             </div>
