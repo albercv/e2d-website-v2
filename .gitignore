@@ -25,3 +25,43 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# contentlayer generated files
+.contentlayer/
+
+# SWC cache
+.swc/
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# logs
+logs/
+*.log
+
+# temporary files
+*.tmp
+*.temp
+
+# validation reports (generated files)
+validation-reports/
+
+# coverage reports
+coverage/
+.nyc_output/
+
+# jest cache
+.jest/

@@ -38,7 +38,7 @@ export default function LegalClientPage() {
                     <strong>Domicilio:</strong> Madrid, España
                   </p>
                   <p>
-                    <strong>Email:</strong> alberto@evolve2digital.com
+                    <strong>Email:</strong> hello@evolve2digital.com
                   </p>
                   <p>
                     <strong>Teléfono:</strong> +34 123 456 789

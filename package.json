@@ -3,13 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build && npm run build:ai-indexing:advanced",
+    "build:next": "next build",
+    "build:ai-indexing": "node scripts/build-ai-indexing-simple.js",
+    "build:ai-indexing:verbose": "node scripts/build-ai-indexing-simple.js --verbose --report",
+    "build:ai-indexing:advanced": "node scripts/build-ai-indexing-advanced.js --verbose --report",
+    "build:ai-indexing:full": "node scripts/build-ai-indexing.js --verbose --report",
     "dev": "next dev",
+    "dev:with-seo": "concurrently \"npm run dev\" \"npm run seo:watch\"",
+    "seo:regenerate": "node scripts/build-ai-indexing-advanced.js --verbose",
+    "seo:watch": "node scripts/auto-regenerate-seo.js",
+    "seo:watch:no-initial": "node scripts/auto-regenerate-seo.js --no-initial",
+    "production:setup": "node scripts/production-hooks.js",
+    "production:test-skip-build": "node scripts/should-skip-build.js",
     "lint": "next lint",
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "validate:sitemap": "node -e \"const {validateSitemapFile} = require('./lib/xml-validator'); validateSitemapFile('./public/sitemap.xml').then(r => console.log(JSON.stringify(r, null, 2)))\"",
+    "validate:rss": "node -e \"const {validateRSSFile} = require('./lib/xml-validator'); validateRSSFile('./public/rss-es.xml').then(r => console.log(JSON.stringify(r, null, 2)))\"",
+    "validate:json-ld": "node scripts/validate-json-ld.js",
+    "validate:all": "npm run validate:sitemap && npm run validate:rss && npm run validate:json-ld"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",
@@ -84,10 +99,15 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.20",
+    "chokidar": "^4.0.1",
+    "concurrently": "^9.1.0",
     "jest": "^30.1.3",
     "jest-environment-jsdom": "^30.1.2",
+    "jsdom": "^25.0.1",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

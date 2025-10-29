@@ -16,6 +16,7 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 
 - **`posts.search`** - Search through blog posts with relevance scoring
 - **`appointments.create`** - Create consultation appointment requests
+- **`agent.query`** - Query the E2D AI agent for comprehensive answers
 
 ## 📋 Features
 
@@ -60,6 +61,17 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
      }' | jq
    ```
 
+5. Test agent query:
+   ```bash
+   curl -X POST "http://localhost:3000/api/mcp/tools/agent/query" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "prompt": "¿Qué servicios ofrece Evolve2Digital?",
+       "locale": "es",
+       "includeContext": true
+     }' | jq
+   ```
+
 ### Project Structure
 
 ```
@@ -67,7 +79,8 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 ├── manifest/              # MCP manifest endpoint
 ├── tools/
 │   ├── posts/search/     # Blog post search tool
-│   └── appointments/create/ # Appointment creation tool
+│   ├── appointments/create/ # Appointment creation tool
+│   └── agent/query/      # AI agent query tool
 └── logs/                 # Logging endpoint (admin only)
 
 /lib/
@@ -85,6 +98,7 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 |------|------------|----------|
 | posts.search | 30 | 100 |
 | appointments.create | 5 | 20 |
+| agent.query | 10 | 50 |
 
 ## 🔧 Configuration
 
@@ -96,6 +110,12 @@ MCP_RATE_LIMIT_POSTS_MINUTE=30
 MCP_RATE_LIMIT_POSTS_HOUR=100
 MCP_RATE_LIMIT_APPOINTMENTS_MINUTE=5
 MCP_RATE_LIMIT_APPOINTMENTS_HOUR=20
+
+# External Agent Configuration
+E2D_AGENT_WEBHOOK_URL=https://api.evolve2digital.com/webhook/userMessage
+E2D_CHAT_USER=your-username
+E2D_CHAT_PASSWORD=your-password
+E2D_AGENT_API_KEY=your-api-key  # Alternative to basic auth
 
 # Logging (optional)
 MCP_LOG_LEVEL=info

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { aiAnswersService } from "@/lib/ai-answers-service"
 import { mcpLogger } from "@/lib/mcp-logger"
 import { rateLimiter, getRateLimitConfig } from "@/lib/rate-limiter"
 
 /**
  * MCP Tool: agent.query
  * 
- * Expone el agente IA interno de E2D públicamente a través del protocolo MCP.
+ * Expone el agente IA externo de E2D públicamente a través del protocolo MCP.
  * Permite a modelos externos (ChatGPT, Claude) consultar al agente E2D.
  * 
  * @route POST /api/mcp/tools/agent/query
@@ -25,6 +24,68 @@ interface AgentQueryResponse {
   confidence?: number
   tokens_used?: number
   metadata?: Record<string, any>
+}
+
+interface ExternalAgentResponse {
+  response?: string
+  answer?: string
+  message?: string
+  [key: string]: any
+}
+
+/**
+ * Llama al agente externo de E2D
+ */
+async function callExternalAgent(prompt: string, locale: string = 'es'): Promise<ExternalAgentResponse | null> {
+  try {
+    const webhookUrl = process.env.E2D_AGENT_WEBHOOK_URL || 'https://api.evolve2digital.com/webhook/userMessage'
+    
+    // Configurar autenticación básica si está disponible
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'E2D-MCP-Client/1.0.0'
+    }
+
+    // Usar autenticación básica si están configuradas las credenciales
+    const user = process.env.E2D_CHAT_USER
+    const pass = process.env.E2D_CHAT_PASSWORD
+    if (user && pass) {
+      const token = Buffer.from(`${user}:${pass}`).toString('base64')
+      headers['Authorization'] = `Basic ${token}`
+    } else if (process.env.E2D_AGENT_API_KEY) {
+      headers['Authorization'] = `Bearer ${process.env.E2D_AGENT_API_KEY}`
+    }
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        messageType: "MCP-AGENT-QUERY",
+        userMessage: prompt,
+        message: prompt,
+        locale: locale,
+        source: 'mcp-agent-query',
+        sessionId: `mcp-${Date.now()}`,
+        metadata: {
+          mcp_tool: 'agent.query',
+          timestamp: new Date().toISOString()
+        }
+      }),
+      // Timeout de 30 segundos
+      signal: AbortSignal.timeout(30000)
+    })
+
+    if (!response.ok) {
+      console.error(`External agent responded with status ${response.status}`)
+      return null
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error calling external agent:', error)
+    return null
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -166,33 +227,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Procesar consulta con el agente IA interno
-    const aiResponse = await aiAnswersService.processQuery({
-      query: prompt,
-      locale,
-      limit: 1,
-      includeUnpublished: false
-    })
+    // Procesar consulta con el agente IA externo
+    const externalResponse = await callExternalAgent(prompt, locale)
 
     const processingTime = Date.now() - startTime
 
-    // Si no hay respuesta del agente, generar respuesta genérica
-    if (!aiResponse) {
+    // Si no hay respuesta del agente externo, generar respuesta genérica
+    if (!externalResponse) {
       const fallbackResponse: AgentQueryResponse = {
         response: locale === 'es' 
-          ? "Lo siento, no pude encontrar información específica sobre tu consulta en nuestra base de conocimientos. Te recomiendo contactar directamente con nuestro equipo para obtener una respuesta personalizada."
-          : "I'm sorry, I couldn't find specific information about your query in our knowledge base. I recommend contacting our team directly for a personalized response.",
-        source: "E2D Agent",
+          ? "Lo siento, no pude conectar con nuestro agente en este momento. Por favor, intenta nuevamente más tarde o contacta directamente con nuestro equipo."
+          : "I'm sorry, I couldn't connect to our agent at this time. Please try again later or contact our team directly.",
+        source: "E2D Agent (Fallback)",
         timestamp: new Date().toISOString(),
         confidence: 0,
         metadata: {
           agent: "E2D Assistant",
           version: "1.0.0",
-          processing_time_ms: processingTime
+          processing_time_ms: processingTime,
+          fallback: true
         }
       }
 
-      // Log de respuesta exitosa
+      // Log de respuesta de fallback
       mcpLogger.logToolInvocation(
         'agent.query',
         '/api/mcp/tools/agent/query',
@@ -219,28 +276,34 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Extraer la respuesta del agente externo
+    const agentResponse = externalResponse.response || 
+                         externalResponse.answer || 
+                         externalResponse.message || 
+                         externalResponse.userMessage ||
+                         externalResponse.text ||
+                         'Respuesta no disponible'
+
     // Construir respuesta estructurada
     const response: AgentQueryResponse = {
-      response: aiResponse.answer,
+      response: agentResponse,
       source: "E2D Agent",
       timestamp: new Date().toISOString(),
-      confidence: aiResponse.confidence,
+      confidence: 0.9, // Asumimos alta confianza del agente externo
       metadata: {
         agent: "E2D Assistant",
         version: "1.0.0",
-        processing_time_ms: processingTime
+        processing_time_ms: processingTime,
+        external_agent: true
       }
     }
 
     // Incluir contexto adicional si se solicita
-    if (includeContext && aiResponse.sourceTitle) {
+    if (includeContext) {
       response.metadata = {
         ...response.metadata,
-        source_article: aiResponse.sourceTitle,
-        source_url: aiResponse.source,
-        related_tags: aiResponse.relatedTags,
-        content_type: aiResponse.metadata.contentType,
-        author: aiResponse.metadata.author
+        external_response: externalResponse,
+        webhook_url: process.env.E2D_AGENT_WEBHOOK_URL || 'https://api.evolve2digital.com/webhook/userMessage'
       }
     }
 
@@ -255,7 +318,7 @@ export async function POST(request: NextRequest) {
       request.headers.get('user-agent') || undefined,
       prompt,
       undefined,
-      { confidence: aiResponse.confidence }
+      { confidence: 0.9, external_agent: true }
     )
 
     return NextResponse.json(response, {
@@ -266,7 +329,7 @@ export async function POST(request: NextRequest) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'X-MCP-Tool': 'agent.query',
         'X-Processing-Time': `${processingTime}ms`,
-        'X-Confidence': aiResponse.confidence?.toString() || '0',
+        'X-Confidence': '0.9',
         'X-RateLimit-Limit': rateLimitResult.limit.toString(),
         'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
         'X-RateLimit-Reset': new Date(rateLimitResult.resetTime).toISOString()
