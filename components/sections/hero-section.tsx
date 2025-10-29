@@ -38,7 +38,20 @@ export function HeroSection() {
           <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white px-8 py-3 text-lg font-semibold">
+            <Button 
+              size="lg" 
+              className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white px-8 py-3 text-lg font-semibold"
+              onClick={() => {
+                // Open contact modal by triggering the navigation contact button
+                const contactButton = document.querySelector('[data-contact-trigger]') as HTMLButtonElement;
+                if (contactButton) {
+                  contactButton.click();
+                } else {
+                  // Fallback: open email client
+                  window.location.href = 'mailto:hello@evolve2digital.com?subject=Solicitud de Demo&body=Hola, me gustaría solicitar una demo de sus servicios.';
+                }
+              }}
+            >
               {t("cta")}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -47,6 +60,13 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               className="border-[#05b4ba] text-[#05b4ba] hover:bg-[#05b4ba]/10 px-8 py-3 text-lg bg-transparent"
+              onClick={() => {
+                // Scroll to projects section
+                const projectsSection = document.getElementById('projects');
+                if (projectsSection) {
+                  projectsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               <Play className="mr-2 h-5 w-5" />
               {t("ctaSecondary")}

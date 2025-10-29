@@ -62,7 +62,13 @@ export function Navigation() {
           {/* Desktop CTA and Language */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
-            <Button onClick={() => setContactOpen(true)} className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+            <Button 
+              onClick={() => setContactOpen(true)} 
+              className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white"
+              data-contact-trigger
+            >
+              {t("contact")}
+            </Button>
             <Button variant="outline" asChild>
               <a href="/admin">Admin</a>
             </Button>
@@ -99,7 +105,13 @@ export function Navigation() {
               ))}
               <div className="flex items-center space-x-4 px-3 py-2">
                 <LanguageSwitcher />
-                <Button onClick={() => { setContactOpen(true); setIsOpen(false) }} className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white">{t("contact")}</Button>
+                <Button 
+                  onClick={() => { setContactOpen(true); setIsOpen(false) }} 
+                  className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white"
+                  data-contact-trigger
+                >
+                  {t("contact")}
+                </Button>
                 <Button variant="outline" asChild>
                   <a href="/admin" onClick={() => setIsOpen(false)}>Admin</a>
                 </Button>
