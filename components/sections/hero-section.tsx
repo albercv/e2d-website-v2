@@ -2,23 +2,61 @@
 
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import { motion } from "framer-motion"
-import { Suspense, useState } from "react"
-import { Hero3DLazy } from "@/components/performance/lazy-components"
+import { Suspense, useState, lazy, useRef } from "react"
 import { ArrowRight, Play } from "lucide-react"
-import { useComponentDebugLogger } from "@/lib/component-debug-logger";
-import { Orb } from "@/components/ui/orb";
+import { useComponentDebugLogger } from "@/lib/component-debug-logger"
+import { useIntelligentOrbLoading } from "@/hooks/use-intelligent-orb-loading"
+import { OrbSkeleton } from "@/components/ui/orb-skeleton"
+import { LazyMotionSection, OptimizedMotionDiv } from "@/components/performance/motion-optimized"
+
+// Ultra-lazy load the optimized Orb component with Web Worker support
+const LazyOrbOptimized = lazy(() => 
+  import("@/components/ui/orb-optimized").then(module => ({ default: module.OrbOptimized }))
+)
 
 export function HeroSection() {
   const t = useTranslations("hero");
   const { renderCount } = useComponentDebugLogger('HeroSection');
   const [isHovering, setIsHovering] = useState(false);
+  
+  // Ref for the hero section container
+  const heroSectionRef = useRef<HTMLElement>(null);
+  
+  // Intelligent Orb loading with performance optimizations
+  const {
+    shouldLoadOrb,
+    isOrbLoaded,
+    markAsLoaded,
+    canRender,
+    isLoading
+  } = useIntelligentOrbLoading(heroSectionRef, {
+    delay: 200, // Small delay to let critical content render first
+    useIntersectionObserver: true,
+    threshold: 0.1,
+    useIdleCallback: true
+  });
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* Orb Background */}
+    <section 
+      ref={heroSectionRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
+    >
+      {/* Orb Background with Intelligent Loading */}
       <div className="absolute inset-0 z-0">
-        <Orb hoverIntensity={0.5} forceHoverState={isHovering} />
+        {canRender ? (
+          <Suspense fallback={<OrbSkeleton animated={true} />}>
+            <LazyOrbOptimized 
+              hoverIntensity={isHovering ? 3.2 : 1.8} 
+              forceHoverState={isHovering}
+              onLoad={() => {
+                console.log('Orb loaded successfully');
+                markAsLoaded();
+              }}
+            />
+          </Suspense>
+        ) : (
+          <OrbSkeleton animated={true} />
+        )}
       </div>
 
       {/* Content */}
@@ -27,7 +65,7 @@ export function HeroSection() {
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        <motion.div
+        <OptimizedMotionDiv
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -72,10 +110,10 @@ export function HeroSection() {
               {t("ctaSecondary")}
             </Button>
           </div>
-        </motion.div>
+        </OptimizedMotionDiv>
 
         {/* Stats */}
-        <motion.div
+        <OptimizedMotionDiv
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -97,7 +135,7 @@ export function HeroSection() {
             <div className="text-3xl font-bold text-[#05b4ba] mb-2">-12h</div>
             <div className="text-sm text-muted-foreground">{t("stats.tasksPerWeek")}</div>
           </div>
-        </motion.div>
+        </OptimizedMotionDiv>
       </div>
     </section>
   )

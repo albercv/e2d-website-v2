@@ -9,9 +9,13 @@ interface OrbProps {
   hoverIntensity?: number;
   rotateOnHover?: boolean;
   forceHoverState?: boolean;
+  /**
+   * Callback fired when the Orb has finished loading and initializing
+   */
+  onLoad?: () => void;
 }
 
-export function Orb({ hue = 202, hoverIntensity = 3.2, rotateOnHover = true, forceHoverState }: OrbProps) {
+export function Orb({ hue = 202, hoverIntensity = 3.2, rotateOnHover = true, forceHoverState, onLoad }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
   const programRef = useRef<Program | null>(null);
@@ -287,6 +291,14 @@ export function Orb({ hue = 202, hoverIntensity = 3.2, rotateOnHover = true, for
     };
     rafRef.current = requestAnimationFrame(update);
 
+    // Notify that the Orb has finished loading and initializing
+    if (onLoad) {
+      // Use requestAnimationFrame to ensure the first render has completed
+      requestAnimationFrame(() => {
+        onLoad();
+      });
+    }
+
     return () => {
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
@@ -296,7 +308,7 @@ export function Orb({ hue = 202, hoverIntensity = 3.2, rotateOnHover = true, for
         container.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, onLoad]);
 
   return <div ref={ctnDom} className="orb-container" />;
 }
