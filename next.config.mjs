@@ -39,7 +39,7 @@ const nextConfig = {
       'ogl'
     ],
     // Habilitar optimizaciones experimentales
-    optimizeCss: true,
+    // optimizeCss: true, // Deshabilitado temporalmente para evitar error de critters
     webVitalsAttribution: ['CLS', 'LCP', 'FCP', 'FID', 'TTFB', 'INP'],
   },
   

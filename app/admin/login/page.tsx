@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -54,5 +54,30 @@ export default function AdminLoginPage() {
         <p className="text-xs text-muted-foreground">Configura ADMIN_EMAIL y ADMIN_PASSWORD en .env.local</p>
       </form>
     </div>
+  )
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-sm space-y-4 border rounded-lg p-6 bg-card">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted rounded mb-4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-muted rounded w-16"></div>
+              <div className="h-10 bg-muted rounded"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-muted rounded w-20"></div>
+              <div className="h-10 bg-muted rounded"></div>
+            </div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-10-29T10:02:05.051Z",
+  "duration": "1722ms",
+  "success": true,
+  "files": {
+    "sitemap": {
+      "path": "public/sitemap.xml",
+      "urls": 30
+    },
+    "rss": {
+      "es": {
+        "path": "public/rss-es.xml",
+        "items": 4
+      },
+      "en": {
+        "path": "public/rss-en.xml",
+        "items": 4
+      }
+    },
+    "mcp": {
+      "success": true,
+      "endpoints": 5,
+      "files": [
+        "/Users/albercv/Documents/personalProjects/e2d-website_v2/docs/mcp-usage.md",
+        "/Users/albercv/Documents/personalProjects/e2d-website_v2/docs/mcp-examples.md",
+        "/Users/albercv/Documents/personalProjects/e2d-website_v2/docs/mcp-changelog.md"
+      ]
+    }
+  }
+}

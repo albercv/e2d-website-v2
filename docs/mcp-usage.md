@@ -46,7 +46,7 @@ GET /api/mcp/manifest
 
 ### POST /api/mcp/tools/agent/query
 
-**Descripción:** MCP Tool: agent.query Expone el agente IA interno de E2D públicamente a través del protocolo MCP. Permite a modelos externos (ChatGPT, Claude) consultar al agente E2D.
+**Descripción:** MCP Tool: agent.query Expone el agente IA externo de E2D públicamente a través del protocolo MCP. Permite a modelos externos (ChatGPT, Claude) consultar al agente E2D.
 
 **Ruta:** `POST /api/mcp/tools/agent/query`
 **Métodos:** POST, OPTIONS
@@ -131,4 +131,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2025-10-28T19:38:27.907Z*
+*Documentación generada automáticamente el 2025-10-29T10:02:05.050Z*
