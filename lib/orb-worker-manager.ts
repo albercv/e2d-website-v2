@@ -24,26 +24,88 @@ export class OrbWorkerManager {
   private offscreenCanvas: OffscreenCanvas | null = null;
   private isInitialized = false;
   private onLoadCallback?: () => void;
+  private _supported: boolean;
 
   constructor() {
-    // Check if Web Workers and OffscreenCanvas are supported
-    if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') {
-      console.warn('Web Workers or OffscreenCanvas not supported, falling back to main thread');
-      return;
+    // More robust support detection
+    this._supported = this.checkSupport();
+    
+    if (!this._supported) {
+      console.warn('Web Workers, OffscreenCanvas, or WebGL not fully supported, falling back to main thread');
+    }
+  }
+
+  private checkSupport(): boolean {
+    try {
+      // Check Web Workers
+      if (typeof Worker === 'undefined') {
+        console.warn('Web Workers not supported');
+        return false;
+      }
+
+      // Check OffscreenCanvas
+      if (typeof OffscreenCanvas === 'undefined') {
+        console.warn('OffscreenCanvas not supported');
+        return false;
+      }
+
+      // Test OffscreenCanvas WebGL context creation
+      const testCanvas = new OffscreenCanvas(1, 1);
+      const testContext = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl');
+      
+      if (!testContext) {
+        console.warn('WebGL context not available on OffscreenCanvas');
+        return false;
+      }
+
+      // Test transferControlToOffscreen (some browsers have partial support)
+      const testHTMLCanvas = document.createElement('canvas');
+      if (typeof testHTMLCanvas.transferControlToOffscreen !== 'function') {
+        console.warn('transferControlToOffscreen not supported');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Error checking OffscreenCanvas/WebGL support:', error);
+      return false;
     }
   }
 
   async init(canvas: HTMLCanvasElement, config: Partial<OrbConfig>, onLoad?: () => void) {
+    // Early return if not supported
+    if (!this._supported) {
+      console.warn('Orb Worker not supported, skipping initialization');
+      return Promise.reject(new Error('Worker not supported'));
+    }
+
     this.canvas = canvas;
     this.onLoadCallback = onLoad;
 
     try {
-      // Create Web Worker
+      // Create Web Worker with error handling
       this.worker = new Worker(new URL('../workers/orb.worker.ts', import.meta.url), {
         type: 'module'
       });
 
-      // Transfer canvas control to worker
+      // Set up error handling before transferring canvas
+      this.worker.onerror = (error) => {
+        console.error('Orb Worker error:', error);
+        this.destroy();
+        throw new Error('Worker initialization failed');
+      };
+
+      this.worker.onmessageerror = (error) => {
+        console.error('Orb Worker message error:', error);
+        this.destroy();
+        throw new Error('Worker message error');
+      };
+
+      // Transfer canvas control to worker with additional safety checks
+      if (!canvas.transferControlToOffscreen) {
+        throw new Error('transferControlToOffscreen not available');
+      }
+
       this.offscreenCanvas = canvas.transferControlToOffscreen();
 
       // Set up message handling
@@ -53,14 +115,17 @@ export class OrbWorkerManager {
         if (type === 'initialized') {
           this.isInitialized = true;
           this.onLoadCallback?.();
+        } else if (type === 'error') {
+          console.error('Worker reported error:', event.data.error);
+          this.destroy();
         }
       };
 
-      this.worker.onerror = (error) => {
-        console.error('Orb Worker error:', error);
-        // Fallback to main thread if worker fails
-        this.destroy();
-      };
+      // Calculate initial dimensions safely
+      const rect = canvas.getBoundingClientRect();
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const initialWidth = Math.max(1, Math.floor(rect.width * devicePixelRatio));
+      const initialHeight = Math.max(1, Math.floor(rect.height * devicePixelRatio));
 
       // Initialize worker with canvas and config
       this.worker.postMessage({
@@ -68,8 +133,8 @@ export class OrbWorkerManager {
         data: {
           canvas: this.offscreenCanvas,
           config: {
-            width: canvas.width,
-            height: canvas.height,
+            width: initialWidth,
+            height: initialHeight,
             hue: 200,
             hoverIntensity: 1.0,
             rotateOnHover: true,
@@ -127,7 +192,7 @@ export class OrbWorkerManager {
   }
 
   get supported() {
-    return typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined';
+    return this._supported;
   }
 }
 
