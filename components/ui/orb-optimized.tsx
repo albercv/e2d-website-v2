@@ -23,39 +23,47 @@ export function OrbOptimized({
   const workerManagerRef = useRef(getOrbWorkerManager());
   const [isLoaded, setIsLoaded] = useState(false);
   const [fallbackToMainThread, setFallbackToMainThread] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   // Mouse tracking for hover effects
   const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (!canvasRef.current || !rotateOnHover) return;
+    if (!canvasRef.current || !rotateOnHover || hasError) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width;
     const y = (event.clientY - rect.top) / rect.height;
 
-    workerManagerRef.current.updateMouse(x, y);
-  }, [rotateOnHover]);
+    try {
+      workerManagerRef.current.updateMouse(x, y);
+    } catch (error) {
+      console.warn('Error updating mouse position:', error);
+    }
+  }, [rotateOnHover, hasError]);
 
   // Initialize Web Worker or fallback
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || hasError) return;
 
     const workerManager = workerManagerRef.current;
 
     // Check if Web Workers are supported
     if (!workerManager.supported) {
+      console.log('Worker not supported, using fallback');
       setFallbackToMainThread(true);
       return;
     }
 
     const initializeWorker = async () => {
       try {
-        // Set canvas size
+        // Compute initial size but DO NOT set canvas.width/height after Offscreen transfer
         const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * (window.devicePixelRatio || 1);
-        canvas.height = rect.height * (window.devicePixelRatio || 1);
+        const initialWidth = rect.width * (window.devicePixelRatio || 1);
+        const initialHeight = rect.height * (window.devicePixelRatio || 1);
 
         await workerManager.init(canvas, {
+          width: initialWidth,
+          height: initialHeight,
           hue,
           hoverIntensity,
           rotateOnHover,
@@ -72,51 +80,68 @@ export function OrbOptimized({
 
       } catch (error) {
         console.error('Failed to initialize Orb Worker, falling back to main thread:', error);
+        setHasError(true);
         setFallbackToMainThread(true);
+        // Clean up any partial initialization
+        workerManager.destroy();
       }
     };
 
     initializeWorker();
 
     return () => {
-      if (rotateOnHover && canvas) {
-        canvas.removeEventListener('mousemove', handleMouseMove);
+      try {
+        if (rotateOnHover && canvas) {
+          canvas.removeEventListener('mousemove', handleMouseMove);
+        }
+        workerManager.destroy();
+      } catch (error) {
+        console.warn('Error during cleanup:', error);
       }
-      workerManager.destroy();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, onLoad, handleMouseMove]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, onLoad, handleMouseMove, hasError]);
 
   // Update config when props change
   useEffect(() => {
-    if (isLoaded) {
-      workerManagerRef.current.updateConfig({
-        hue,
-        hoverIntensity,
-        rotateOnHover,
-        forceHoverState
-      });
+    if (isLoaded && !hasError) {
+      try {
+        workerManagerRef.current.updateConfig({
+          hue,
+          hoverIntensity,
+          rotateOnHover,
+          forceHoverState
+        });
+      } catch (error) {
+        console.warn('Error updating config:', error);
+        setHasError(true);
+        setFallbackToMainThread(true);
+      }
     }
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, isLoaded]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, isLoaded, hasError]);
 
   // Handle resize
   useEffect(() => {
     const handleResize = () => {
       const canvas = canvasRef.current;
-      if (!canvas || !isLoaded) return;
+      if (!canvas || !isLoaded || hasError) return;
 
-      const rect = canvas.getBoundingClientRect();
-      const width = rect.width * (window.devicePixelRatio || 1);
-      const height = rect.height * (window.devicePixelRatio || 1);
+      try {
+        const rect = canvas.getBoundingClientRect();
+        const width = rect.width * (window.devicePixelRatio || 1);
+        const height = rect.height * (window.devicePixelRatio || 1);
 
-      canvas.width = width;
-      canvas.height = height;
-
-      workerManagerRef.current.resize(width, height);
+        // Do NOT attempt to set canvas.width/height after transferControlToOffscreen()
+        workerManagerRef.current.resize(width, height);
+      } catch (error) {
+        console.warn('Error during resize:', error);
+        setHasError(true);
+        setFallbackToMainThread(true);
+      }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isLoaded]);
+  }, [isLoaded, hasError]);
 
   // Dynamic import for fallback component - always declare hooks
   const [OrbFallback, setOrbFallback] = useState<React.ComponentType<any> | null>(null);

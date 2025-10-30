@@ -41,22 +41,13 @@ export function HeroSection() {
       ref={heroSectionRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
     >
-      {/* Orb Background with Intelligent Loading */}
+      {/* Orb Background - Reactivated with improved error handling */}
       <div className="absolute inset-0 z-0">
-        {canRender ? (
-          <Suspense fallback={<OrbSkeleton animated={true} />}>
-            <LazyOrbOptimized 
-              hoverIntensity={isHovering ? 3.2 : 1.8} 
-              forceHoverState={isHovering}
-              onLoad={() => {
-                console.log('Orb loaded successfully');
-                markAsLoaded();
-              }}
-            />
-          </Suspense>
-        ) : (
-          <OrbSkeleton animated={true} />
-        )}
+        <LazyOrbOptimized 
+          hue={220}
+          hoverIntensity={0.3}
+          rotateOnHover={true}
+        />
       </div>
 
       {/* Content */}
