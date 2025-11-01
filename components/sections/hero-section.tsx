@@ -6,7 +6,7 @@ import { useState, useRef } from "react"
 import { ArrowRight, Play } from "lucide-react"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
 import { LazyMotionSection, OptimizedMotionDiv } from "@/components/performance/motion-optimized"
-import { ThreadsBackground } from "@/components/visual/threads"
+import LiquidEther from "./LiquidEther"
 
 export function HeroSection() {
   const t = useTranslations("hero");
@@ -21,8 +21,27 @@ export function HeroSection() {
       ref={heroSectionRef}
       className="relative h-screen flex items-center justify-center overflow-hidden bg-background"
     >
-      {/* Fondo threads (OGL) */}
-      <ThreadsBackground className="pointer-events-none absolute inset-0 z-10" amplitude={0.5} distance={0.08} />
+      {/* LiquidEther como background (no afecta el layout) */}
+      <div className="pointer-events-none absolute inset-0 z-0 h-full opacity-75">
+        <LiquidEther
+          style={{ width: '100%', height: '100%', position: 'relative' }}
+          colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]}
+          mouseForce={12}
+          cursorSize={90}
+          isViscous={true}
+          viscous={18}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.5}
+          isBounce={false}
+          autoDemo={true}
+          autoSpeed={0.35}
+          autoIntensity={1.6}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+        />
+      </div>
 
       {/* Content */}
       <div 
