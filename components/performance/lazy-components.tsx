@@ -66,3 +66,12 @@ export const ProcessSectionLazy = dynamic(
     loading: () => <SectionFallback message="Cargando proceso..." />,
   },
 )
+
+// New: Lazy load AdaptSection
+export const AdaptSectionLazy = dynamic(
+  () => import("@/components/sections/adapt-section").then((mod) => ({ default: mod.AdaptSection })),
+  {
+    ssr: false,
+    loading: () => <SectionFallback message="Cargando método A.D.A.P.T..." />,
+  },
+)

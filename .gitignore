@@ -68,3 +68,11 @@ coverage/
 
 # contentlayer
 .contentlayer/
+
+# generated documentation and build reports
+docs/mcp-changelog.md
+docs/mcp-examples.md
+docs/mcp-usage.md
+public/build-report-advanced.json
+public/rss-en.xml
+public/rss-es.xml

@@ -2,7 +2,7 @@
 
 ## Historial de Cambios del Servidor MCP
 
-### v1.0.0 - 2025-10-29
+### v1.0.0 - 2025-11-01
 
 #### Añadido
 - Servidor MCP inicial con protocolo 1.0
@@ -33,4 +33,4 @@
 
 ---
 
-*Changelog generado automáticamente el 2025-10-29T16:09:06.989Z*
+*Changelog generado automáticamente el 2025-11-01T05:41:03.761Z*
