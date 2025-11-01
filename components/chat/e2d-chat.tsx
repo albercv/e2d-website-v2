@@ -63,19 +63,23 @@ export function E2DChat() {
       initialMessages: [
         locale === "es"
           ? "¡Hola! Soy el asistente de E2D. ¿En qué puedo ayudarte?"
+          : locale === "it"
+          ? "Ciao! Sono l'assistente di E2D. Come posso aiutarti?"
           : "Hi! I'm the E2D assistant. How can I help you?",
       ],
       i18n: {
         en: {
-          title: locale === "es" ? "¡Hola! 👋" : "Hi there! 👋",
+          title: locale === "es" ? "¡Hola! 👋" : locale === "it" ? "Ciao! 👋" : "Hi there! 👋",
           subtitle:
             locale === "es"
               ? "Inicia una conversación. Estamos aquí para ayudarte."
+              : locale === "it"
+              ? "Inizia una chat. Siamo qui per aiutarti."
               : "Start a chat. We're here to help.",
           footer: "",
-          getStarted: locale === "es" ? "Nueva conversación" : "New Conversation",
-          inputPlaceholder: locale === "es" ? "Escribe tu pregunta..." : "Type your question...",
-          closeButtonTooltip: locale === "es" ? "Cerrar" : "Close",
+          getStarted: locale === "es" ? "Nueva conversación" : locale === "it" ? "Nuova conversazione" : "New Conversation",
+          inputPlaceholder: locale === "es" ? "Escribe tu pregunta..." : locale === "it" ? "Scrivi la tua domanda..." : "Type your question...",
+          closeButtonTooltip: locale === "es" ? "Cerrar" : locale === "it" ? "Chiudi" : "Close",
         },
       },
       enableStreaming: false,

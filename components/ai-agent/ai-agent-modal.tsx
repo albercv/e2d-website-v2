@@ -307,11 +307,11 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const handleWhatsAppHandoff = () => {
     const chatHistory =
       chatMessages.length > 0
-        ? chatMessages.map((m) => `${m.type === "user" ? "Yo" : "Asistente"}: ${m.content}`).join("\n")
+        ? chatMessages.map((m) => `${m.type === "user" ? ui.you : ui.assistant}: ${m.content}`).join("\n")
         : message
 
     const whatsappMessage = encodeURIComponent(
-      `Hola, me interesa conocer más sobre los servicios de automatización de E2D.\n\n${chatHistory ? `Conversación previa:\n${chatHistory}` : ""}`,
+      `${ui.whatsappGreeting}\n\n${chatHistory ? `${ui.whatsappPreviousLabel}\n${chatHistory}` : ""}`,
     )
 
     window.open(`https://wa.me/34600000000?text=${whatsappMessage}`, "_blank")
@@ -518,7 +518,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                     <label htmlFor="consent" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
                       {t("consent")} {" "}
                       <a href="/privacy" className="text-[#05b4ba] hover:underline">
-                        política de privacidad
+                        {ui.privacyPolicy}
                       </a>
                     </label>
                   </div>
@@ -528,7 +528,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                     className="w-full bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white"
                     disabled={!consent || (!email && !phone) || isSubmitting}
                   >
-                    {isSubmitting ? "Enviando..." : t("submit")}
+                    {isSubmitting ? ui.sending : t("submit")}
                     <Send className="ml-2 h-4 w-4" />
                   </Button>
                 </form>
@@ -537,16 +537,16 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
               <TabsContent value="whatsapp" className="space-y-4 mt-4 text-center overflow-y-auto">
                 <div className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    Continúa la conversación directamente en WhatsApp para una respuesta más rápida
+                    {ui.whatsappIntro}
                   </div>
 
                   {chatMessages.length > 0 && (
                     <div className="bg-muted/50 p-3 rounded-lg text-left">
-                      <p className="text-sm font-medium mb-2">Resumen de la conversación:</p>
+                      <p className="text-sm font-medium mb-2">{ui.whatsappSummary}</p>
                       <div className="text-xs text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
                         {chatMessages.slice(-3).map((msg) => (
                           <div key={msg.id}>
-                            <strong>{msg.type === "user" ? "Tú" : "Asistente"}:</strong> {msg.content}
+                            <strong>{msg.type === "user" ? ui.you : ui.assistant}:</strong> {msg.content}
                           </div>
                         ))}
                       </div>
