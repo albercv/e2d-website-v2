@@ -28,7 +28,7 @@ const FrontmatterSchema = z.object({
   date: z
     .string()
     .refine((v) => !Number.isNaN(Date.parse(v)), "date inválida, ISO recomendado (YYYY-MM-DD)"),
-  locale: z.enum(["es", "en"], { description: "locale debe ser es|en" }),
+  locale: z.enum(["es", "en", "it"], { description: "locale debe ser es|en|it" }),
   slug: z
     .string()
     .min(1, "slug requerido")

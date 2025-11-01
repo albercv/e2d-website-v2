@@ -23,7 +23,7 @@ export const Post = defineDocumentType(() => ({
     },
     locale: {
       type: "enum",
-      options: ["es", "en"],
+      options: ["es", "en", "it"],
       description: "The locale of the post",
       required: true,
     },
@@ -63,7 +63,7 @@ export const Post = defineDocumentType(() => ({
     },
     readingTime: {
       type: "json",
-      resolve: (post) => readingTime(post.body.raw, 200, "es"),
+      resolve: (post) => readingTime(post.body.raw, 200, post.locale as any),
     },
     wordCount: {
       type: "number",

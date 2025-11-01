@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title><![CDATA[Blog E2D - Automazione e Tecnologia]]></title>
+    <description><![CDATA[Articoli su automazione, chatbot, sviluppo web e tecnologia per le PMI italiane. Guide pratiche, casi d'uso e tendenze IA.]]></description>
+    <link>https://evolve2digital.com/it/blog</link>
+    <atom:link href="https://evolve2digital.com/it/rss.xml" rel="self" type="application/rss+xml" />
+    <language>it-IT</language>
+    <lastBuildDate>Sat, 01 Nov 2025 06:02:32 GMT</lastBuildDate>
+    <managingEditor>hello@evolve2digital.com (Alberto Carrasco)</managingEditor>
+    <webMaster>hello@evolve2digital.com (Alberto Carrasco)</webMaster>
+    <generator>E2D RSS Generator v2.0 - AI Optimized</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <ttl>60</ttl>
+    <category><![CDATA[Automazione]]></category>
+    <category><![CDATA[Tecnologia]]></category>
+    <category><![CDATA[IA]]></category>
+    <category><![CDATA[Sviluppo Web]]></category>
+    <category><![CDATA[PMI]]></category>
+    <category><![CDATA[Chatbot]]></category>
+    <category><![CDATA[WhatsApp]]></category>
+    <category><![CDATA[n8n]]></category>
+    <image>
+      <url>https://evolve2digital.com/e2d_logo.webp</url>
+      <title><![CDATA[E2D - Evolve2Digital]]></title>
+      <link>https://evolve2digital.com/it</link>
+      <width>144</width>
+      <height>144</height>
+    </image>
+
+  </channel>
+</rss>

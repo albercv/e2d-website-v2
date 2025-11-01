@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic"
 import { ClientOnly } from "./client-only"
 import { Hero3DFallback, SectionFallback, ModalFallback } from "./loading-fallbacks"
+import { useLocale } from "next-intl"
 
 /**
  * Enhanced 3D Component Loader
@@ -72,6 +73,18 @@ export const AdaptSectionLazy = dynamic(
   () => import("@/components/sections/adapt-section").then((mod) => ({ default: mod.AdaptSection })),
   {
     ssr: false,
-    loading: () => <SectionFallback message="Cargando método A.D.A.P.T..." />,
-  },
+    loading: () => <AdaptLoadingFallback />,
+   },
 )
+
+// Locale-aware fallback for Adapt section
+const AdaptLoadingFallback = () => {
+  const locale = useLocale()
+  const messages = {
+    es: "Cargando método A.D.A.P.T...",
+    en: "Loading A.D.A.P.T. Method...",
+    it: "Caricamento metodo A.D.A.P.T...",
+  }
+  const msg = messages[(locale as keyof typeof messages) ?? "es"] ?? messages.es
+  return <SectionFallback message={msg} />
+}

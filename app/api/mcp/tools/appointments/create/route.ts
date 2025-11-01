@@ -221,6 +221,38 @@ function generateNextSteps(type: AppointmentType, locale: string = 'es'): string
         'Stay tuned to your email',
         'You can contact us directly if it is urgent'
       ]
+    },
+    it: {
+      consultation: [
+        "Riceverai un'email di conferma nei prossimi minuti",
+        'Ti contatteremo per coordinare data e ora specifica',
+        'Prepara un elenco di domande o argomenti da discutere',
+        'Consulta i nostri servizi su https://evolve2digital.com'
+      ],
+      meeting: [
+        "Confermeremo l'incontro via email",
+        'Riceverai un link al calendario con i dettagli',
+        "Prepara l'agenda e il materiale necessario",
+        'Ti invieremo il link della videochiamata 1 ora prima'
+      ],
+      support: [
+        'La tua richiesta è stata registrata con alta priorità',
+        'Uno specialista esaminerà il tuo caso immediatamente',
+        'Riceverai aggiornamenti via email',
+        'Tieni a disposizione le informazioni tecniche pertinenti'
+      ],
+      collaboration: [
+        'Valuteremo la tua proposta di collaborazione',
+        'Ti contatteremo per una chiamata iniziale',
+        'Prepara le informazioni sul tuo progetto',
+        'Esamineremo possibili sinergie e opportunità'
+      ],
+      other: [
+        'Abbiamo ricevuto la tua richiesta',
+        'Ti contatteremo in base alla natura della tua domanda',
+        "Resta in attesa di un'email",
+        'Puoi contattarci direttamente se è urgente'
+      ]
     }
   }
   
@@ -280,8 +312,8 @@ function validateAppointmentRequest(data: any) {
     errors.push('Invalid timezone identifier')
   }
   
-  if (data.locale && !['es', 'en'].includes(data.locale)) {
-    errors.push('Locale must be either "es" or "en"')
+  if (data.locale && !['es', 'en', 'it'].includes(data.locale)) {
+    errors.push('Locale must be either "es", "en", or "it"')
   }
   
   if (data.urgency && !['low', 'medium', 'high'].includes(data.urgency)) {
@@ -503,7 +535,9 @@ export async function POST(request: NextRequest) {
       appointmentId: result.appointmentId,
       message: locale === 'es' 
         ? 'Cita creada exitosamente. Te contactaremos pronto.'
-        : 'Appointment created successfully. We will contact you soon.',
+        : locale === 'it'
+          ? 'Appuntamento creato con successo. Ti contatteremo presto.'
+          : 'Appointment created successfully. We will contact you soon.',
       processingTime: Date.now() - startTime,
       timestamp: new Date().toISOString(),
       metadata: {

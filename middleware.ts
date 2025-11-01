@@ -5,7 +5,7 @@ import { analyzeRequest, defaultSecurityConfig, cleanupOldData } from "./lib/ai-
 
 const COOKIE_NAME = "admin_session"
 
-const PUBLIC_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout", "/es/admin/login", "/en/admin/login"]
+const PUBLIC_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout", "/es/admin/login", "/en/admin/login", "/it/admin/login"]
 
 // Rate limiting para crawlers IA (requests por minuto)
 const CRAWLER_RATE_LIMITS = {
@@ -158,7 +158,7 @@ export async function middleware(req: NextRequest) {
       // Detectar locale para construir la ruta de login localizada
       const pathSegments = pathname.split('/').filter(Boolean)
       const candidate = pathSegments[0]
-      const locale = ["es", "en"].includes(candidate) ? candidate : (req.cookies.get('NEXT_LOCALE')?.value?.split('-')[0] || 'es')
+      const locale = ["es", "en", "it"].includes(candidate) ? candidate : (req.cookies.get('NEXT_LOCALE')?.value?.split('-')[0] || 'es')
       loginUrl.pathname = `/${locale}/admin/login`
       loginUrl.searchParams.set("redirect", pathname)
       response = NextResponse.redirect(loginUrl)
@@ -178,7 +178,7 @@ export async function middleware(req: NextRequest) {
   // Persistir el último idioma navegado en cookie NEXT_LOCALE
   const pathSegments = pathname.split('/').filter(Boolean)
   const localeCandidate = pathSegments[0]
-  if (localeCandidate && ["es", "en"].includes(localeCandidate)) {
+  if (localeCandidate && ["es", "en", "it"].includes(localeCandidate)) {
     response.cookies.set('NEXT_LOCALE', localeCandidate, {
       path: '/',
       maxAge: 60 * 60 * 24 * 30, // 30 días

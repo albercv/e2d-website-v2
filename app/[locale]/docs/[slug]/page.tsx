@@ -12,7 +12,7 @@ interface DocsSlugPageProps {
 const validSlugs = ["principles", "architecture", "components", "i18n", "seo", "gdpr", "performance", "deployment"]
 
 export function generateStaticParams() {
-  const locales = ["es", "en"]
+  const locales = ["es", "en", "it"]
   return locales.flatMap((locale) =>
     validSlugs.map((slug) => ({
       locale,
@@ -49,18 +49,35 @@ export async function generateMetadata({ params }: DocsSlugPageProps): Promise<M
       performance: "Performance Optimization",
       deployment: "Deployment and Production",
     },
+    it: {
+      principles: "Principi di Sviluppo",
+      architecture: "Architettura del Sistema",
+      components: "Guida ai Componenti",
+      i18n: "Internazionalizzazione",
+      seo: "SEO e Metadati",
+      gdpr: "Conformità GDPR",
+      performance: "Ottimizzazione delle Prestazioni",
+      deployment: "Distribuzione e Produzione",
+    },
   }
 
   const title = titles[locale as keyof typeof titles]?.[slug as keyof typeof titles.es] || slug
 
+  const descriptions: Record<string, string> = {
+    es: `Documentación técnica sobre ${title.toLowerCase()} en el proyecto E2D`,
+    en: `Technical documentation about ${title.toLowerCase()} in the E2D project`,
+    it: `Documentazione tecnica su ${title.toLowerCase()} nel progetto E2D`,
+  }
+
   return {
     title: `${title} - E2D Docs`,
-    description: `Documentación técnica sobre ${title.toLowerCase()} en el proyecto E2D`,
+    description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `/${locale}/docs/${slug}`,
       languages: {
         es: `/es/docs/${slug}`,
         en: `/en/docs/${slug}`,
+        it: `/it/docs/${slug}`,
       },
     },
   }

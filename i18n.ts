@@ -1,7 +1,7 @@
 import { getRequestConfig } from "next-intl/server"
 
 // Can be imported from a shared config
-export const locales = ["es", "en"]
+export const locales = ["es", "en", "it"]
 export const defaultLocale = "es"
 export const localePrefix = "always"
 

@@ -104,8 +104,8 @@ export class JsonLdGenerator {
         email: org.email,
         telephone: org.telephone,
         contactType: "customer service",
-        availableLanguage: this.config.supportedLocales.map(loc => 
-          loc === "es" ? "Spanish" : "English"
+        availableLanguage: this.config.supportedLocales.map(loc =>
+          loc === "es" ? "Spanish" : loc === "en" ? "English" : loc === "it" ? "Italian" : loc
         )
       },
       address: {
@@ -122,7 +122,7 @@ export class JsonLdGenerator {
       knowsAbout: org.services[locale] || org.services[this.config.defaultLocale],
       hasOfferCatalog: {
         "@type": "OfferCatalog",
-        name: locale === "es" ? "Servicios de Automatización" : "Automation Services",
+        name: locale === "es" ? "Servicios de Automatización" : locale === "it" ? "Servizi di Automazione" : "Automation Services",
         itemListElement: (org.services[locale] || org.services[this.config.defaultLocale]).map((service, index) => ({
           "@type": "Offer",
           itemOffered: {
@@ -150,21 +150,21 @@ export class JsonLdGenerator {
         {
           "@type": "WebPage",
           "@id": `${this.config.baseUrl}/${locale}/legal`,
-          name: locale === "es" ? "Aviso Legal" : "Legal Notice",
+          name: locale === "es" ? "Aviso Legal" : locale === "it" ? "Avviso Legale" : "Legal Notice",
           url: `${this.config.baseUrl}/${locale}/legal`,
           dateModified: new Date().toISOString().split('T')[0]
         },
         {
           "@type": "WebPage", 
           "@id": `${this.config.baseUrl}/${locale}/privacy`,
-          name: locale === "es" ? "Política de Privacidad" : "Privacy Policy",
+          name: locale === "es" ? "Política de Privacidad" : locale === "it" ? "Informativa sulla Privacy" : "Privacy Policy",
           url: `${this.config.baseUrl}/${locale}/privacy`,
           dateModified: new Date().toISOString().split('T')[0]
         },
         {
           "@type": "WebPage",
           "@id": `${this.config.baseUrl}/${locale}/cookies`,
-          name: locale === "es" ? "Política de Cookies" : "Cookie Policy", 
+          name: locale === "es" ? "Política de Cookies" : locale === "it" ? "Politica sui Cookie" : "Cookie Policy", 
           url: `${this.config.baseUrl}/${locale}/cookies`,
           dateModified: new Date().toISOString().split('T')[0]
         }
@@ -312,7 +312,7 @@ export class JsonLdGenerator {
         "@type": "Organization",
         "@id": `${this.config.baseUrl}#organization`
       },
-      inLanguage: locale === "es" ? "es-ES" : "en-US",
+      inLanguage: locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US",
       // Enhanced search functionality
       potentialAction: {
         "@type": "SearchAction",
@@ -325,7 +325,7 @@ export class JsonLdGenerator {
       // AI-enhanced website context
       about: {
         "@type": "Thing",
-        name: locale === "es" ? "Automatización Empresarial" : "Business Automation"
+        name: locale === "es" ? "Automatización Empresarial" : locale === "it" ? "Automazione Aziendale" : "Business Automation"
       },
       audience: {
         "@type": "BusinessAudience",
@@ -348,10 +348,12 @@ export class JsonLdGenerator {
       "@context": "https://schema.org",
       "@type": "Service",
       "@id": `${this.config.baseUrl}/${locale}#services`,
-      name: locale === "es" ? "Servicios de Automatización" : "Automation Services",
+      name: locale === "es" ? "Servicios de Automatización" : locale === "it" ? "Servizi di Automazione" : "Automation Services",
       description: locale === "es" 
         ? "Automatización empresarial, chatbots WhatsApp, desarrollo web y sistemas CRM/ERP"
-        : "Business automation, WhatsApp chatbots, web development and CRM/ERP systems",
+        : locale === "it"
+          ? "Automazione aziendale, chatbot WhatsApp, sviluppo web e sistemi CRM/ERP"
+          : "Business automation, WhatsApp chatbots, web development and CRM/ERP systems",
       provider: {
         "@type": "Organization",
         "@id": `${this.config.baseUrl}#organization`
@@ -364,7 +366,7 @@ export class JsonLdGenerator {
       category: "Business Automation",
       hasOfferCatalog: {
         "@type": "OfferCatalog",
-        name: locale === "es" ? "Catálogo de Servicios" : "Service Catalog",
+        name: locale === "es" ? "Catálogo de Servicios" : locale === "it" ? "Catalogo dei Servizi" : "Service Catalog",
         itemListElement: services.map((service, index) => ({
           "@type": "Offer",
           itemOffered: {
@@ -428,13 +430,14 @@ export class JsonLdGenerator {
 export const defaultJsonLdConfig: JsonLdConfig = {
   baseUrl: "https://evolve2digital.com",
   defaultLocale: "es",
-  supportedLocales: ["es", "en"],
+  supportedLocales: ["es", "en", "it"],
   organization: {
     name: "E2D - Evolve2Digital",
     alternateName: "E2D",
     description: {
       es: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
-      en: "Automate your company: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies."
+      en: "Automate your company: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
+      it: "Automatizza la tua azienda: più vendite, meno compiti. Agenti vocali, chatbot WhatsApp e automazioni per cliniche, immobiliari e consulenze."
     },
     logo: "/e2d_logo.webp",
     url: "https://evolve2digital.com",
@@ -469,6 +472,16 @@ export const defaultJsonLdConfig: JsonLdConfig = {
         "ERP Systems",
         "Technical SEO",
         "Performance Optimization"
+      ],
+      it: [
+        "Sviluppo Web",
+        "Automazione con IA",
+        "Chatbot WhatsApp",
+        "Agenti Vocali",
+        "Sistemi CRM",
+        "Sistemi ERP",
+        "SEO Tecnico",
+        "Ottimizzazione delle Performance"
       ]
     },
     areaServed: "Spain"
@@ -477,11 +490,13 @@ export const defaultJsonLdConfig: JsonLdConfig = {
     name: "Alberto Carrasco",
     jobTitle: {
       es: "Desarrollador Fullstack y Especialista en Automatización",
-      en: "Full-Stack Developer & Automation Specialist"
+      en: "Full-Stack Developer & Automation Specialist",
+      it: "Sviluppatore Full-Stack e Specialista in Automazione"
     },
     description: {
       es: "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas.",
-      en: "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs."
+      en: "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs.",
+      it: "Esperto in React, Next.js, n8n e database vettoriali. Focus su ROI e conformità GDPR per le PMI spagnole."
     },
     url: "https://evolve2digital.com",
     email: "hello@evolve2digital.com",
@@ -501,6 +516,11 @@ export const defaultJsonLdConfig: JsonLdConfig = {
         "React", "Next.js", "TypeScript", "Node.js", "Python",
         "n8n", "OpenAI", "Claude", "Gemini", "WhatsApp API",
         "Automation", "SEO", "GDPR", "Vector databases"
+      ],
+      it: [
+        "React", "Next.js", "TypeScript", "Node.js", "Python",
+        "n8n", "OpenAI", "Claude", "Gemini", "WhatsApp API",
+        "Automazione", "SEO", "GDPR", "Database vettoriali"
       ]
     }
   }

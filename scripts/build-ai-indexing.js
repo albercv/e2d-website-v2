@@ -19,7 +19,7 @@ const path = require('path')
 // Configuration
 const config = {
   outputDir: "./public",
-  supportedLocales: ["es", "en"],
+  supportedLocales: ["es", "en", "it"],
   enableSitemap: true,
   enableRSS: true,
   enableValidation: true,

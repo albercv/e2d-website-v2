@@ -3,50 +3,71 @@
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Cog, Code2, Microscope, Rocket } from "lucide-react"
+import { useLocale } from "next-intl"
 
 export function AdaptSection() {
-  const steps = [
-    {
-      key: "A",
-      title: "Analizar",
-      description:
+  const locale = useLocale()
+
+  const textByLocale = {
+    es: {
+      title: "⚙️ Método A.D.A.P.T.",
+      subtitle: "Del diagnóstico a la entrega, en 5 pasos medibles.",
+      p1: "En E2D acompañamos cada proyecto de principio a fin con comunicación continua, seguimiento diario e informes claros.",
+      p2: "Transparencia total desde el primer día hasta la entrega final.",
+      titles: ["Analizar", "Diseñar", "Aplicar", "Probar", "Transferir"],
+      descriptions: [
         "Reunión inicial para entender tu negocio, objetivos y alcance del proyecto.",
-      Icon: Search,
-      color: "#05b4ba",
-    },
-    {
-      key: "D",
-      title: "Diseñar",
-      description:
         "Definimos la arquitectura, las tecnologías y el plan de ejecución.",
-      Icon: Cog,
-      color: "#293039",
-    },
-    {
-      key: "A",
-      title: "Aplicar",
-      description:
         "Desarrollamos las soluciones de software y reportamos avances diarios.",
-      Icon: Code2,
-      color: "#05b4ba",
-    },
-    {
-      key: "P",
-      title: "Probar",
-      description:
         "Testeo completo, revisión y optimización antes de lanzar.",
-      Icon: Microscope,
-      color: "#293039",
-    },
-    {
-      key: "T",
-      title: "Transferir",
-      description:
         "Entrega final con formación, documentación y soporte continuo.",
-      Icon: Rocket,
-      color: "#05b4ba",
+      ],
     },
+    en: {
+      title: "⚙️ A.D.A.P.T. Method",
+      subtitle: "From diagnosis to delivery, in 5 measurable steps.",
+      p1: "At E2D we support every project end-to-end with continuous communication, daily tracking and clear reporting.",
+      p2: "Full transparency from day one to final delivery.",
+      titles: ["Analyze", "Design", "Apply", "Test", "Transfer"],
+      descriptions: [
+        "Initial meeting to understand your business, goals and project scope.",
+        "We define architecture, technologies and the execution plan.",
+        "We implement the software solutions and report daily progress.",
+        "Full testing, review and optimization before launch.",
+        "Final delivery with training, documentation and ongoing support.",
+      ],
+    },
+    it: {
+      title: "⚙️ Metodo A.D.A.P.T.",
+      subtitle: "Dalla diagnosi alla consegna, in 5 passi misurabili.",
+      p1: "In E2D accompagniamo ogni progetto dall'inizio alla fine con comunicazione continua, monitoraggio quotidiano e report chiari.",
+      p2: "Trasparenza totale dal primo giorno fino alla consegna finale.",
+      titles: ["Analizzare", "Progettare", "Applicare", "Testare", "Trasferire"],
+      descriptions: [
+        "Incontro iniziale per comprendere la tua azienda, obiettivi e ambito del progetto.",
+        "Definiamo l'architettura, le tecnologie e il piano di esecuzione.",
+        "Sviluppiamo le soluzioni software e riportiamo i progressi quotidianamente.",
+        "Test completo, revisione e ottimizzazione prima del lancio.",
+        "Consegna finale con formazione, documentazione e supporto continuo.",
+      ],
+    },
+  }
+
+  const strings = textByLocale[locale as keyof typeof textByLocale] ?? textByLocale.es
+
+  const baseSteps = [
+    { key: "A", Icon: Search, color: "#05b4ba" },
+    { key: "D", Icon: Cog, color: "#293039" },
+    { key: "A", Icon: Code2, color: "#05b4ba" },
+    { key: "P", Icon: Microscope, color: "#293039" },
+    { key: "T", Icon: Rocket, color: "#05b4ba" },
   ]
+
+  const steps = baseSteps.map((base, index) => ({
+    ...base,
+    title: strings.titles[index],
+    description: strings.descriptions[index],
+  }))
 
   return (
     <section id="adapt" className="py-24 bg-muted/30">
@@ -59,17 +80,16 @@ export function AdaptSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 text-balance">
-            ⚙️ Método A.D.A.P.T.
+            {strings.title}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
-            Del diagnóstico a la entrega, en 5 pasos medibles.
+            {strings.subtitle}
           </p>
           <div className="mt-6 space-y-2 text-muted-foreground text-pretty">
             <p>
-              En E2D acompañamos cada proyecto de principio a fin con comunicación continua,
-              seguimiento diario e informes claros.
+              {strings.p1}
             </p>
-            <p>Transparencia total desde el primer día hasta la entrega final.</p>
+            <p>{strings.p2}</p>
           </div>
         </motion.div>
 

@@ -74,7 +74,7 @@ export class RSSGenerator {
   constructor(config: Partial<RSSConfig> = {}) {
     this.config = {
       baseUrl: "https://evolve2digital.com",
-      supportedLocales: ["es", "en"],
+      supportedLocales: ["es", "en", "it"],
       maxItems: 20,
       includeFullContent: false,
       aiOptimization: true,
@@ -99,22 +99,29 @@ export class RSSGenerator {
    */
   private generateChannelInfo(locale: string): RSSChannel {
     const isSpanish = locale === "es"
+    const isItalian = locale === "it"
     
     return {
       title: isSpanish 
         ? "E2D Blog - Automatización y Tecnología" 
-        : "E2D Blog - Automation and Technology",
+        : isItalian 
+          ? "Blog E2D - Automazione e Tecnologia"
+          : "E2D Blog - Automation and Technology",
       description: isSpanish
         ? "Artículos sobre automatización, chatbots, desarrollo web y tecnología para PYMEs españolas. Guías prácticas, casos de uso y tendencias en IA."
-        : "Articles about automation, chatbots, web development and technology for Spanish SMEs. Practical guides, use cases and AI trends.",
+        : isItalian
+          ? "Articoli su automazione, chatbot, sviluppo web e tecnologia per le PMI italiane. Guide pratiche, casi d'uso e tendenze IA."
+          : "Articles about automation, chatbots, web development and technology for Spanish SMEs. Practical guides, use cases and AI trends.",
       link: `${this.config.baseUrl}/${locale}/blog`,
-      language: locale === "es" ? "es-ES" : "en-US",
+      language: locale === "es" ? "es-ES" : (locale === "it" ? "it-IT" : "en-US"),
       lastBuildDate: new Date().toUTCString(),
       managingEditor: "hello@evolve2digital.com (Alberto Carrasco)",
       webMaster: "hello@evolve2digital.com (Alberto Carrasco)",
       category: isSpanish 
         ? ["Automatización", "Tecnología", "IA", "Desarrollo Web", "PYMEs", "Chatbots", "WhatsApp", "n8n"]
-        : ["Automation", "Technology", "AI", "Web Development", "SME", "Chatbots", "WhatsApp", "n8n"],
+        : isItalian
+          ? ["Automazione", "Tecnologia", "IA", "Sviluppo Web", "PMI", "Chatbot", "WhatsApp", "n8n"]
+          : ["Automation", "Technology", "AI", "Web Development", "SME", "Chatbots", "WhatsApp", "n8n"],
       generator: "E2D RSS Generator v2.0 - AI Optimized",
       docs: "https://www.rssboard.org/rss-specification",
       ttl: this.config.cacheTTL / 60, // Convert to minutes
@@ -140,8 +147,8 @@ export class RSSGenerator {
     return posts.map(post => {
       const categories = [
         ...(post.tags || []),
-        locale === "es" ? "Automatización" : "Automation",
-        locale === "es" ? "Tecnología" : "Technology",
+        locale === "es" ? "Automatización" : (locale === "it" ? "Automazione" : "Automation"),
+        locale === "es" ? "Tecnología" : (locale === "it" ? "Tecnologia" : "Technology"),
       ]
 
       const item: RSSItem = {

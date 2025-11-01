@@ -193,10 +193,10 @@ function validateParams(params: { query: string | null, locale: string, limit: s
   }
 
   // Validar idioma
-  if (!['es', 'en'].includes(locale)) {
+  if (!['es', 'en', 'it'].includes(locale)) {
     return {
       valid: false,
-      message: 'Locale must be "es" or "en"'
+      message: 'Locale must be "es", "en" or "it"'
     }
   }
 
@@ -226,22 +226,38 @@ function validateParams(params: { query: string | null, locale: string, limit: s
 async function generateSuggestions(locale: string): Promise<string[]> {
   const stats = aiAnswersService.getServiceStats()
   
-  const suggestions = locale === 'es' ? [
-    'Intenta usar términos más generales',
-    'Busca por temas como: automatización, chatbots, desarrollo web',
-    'Revisa los tags disponibles para ideas',
-  ] : [
-    'Try using more general terms',
-    'Search for topics like: automation, chatbots, web development',
-    'Check available tags for ideas',
-  ]
+  let suggestions: string[]
+  switch (locale) {
+    case 'es':
+      suggestions = [
+        'Intenta usar términos más generales',
+        'Busca por temas como: automatización, chatbots, desarrollo web',
+        'Revisa los tags disponibles para ideas',
+      ]
+      break
+    case 'it':
+      suggestions = [
+        'Prova a usare termini più generali',
+        'Cerca argomenti come: automazione, chatbot, sviluppo web',
+        'Controlla i tag disponibili per suggerimenti',
+      ]
+      break
+    default:
+      suggestions = [
+        'Try using more general terms',
+        'Search for topics like: automation, chatbots, web development',
+        'Check available tags for ideas',
+      ]
+  }
 
   // Agregar tags populares como sugerencias
   if (stats.availableTags.length > 0) {
     const popularTags = stats.availableTags.slice(0, 5)
-    const tagSuggestion = locale === 'es' 
+    const tagSuggestion = locale === 'es'
       ? `Tags disponibles: ${popularTags.join(', ')}`
-      : `Available tags: ${popularTags.join(', ')}`
+      : locale === 'it'
+        ? `Tag disponibili: ${popularTags.join(', ')}`
+        : `Available tags: ${popularTags.join(', ')}`
     suggestions.push(tagSuggestion)
   }
 

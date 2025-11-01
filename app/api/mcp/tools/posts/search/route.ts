@@ -245,10 +245,10 @@ function validateParams(searchParams: URLSearchParams) {
   }
   
   // Validar locale
-  if (!['es', 'en'].includes(locale)) {
+  if (!['es', 'en', 'it'].includes(locale)) {
     return {
       valid: false,
-      error: 'Locale must be either "es" or "en"'
+      error: 'Locale must be either "es", "en", or "it"'
     }
   }
   

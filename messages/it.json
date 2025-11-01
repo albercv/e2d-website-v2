@@ -1,0 +1,205 @@
+{
+  "navigation": {
+    "home": "Home",
+    "services": "Servizi",
+    "projects": "Progetti",
+    "about": "Chi sono",
+    "blog": "Blog",
+    "contact": "Contatto"
+  },
+  "hero": {
+    "title": "Automatizza la tua azienda: più vendite, meno compiti",
+    "subtitle": "Agenti vocali, chatbot WhatsApp e automazioni che trasformano qualsiasi business. Soluzioni su misura per aziende che vogliono crescere.",
+    "cta": "Prenota una demo",
+    "ctaSecondary": "Vedi progetti",
+    "stats": {
+      "moreAppointments": "Più appuntamenti",
+      "missedCalls": "Chiamate perse",
+      "noShows": "No-show",
+      "tasksPerWeek": "Compiti/settimana"
+    }
+  },
+  "services": {
+    "title": "Servizi che trasformano la tua impresa",
+    "subtitle": "Soluzioni tecnologiche progettate per le PMI",
+    "web": {
+      "title": "Sviluppo Web",
+      "description": "Next.js, SEO tecnico, performance e accessibilità WCAG AA",
+      "tooltip": "Sviluppo di siti web professionali con tecnologie moderne come React e Next.js. Ottimizzazione SEO avanzata per Google, Bing e motori di ricerca IA (AEO). Design responsive, alta velocità di caricamento e conformità all'accessibilità WCAG AA garantita.",
+      "cta": "Scopri di più"
+    },
+    "erp": {
+      "title": "Sistemi ERP",
+      "description": "Inventario, fatturazione e acquisti integrati",
+      "tooltip": "Sistema di Pianificazione delle Risorse d'Impresa. Ideale per ristoranti (controllo inventario), negozi (gestione stock e vendite) o officine (tracciamento materiali e fatturazione).",
+      "cta": "Scopri di più"
+    },
+    "crm": {
+      "title": "CRM Personalizzato",
+      "description": "Pipeline di vendita e automazioni di follow-up",
+      "tooltip": "Sistema di Gestione delle Relazioni con i Clienti. Perfetto per agenzie immobiliari (tracciamento lead), cliniche (storico pazienti) o consulenze (gestione progetti e clienti).",
+      "cta": "Scopri di più"
+    },
+    "automation": {
+      "title": "Automazione con IA",
+      "description": "Agenti vocali e bot WhatsApp per qualificazione e pianificazione",
+      "tooltip": "Soluzioni di intelligenza artificiale personalizzate: chatbot conversazionali, assistenti virtuali, automazione dei processi aziendali, analisi documentale con IA, generazione automatica di contenuti e ottimizzazione dei flussi di lavoro per aumentare produttività ed efficienza.",
+      "cta": "Scopri di più",
+      "badge": "IA"
+    }
+  },
+  "projects": {
+    "title": "Storie di successo",
+    "subtitle": "Una selezione di progetti che dimostrano la mia capacità di risolvere problemi complessi con soluzioni innovative.",
+    "abyfoods": {
+      "title": "Abyfoods - Sito Corporate",
+      "description": "Design elegante ottimizzato per SEO e IA, che riflette il glamour del brand.",
+      "tags": ["SEO", "IA", "Design su misura"]
+    },
+    "augustcollection": {
+      "title": "August Collection - E-commerce",
+      "description": "Piattaforma di vendita con IA integrata, ottimizzata per mobile e alte prestazioni.",
+      "tags": ["E-commerce", "IA integrata", "Ottimizzazione mobile"]
+    },
+    "ferdyCoach": {
+      "title": "Ferdy Coach - CMS e Vendite",
+      "description": "CMS personalizzato per gestire post e vendite, con un design 100% originale.",
+      "tags": ["CMS", "Design originale", "Ottimizzazione mobile"]
+    },
+    "chatbotWhatsapp": {
+      "title": "Dashboard per Bot WhatsApp",
+      "description": "Pannello di controllo per gestire un bot WhatsApp, con statistiche e viewer delle conversazioni.",
+      "tags": ["Dashboard", "WhatsApp API", "Statistiche"]
+    }
+  },
+  "about": {
+    "title": "Alberto Carrasco",
+    "subtitle": "Sviluppatore fullstack esperto in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude e Gemini",
+    "description": "Esperto in React, Next.js, n8n e database vettoriali. Focus su ROI e conformità GDPR per le PMI."
+  },
+  "blog": {
+    "list": {
+      "title": "Blog",
+      "subtitle": "Articoli su automazione, sviluppo web e tecnologia per le PMI"
+    },
+    "search": {
+      "placeholder": "Cerca articoli, temi o tag...",
+      "empty": "Nessun articolo corrisponde alla tua ricerca."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "blog": "Blog"
+    },
+    "back": "Torna al blog",
+    "cta": {
+      "title": "Ti interessa automatizzare la tua azienda?",
+      "subtitle": "Prenota una demo gratuita e scopri come possiamo aiutarti",
+      "button": "Prenota demo"
+    }
+  },
+  "process": {
+    "title": "Il mio modo di lavorare",
+    "subtitle": "Processo collaudato in 5 passaggi",
+    "steps": {
+      "diagnosis": "Diagnosi",
+      "prototype": "Prototipo",
+      "integration": "Integrazione",
+      "measurement": "Misurazione",
+      "scale": "Scala & SOPs"
+    },
+    "descriptions": {
+      "diagnosis": "Analisi degli obiettivi, dei sistemi attuali e dei requisiti GDPR",
+      "prototype": "Demo funzionale per validare la soluzione prima dell'implementazione",
+      "integration": "Integrazione con calendario, WhatsApp, voce, Sheets e database",
+      "measurement": "KPI di conversione, no-show, tempo risparmiato e ROI",
+      "scale": "Documentazione, formazione del team e supporto continuo"
+    },
+    "benefits": {
+      "duration": {
+        "value": "2-4 settimane",
+        "label": "Tempo di implementazione"
+      },
+      "transparency": {
+        "value": "100%",
+        "label": "Trasparenza del processo"
+      },
+      "support": {
+        "value": "24/7",
+        "label": "Supporto post-implementazione"
+      }
+    }
+  },
+  "footer": {
+    "contact": "hello@evolve2digital.com",
+    "legal": "Avviso legale",
+    "privacy": "Privacy",
+    "cookies": "Cookies",
+    "copyright": "Tutti i diritti riservati."
+  },
+  "agent": {
+    "title": "Assistente E2D",
+    "placeholder": "Come posso aiutarti?",
+    "send": "Invia",
+    "handoff": "Continua su WhatsApp",
+    "consent": "Accetto l'informativa sulla privacy",
+    "email": "Email",
+    "phone": "Telefono",
+    "company": "Azienda (opzionale)",
+    "submit": "Invia richiesta"
+  },
+  "cookies": {
+    "title": "Gestione Cookie",
+    "description": "Utilizziamo i cookie per migliorare la tua esperienza. Puoi accettare tutti i cookie o personalizzare le tue preferenze.",
+    "acceptAll": "Accetta tutte",
+    "rejectAll": "Rifiuta tutte",
+    "customize": "Personalizza",
+    "settings": {
+      "title": "Impostazioni Cookie",
+      "necessary": {
+        "title": "Cookie Necessari",
+        "description": "Essenziali per il funzionamento di base del sito."
+      },
+      "analytics": {
+        "title": "Cookie Analitici",
+        "description": "Ci aiutano a capire come interagisci con il nostro sito."
+      },
+      "marketing": {
+        "title": "Cookie di Marketing",
+        "description": "Utilizzati per mostrare annunci rilevanti e misurare le campagne."
+      },
+      "required": "Richieste",
+      "cancel": "Annulla",
+      "save": "Salva preferenze"
+    }
+  },
+  "privacy": {
+    "title": "Informativa sulla Privacy",
+    "lastUpdated": "Ultimo aggiornamento",
+    "sections": {
+      "introduction": {
+        "title": "Introduzione"
+      },
+      "dataCollection": {
+        "title": "Raccolta Dati"
+      },
+      "dataUsage": {
+        "title": "Uso dei Dati"
+      },
+      "legalBasis": {
+        "title": "Base Legale"
+      },
+      "cookies": {
+        "title": "Politica Cookie"
+      },
+      "rights": {
+        "title": "I tuoi diritti"
+      },
+      "security": {
+        "title": "Sicurezza"
+      },
+      "contact": {
+        "title": "Contatto"
+      }
+    }
+  }
+}

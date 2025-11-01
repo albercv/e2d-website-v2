@@ -11,6 +11,12 @@ export function LanguageSwitcher() {
 
   const switchLanguage = (locale: string) => {
     const segments = pathname.split("/")
+    // Ensure we have at least two segments ("", locale)
+    if (segments.length < 2) {
+      // If somehow not in a locale route, default to prefixing the path with the desired locale
+      router.push(`/${locale}`)
+      return
+    }
     segments[1] = locale
     router.push(segments.join("/"))
   }
@@ -26,6 +32,7 @@ export function LanguageSwitcher() {
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => switchLanguage("es")}>🇪🇸 Español</DropdownMenuItem>
         <DropdownMenuItem onClick={() => switchLanguage("en")}>🇬🇧 English</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => switchLanguage("it")}>🇮🇹 Italiano</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

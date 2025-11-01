@@ -17,7 +17,7 @@ import path from "path"
 
 export interface BuildConfig {
   outputDir: string
-  supportedLocales: string[]
+  supportedLocales: ("es" | "en" | "it")[]
   enableSitemap: boolean
   enableRSS: boolean
   enableValidation: boolean
@@ -60,7 +60,7 @@ export class BuildIntegration {
   constructor(config: Partial<BuildConfig> = {}) {
     this.config = {
       outputDir: "./public",
-      supportedLocales: ["es", "en"],
+      supportedLocales: ["es", "en", "it"],
       enableSitemap: true,
       enableRSS: true,
       enableValidation: true,
