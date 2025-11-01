@@ -3,7 +3,7 @@ import { ServicesSection } from "@/components/sections/services-section"
 import { Footer } from "@/components/layout/footer"
 import { Navigation } from "@/components/layout/navigation"
 import { Suspense } from "react"
-import { ProjectsSectionLazy, AboutSectionLazy, ProcessSectionLazy } from "@/components/performance/lazy-components"
+import { ProjectsSectionLazy, AboutSectionLazy, AdaptSectionLazy } from "@/components/performance/lazy-components"
 import { E2DChat } from "@/components/chat/e2d-chat"
 
 export default function HomePage() {
@@ -23,7 +23,7 @@ export default function HomePage() {
           <AboutSectionLazy />
         </Suspense>
         <Suspense fallback={<div className="py-24 bg-muted/30 animate-pulse" />}>
-          <ProcessSectionLazy />
+          <AdaptSectionLazy />
         </Suspense>
       </main>
       <Footer />
