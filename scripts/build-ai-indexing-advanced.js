@@ -15,7 +15,7 @@ const { execSync } = require('child_process')
 const config = {
   baseUrl: 'https://e2d.es',
   outputDir: './public',
-  locales: ['es', 'en'],
+  locales: ['es', 'en', 'it'],
   defaultLocale: 'es',
   contentDir: './content',
   mcpDocsDir: './docs'

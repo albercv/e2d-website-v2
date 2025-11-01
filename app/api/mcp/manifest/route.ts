@@ -71,7 +71,7 @@ const MCP_TOOLS = {
         locale: {
           type: 'string',
           description: 'Idioma preferido para la respuesta',
-          enum: ['es', 'en'],
+          enum: ['es', 'en', 'it'],
           default: 'es'
         },
         includeContext: {
@@ -139,7 +139,7 @@ const MCP_TOOLS = {
         locale: {
           type: 'string',
           description: 'Idioma preferido para los resultados',
-          enum: ['es', 'en'],
+          enum: ['es', 'en', 'it'],
           default: 'es'
         },
         limit: {

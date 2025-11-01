@@ -46,7 +46,7 @@ export class SitemapGenerator {
   constructor(config: Partial<SitemapConfig> = {}) {
     this.config = {
       baseUrl: "https://evolve2digital.com",
-      supportedLocales: ["es", "en"],
+      supportedLocales: ["es", "en", "it"],
       excludePatterns: ["/api/", "/admin/", "/_next/", "/private/", "*.json"],
       includeAlternateLanguages: true,
       aiOptimization: true,

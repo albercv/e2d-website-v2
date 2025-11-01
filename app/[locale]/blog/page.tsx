@@ -12,17 +12,27 @@ interface BlogPageProps {
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
   const { locale } = await params
 
+  const titles: Record<string, string> = {
+    es: "Blog - E2D | Automatización y Tecnología",
+    en: "Blog - E2D | Automation and Technology",
+    it: "Blog - E2D | Automazione e Tecnologia",
+  }
+
+  const descriptions: Record<string, string> = {
+    es: "Artículos sobre automatización, chatbots, desarrollo web y tecnología para PYMEs",
+    en: "Articles about automation, chatbots, web development and technology for SMEs",
+    it: "Articoli su automazione, chatbot, sviluppo web e tecnologia per PMI",
+  }
+
   return {
-    title: locale === "es" ? "Blog - E2D | Automatización y Tecnología" : "Blog - E2D | Automation and Technology",
-    description:
-      locale === "es"
-        ? "Artículos sobre automatización, chatbots, desarrollo web y tecnología para PYMEs"
-        : "Articles about automation, chatbots, web development and technology for SMEs",
+    title: titles[locale] ?? titles.es,
+    description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `/${locale}/blog`,
       languages: {
         es: "/es/blog",
         en: "/en/blog",
+        it: "/it/blog",
       },
     },
   }
@@ -31,7 +41,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
 export default async function BlogPage({ params }: BlogPageProps) {
   const { locale } = await params
 
-  if (!["es", "en"].includes(locale)) {
+  if (!["es", "en", "it"].includes(locale)) {
     notFound()
   }
 

@@ -5,7 +5,7 @@ import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/s
 import { CookieBanner } from "@/components/gdpr/cookie-banner"
 import { DebugProvider } from "@/components/debug/debug-provider"
 
-const locales = ["es", "en"]
+const locales = ["es", "en", "it"]
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))

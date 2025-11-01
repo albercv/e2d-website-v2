@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 // Locales soportados en la web
-const SUPPORTED_LOCALES = ["es", "en"] as const
+const SUPPORTED_LOCALES = ["es", "en", "it"] as const
 const DEFAULT_LOCALE = "es"
 
 type SupportedLocale = typeof SUPPORTED_LOCALES[number]

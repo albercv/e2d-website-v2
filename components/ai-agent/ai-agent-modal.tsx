@@ -42,11 +42,81 @@ const commonIntentions = {
     "System integration",
     "Custom quote",
   ],
+  it: [
+    "Automazione per la mia azienda",
+    "Bot WhatsApp personalizzato",
+    "Agente vocale intelligente",
+    "Sviluppo web moderno",
+    "Integrazione con sistemi",
+    "Preventivo personalizzato",
+  ],
+}
+
+// UI text by locale (to avoid hardcoded Spanish strings)
+const uiText = {
+  es: {
+    commonQuestions: "Consultas frecuentes:",
+    emptyState: "Haz clic en una consulta frecuente o escribe tu pregunta",
+    closeModal: "Cerrar modal",
+    voiceStart: "Iniciar grabación de voz",
+    voiceStop: "Parar grabación",
+    contactTab: "Contacto",
+    whatsappIntro: "Continúa la conversación directamente en WhatsApp para una respuesta más rápida",
+    whatsappSummary: "Resumen de la conversación:",
+    you: "Tú",
+    assistant: "Asistente",
+    additionalMessage: "Mensaje adicional (opcional)",
+    projectPlaceholder: "Describe tu proyecto o necesidad...",
+    privacyPolicy: "política de privacidad",
+    sending: "Enviando...",
+    whatsappGreeting: "Hola, me interesa conocer más sobre los servicios de automatización de E2D.",
+    whatsappPreviousLabel: "Conversación previa:",
+    speechLang: "es-ES",
+  },
+  en: {
+    commonQuestions: "Common questions:",
+    emptyState: "Click a common question or type your question",
+    closeModal: "Close modal",
+    voiceStart: "Start voice recording",
+    voiceStop: "Stop recording",
+    contactTab: "Contact",
+    whatsappIntro: "Continue the conversation on WhatsApp for a faster response",
+    whatsappSummary: "Conversation summary:",
+    you: "You",
+    assistant: "Assistant",
+    additionalMessage: "Additional message (optional)",
+    projectPlaceholder: "Describe your project or need...",
+    privacyPolicy: "privacy policy",
+    sending: "Sending...",
+    whatsappGreeting: "Hello, I'm interested in learning more about E2D automation services.",
+    whatsappPreviousLabel: "Previous conversation:",
+    speechLang: "en-US",
+  },
+  it: {
+    commonQuestions: "Domande frequenti:",
+    emptyState: "Clicca una domanda frequente o scrivi la tua",
+    closeModal: "Chiudi modale",
+    voiceStart: "Avvia registrazione vocale",
+    voiceStop: "Ferma registrazione",
+    contactTab: "Contatto",
+    whatsappIntro: "Continua la conversazione su WhatsApp per una risposta più rapida",
+    whatsappSummary: "Riepilogo della conversazione:",
+    you: "Tu",
+    assistant: "Assistente",
+    additionalMessage: "Messaggio aggiuntivo (opzionale)",
+    projectPlaceholder: "Descrivi il tuo progetto o esigenza...",
+    privacyPolicy: "informativa sulla privacy",
+    sending: "Invio in corso...",
+    whatsappGreeting: "Ciao, vorrei saperne di più sui servizi di automazione di E2D.",
+    whatsappPreviousLabel: "Conversazione precedente:",
+    speechLang: "it-IT",
+  },
 }
 
 export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const t = useTranslations("agent")
   const locale = useLocale()
+  const ui = uiText[locale as keyof typeof uiText] ?? uiText.es
   const [activeTab, setActiveTab] = useState("chat")
   const [message, setMessage] = useState("")
   const [email, setEmail] = useState("")
@@ -57,22 +127,22 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [isListening, setIsListening] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<any>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)) {
       setSpeechSupported(true)
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-      recognitionRef.current = new SpeechRecognition()
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+      recognitionRef.current = new SpeechRec()
 
       if (recognitionRef.current) {
         recognitionRef.current.continuous = false
         recognitionRef.current.interimResults = false
-        recognitionRef.current.lang = locale === "es" ? "es-ES" : "en-US"
+        recognitionRef.current.lang = ui.speechLang
 
-        recognitionRef.current.onresult = (event) => {
+        recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript
           setMessage(transcript)
           setIsListening(false)
@@ -297,7 +367,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
               size="sm"
               onClick={onClose}
               className="text-muted-foreground hover:text-foreground"
-              aria-label="Cerrar modal"
+              aria-label={ui.closeModal}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -307,14 +377,14 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
                 <TabsTrigger value="chat">Chat</TabsTrigger>
-                <TabsTrigger value="contact">Contacto</TabsTrigger>
+                <TabsTrigger value="contact">{ui.contactTab}</TabsTrigger>
                 <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
               </TabsList>
 
               <TabsContent value="chat" className="space-y-4 mt-4 flex-1 flex flex-col overflow-hidden">
                 {/* Common Intentions */}
                 <div className="flex-shrink-0">
-                  <h4 className="text-sm font-medium text-foreground mb-3">Consultas frecuentes:</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-3">{ui.commonQuestions}</h4>
                   <div className="flex flex-wrap gap-2">
                     {commonIntentions[locale as keyof typeof commonIntentions].map((intention) => (
                       <Badge
@@ -334,7 +404,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                   {chatMessages.length === 0 && (
                     <div className="text-center text-muted-foreground py-8">
                       <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Haz clic en una consulta frecuente o escribe tu pregunta</p>
+                      <p>{ui.emptyState}</p>
                     </div>
                   )}
 
@@ -379,7 +449,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                         className={`absolute right-2 top-2 h-6 w-6 p-0 ${
                           isListening ? "text-red-500" : "text-muted-foreground"
                         }`}
-                        aria-label={isListening ? "Parar grabación" : "Iniciar grabación de voz"}
+                        aria-label={isListening ? ui.voiceStop : ui.voiceStart}
                       >
                         {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                       </Button>
@@ -414,7 +484,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                         placeholder={t("phone")}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        aria-label="Teléfono"
+                        aria-label={locale === "es" ? "Teléfono" : locale === "it" ? "Telefono" : "Phone"}
                       />
                     </div>
                   </div>
@@ -424,17 +494,17 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                       placeholder={t("company")}
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
-                      aria-label="Empresa"
+                      aria-label={locale === "es" ? "Empresa" : locale === "it" ? "Azienda" : "Company"}
                     />
                   </div>
 
                   <div>
                     <Textarea
-                      placeholder="Describe tu proyecto o necesidad..."
+                      placeholder={ui.projectPlaceholder}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className="min-h-[100px] resize-none"
-                      aria-label="Mensaje"
+                      aria-label={locale === "es" ? "Mensaje" : locale === "it" ? "Messaggio" : "Message"}
                     />
                   </div>
 
@@ -446,7 +516,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
                       className="mt-1"
                     />
                     <label htmlFor="consent" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
-                      {t("consent")}{" "}
+                      {t("consent")} {" "}
                       <a href="/privacy" className="text-[#05b4ba] hover:underline">
                         política de privacidad
                       </a>
@@ -485,7 +555,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
 
                   <div>
                     <Textarea
-                      placeholder="Mensaje adicional (opcional)"
+                      placeholder={ui.additionalMessage}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className="min-h-[80px] resize-none"
@@ -539,6 +609,20 @@ function getAgentResponse(userMessage: string, locale: string): string {
       default:
         "Thanks for your inquiry. I specialize in business automation. Could you tell me more about your business and what processes you'd like to automate?",
     },
+    it: {
+      voicebot:
+        "Ottimo! Gli agenti vocali possono aumentare l'efficienza della tua azienda fino al 35%. Ti aiuto a implementare una soluzione personalizzata. Che tipo di attività hai?",
+      whatsapp:
+        "I bot WhatsApp possono ridurre il carico di lavoro fino al 28% e migliorare il servizio clienti. Quante richieste ricevi al mese?",
+      automatizacion:
+        "L'automazione può farti risparmiare fino a 12 ore alla settimana. Quali processi ripetitivi hai attualmente in azienda?",
+      web: "Sviluppo siti web moderni ottimizzati per SEO e conversione. Ti serve un nuovo sito o migliorare quello attuale?",
+      crm: "Un sistema personalizzato può aumentare le tue vendite del 20%. Come gestisci attualmente clienti e lead?",
+      presupuesto:
+        "Perfetto, posso preparare un preventivo personalizzato. Puoi raccontarmi di più sul tuo progetto?",
+      default:
+        "Grazie per la tua richiesta. Sono specialista in automazione aziendale. Puoi raccontarmi di più sulla tua attività e quali processi vorresti automatizzare?",
+    },
   }
 
   const localeResponses = responses[locale as keyof typeof responses] || responses.es
@@ -550,16 +634,16 @@ function getAgentResponse(userMessage: string, locale: string): string {
   if (message.includes("whatsapp") || message.includes("bot") || message.includes("chat")) {
     return localeResponses.whatsapp
   }
-  if (message.includes("automatización") || message.includes("automation") || message.includes("proceso")) {
+  if (message.includes("automatización") || message.includes("automation") || message.includes("proceso") || message.includes("automazione")) {
     return localeResponses.automatizacion
   }
   if (message.includes("web") || message.includes("desarrollo") || message.includes("development")) {
     return localeResponses.web
   }
-  if (message.includes("crm") || message.includes("sistema") || message.includes("integración")) {
+  if (message.includes("crm") || message.includes("sistema") || message.includes("integración") || message.includes("integrazione")) {
     return localeResponses.crm
   }
-  if (message.includes("presupuesto") || message.includes("quote") || message.includes("precio")) {
+  if (message.includes("presupuesto") || message.includes("quote") || message.includes("precio") || message.includes("preventivo")) {
     return localeResponses.presupuesto
   }
 
@@ -574,3 +658,5 @@ declare global {
     gtag: any
   }
 }
+
+// Update WhatsApp handoff to be locale-aware

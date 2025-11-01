@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-11-01T05:41:03.761Z",
-  "duration": "1476ms",
+  "timestamp": "2025-11-01T06:02:32.420Z",
+  "duration": "2041ms",
   "success": true,
   "files": {
     "sitemap": {
       "path": "public/sitemap.xml",
-      "urls": 30
+      "urls": 41
     },
     "rss": {
       "es": {
@@ -15,6 +15,10 @@
       "en": {
         "path": "public/rss-en.xml",
         "items": 4
+      },
+      "it": {
+        "path": "public/rss-it.xml",
+        "items": 0
       }
     },
     "mcp": {

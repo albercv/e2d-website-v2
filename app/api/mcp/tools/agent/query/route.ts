@@ -211,43 +211,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar locale
-    const supportedLocales = ['es', 'en']
+    const supportedLocales = ['es', 'en', 'it']
     if (!supportedLocales.includes(locale)) {
-      return NextResponse.json(
-        { error: `Unsupported locale. Supported: ${supportedLocales.join(', ')}` },
-        { 
-          status: 400,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'X-MCP-Tool': 'agent.query'
-          }
-        }
-      )
-    }
+       return NextResponse.json(
+         { error: `Unsupported locale. Supported: ${supportedLocales.join(', ')}` },
+         { 
+           status: 400,
+           headers: {
+             'Access-Control-Allow-Origin': '*',
+             'Access-Control-Allow-Methods': 'POST, OPTIONS',
+             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+             'X-MCP-Tool': 'agent.query'
+           }
+         }
+       )
+     }
 
-    // Procesar consulta con el agente IA externo
-    const externalResponse = await callExternalAgent(prompt, locale)
+     // Procesar consulta con el agente IA externo
+     const externalResponse = await callExternalAgent(prompt, locale)
 
-    const processingTime = Date.now() - startTime
+     const processingTime = Date.now() - startTime
 
-    // Si no hay respuesta del agente externo, generar respuesta genérica
-    if (!externalResponse) {
-      const fallbackResponse: AgentQueryResponse = {
-        response: locale === 'es' 
-          ? "Lo siento, no pude conectar con nuestro agente en este momento. Por favor, intenta nuevamente más tarde o contacta directamente con nuestro equipo."
-          : "I'm sorry, I couldn't connect to our agent at this time. Please try again later or contact our team directly.",
-        source: "E2D Agent (Fallback)",
-        timestamp: new Date().toISOString(),
-        confidence: 0,
-        metadata: {
-          agent: "E2D Assistant",
-          version: "1.0.0",
-          processing_time_ms: processingTime,
-          fallback: true
-        }
-      }
+     // Si no hay respuesta del agente externo, generar respuesta genérica
+     if (!externalResponse) {
+       const fallbackMessages: Record<string, string> = {
+         es: "Lo siento, no pude conectar con nuestro agente en este momento. Por favor, intenta nuevamente más tarde o contacta directamente con nuestro equipo.",
+         en: "I'm sorry, I couldn't connect to our agent at this time. Please try again later or contact our team directly.",
+         it: "Mi dispiace, non sono riuscito a collegarmi al nostro agente in questo momento. Per favore riprova più tardi o contatta direttamente il nostro team."
+       }
+       const fallbackResponse: AgentQueryResponse = {
+         response: fallbackMessages[locale] || fallbackMessages.es,
+         source: "E2D Agent (Fallback)",
+         timestamp: new Date().toISOString(),
+         confidence: 0,
+         metadata: {
+           agent: "E2D Assistant",
+           version: "1.0.0",
+           processing_time_ms: processingTime,
+           fallback: true
+         }
+       }
 
       // Log de respuesta de fallback
       mcpLogger.logToolInvocation(
@@ -277,12 +280,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Extraer la respuesta del agente externo
+    const fallbackNoResponse: Record<string, string> = {
+      es: 'Respuesta no disponible',
+      en: 'Response unavailable',
+      it: 'Risposta non disponibile'
+    }
     const agentResponse = externalResponse.response || 
                          externalResponse.answer || 
                          externalResponse.message || 
                          externalResponse.userMessage ||
                          externalResponse.text ||
-                         'Respuesta no disponible'
+                         (fallbackNoResponse[locale] || fallbackNoResponse.es)
 
     // Construir respuesta estructurada
     const response: AgentQueryResponse = {
