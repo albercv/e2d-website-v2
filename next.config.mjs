@@ -45,6 +45,18 @@ const nextConfig = {
   
   // Configuración agresiva de webpack
   webpack: (config, { isServer, dev }) => {
+    // Configuración específica para Web Workers
+    if (!isServer) {
+      // Permitir importación de archivos .worker.ts como URLs
+      config.module.rules.push({
+        test: /\.worker\.(js|ts)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/workers/[name].[hash][ext]',
+        },
+      });
+    }
+
     // Optimizaciones para reducir el bundle size
     config.optimization.sideEffects = false;
     

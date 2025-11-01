@@ -121,4 +121,4 @@ result = client.call_tool('posts/search', {
 
 ---
 
-*Documentación generada automáticamente el 2025-10-29T16:09:06.989Z*
+*Documentación generada automáticamente el 2025-10-31T17:43:38.452Z*

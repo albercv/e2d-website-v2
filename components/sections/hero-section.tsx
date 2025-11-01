@@ -2,17 +2,11 @@
 
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import { Suspense, useState, lazy, useRef } from "react"
+import { useState, useRef } from "react"
 import { ArrowRight, Play } from "lucide-react"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
-import { useIntelligentOrbLoading } from "@/hooks/use-intelligent-orb-loading"
-import { OrbSkeleton } from "@/components/ui/orb-skeleton"
 import { LazyMotionSection, OptimizedMotionDiv } from "@/components/performance/motion-optimized"
-
-// Ultra-lazy load the optimized Orb component with Web Worker support
-const LazyOrbOptimized = lazy(() => 
-  import("@/components/ui/orb-optimized").then(module => ({ default: module.OrbOptimized }))
-)
+import { ThreadsBackground } from "@/components/visual/threads"
 
 export function HeroSection() {
   const t = useTranslations("hero");
@@ -21,34 +15,14 @@ export function HeroSection() {
   
   // Ref for the hero section container
   const heroSectionRef = useRef<HTMLElement>(null);
-  
-  // Intelligent Orb loading with performance optimizations
-  const {
-    shouldLoadOrb,
-    isOrbLoaded,
-    markAsLoaded,
-    canRender,
-    isLoading
-  } = useIntelligentOrbLoading(heroSectionRef, {
-    delay: 200, // Small delay to let critical content render first
-    useIntersectionObserver: true,
-    threshold: 0.1,
-    useIdleCallback: true
-  });
 
   return (
     <section 
       ref={heroSectionRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background"
+      className="relative h-screen flex items-center justify-center overflow-hidden bg-background"
     >
-      {/* Orb Background - Reactivated with improved error handling */}
-      <div className="absolute inset-0 z-0">
-        <LazyOrbOptimized 
-          hue={220}
-          hoverIntensity={0.3}
-          rotateOnHover={true}
-        />
-      </div>
+      {/* Fondo threads (OGL) */}
+      <ThreadsBackground className="pointer-events-none absolute inset-0 z-10" amplitude={0.5} distance={0.08} />
 
       {/* Content */}
       <div 

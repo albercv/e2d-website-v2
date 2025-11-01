@@ -84,8 +84,13 @@ export class OrbWorkerManager {
 
     try {
       // Create Web Worker with error handling
-      this.worker = new Worker(new URL('../workers/orb.worker.ts', import.meta.url), {
-        type: 'module'
+      // Use static worker file in production for better compatibility
+      const workerUrl = process.env.NODE_ENV === 'production' 
+        ? '/workers/orb.worker.js'
+        : new URL('../workers/orb.worker.ts', import.meta.url);
+        
+      this.worker = new Worker(workerUrl, {
+        type: process.env.NODE_ENV === 'production' ? 'classic' : 'module'
       });
 
       // Set up error handling before transferring canvas
@@ -123,24 +128,30 @@ export class OrbWorkerManager {
 
       // Calculate initial dimensions safely
       const rect = canvas.getBoundingClientRect();
-      const devicePixelRatio = window.devicePixelRatio || 1;
-      const initialWidth = Math.max(1, Math.floor(rect.width * devicePixelRatio));
-      const initialHeight = Math.max(1, Math.floor(rect.height * devicePixelRatio));
+      const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x
+      const initialWidth = Math.max(100, Math.min(4096, Math.floor(rect.width * devicePixelRatio)));
+      const initialHeight = Math.max(100, Math.min(4096, Math.floor(rect.height * devicePixelRatio)));
+
+      console.log('Orb initialization:', { 
+        rectWidth: rect.width, 
+        rectHeight: rect.height, 
+        devicePixelRatio, 
+        initialWidth, 
+        initialHeight 
+      });
 
       // Initialize worker with canvas and config
       this.worker.postMessage({
         type: 'init',
         data: {
           canvas: this.offscreenCanvas,
-          config: {
-            width: initialWidth,
-            height: initialHeight,
-            hue: 200,
-            hoverIntensity: 1.0,
-            rotateOnHover: true,
-            forceHoverState: false,
-            ...config
-          }
+          width: initialWidth,
+          height: initialHeight,
+          hue: 200,
+          hoverIntensity: 1.0,
+          rotateOnHover: true,
+          forceHoverState: false,
+          ...config
         }
       }, [this.offscreenCanvas]);
 
@@ -156,7 +167,7 @@ export class OrbWorkerManager {
 
     this.worker.postMessage({
       type: 'update',
-      data: { config }
+      data: config
     });
   }
 
@@ -164,8 +175,8 @@ export class OrbWorkerManager {
     if (!this.worker || !this.isInitialized) return;
 
     this.worker.postMessage({
-      type: 'update',
-      data: { mouse: { x, y } }
+      type: 'mouse',
+      data: { x, y }
     });
   }
 

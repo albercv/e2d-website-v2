@@ -11,8 +11,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main>
+        {/* Hero + Services sin fondo 3D ni ColorBends */}
         <HeroSection />
         <ServicesSection />
+
+        {/* El resto de secciones fuera del wrapper para que no compartan el mismo fondo */}
         <Suspense fallback={<div className="py-24 bg-muted/30 animate-pulse" />}>
           <ProjectsSectionLazy />
         </Suspense>
