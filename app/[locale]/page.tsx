@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main>
+      <main className="pt-[calc(env(safe-area-inset-top)+64px)]">
         {/* Hero + Services sin fondo 3D ni ColorBends */}
         <HeroSection />
         <ServicesSection />
