@@ -22,21 +22,21 @@ export function HeroSection() {
       className="relative h-screen flex items-center justify-center overflow-hidden bg-background"
     >
       {/* LiquidEther como background (no afecta el layout) */}
-      <div className="pointer-events-none absolute inset-0 z-0 h-full opacity-75">
+      <div className="pointer-events-none absolute inset-0 z-0 h-full opacity-90">
         <LiquidEther
           style={{ width: '100%', height: '100%', position: 'relative' }}
           colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]}
-          mouseForce={12}
-          cursorSize={90}
+          mouseForce={16}
+          cursorSize={110}
           isViscous={true}
-          viscous={18}
+          viscous={12}
           iterationsViscous={32}
           iterationsPoisson={32}
-          resolution={0.5}
+          resolution={0.7}
           isBounce={false}
           autoDemo={true}
-          autoSpeed={0.35}
-          autoIntensity={1.6}
+          autoSpeed={0.55}
+          autoIntensity={2.4}
           takeoverDuration={0.25}
           autoResumeDelay={3000}
           autoRampDuration={0.6}
