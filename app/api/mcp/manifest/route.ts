@@ -32,7 +32,7 @@ const MCP_CONFIG = {
  */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 }
@@ -535,8 +535,7 @@ const MCP_TOOLS = {
 export async function OPTIONS(request: NextRequest) {
   const startTime = Date.now()
   const userAgent = request.headers.get('user-agent') || undefined
-  const headers: Record<string, string> = { ...corsHeaders, ...mcpHeaders }
-  headers['X-Processing-Time'] = `${Date.now() - startTime}ms`
+  const headers: Record<string, string> = { ...corsHeaders } // Solo cabeceras CORS para preflight
   // Log preflight CORS requests
   mcpLogger.logManifestRequest('/api/mcp/manifest', 'OPTIONS', true, Date.now() - startTime, 200, userAgent)
   return new NextResponse(null, {
@@ -658,21 +657,117 @@ export async function GET(request: NextRequest) {
 /**
  * Maneja métodos no permitidos
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  try {
+    const manifest = {
+      mcp: {
+        version: MCP_CONFIG.version,
+        server: {
+          name: MCP_CONFIG.name,
+          description: MCP_CONFIG.description,
+          version: MCP_CONFIG.version,
+          contact: MCP_CONFIG.contact,
+          baseUrl: MCP_CONFIG.baseUrl,
+          capabilities: [
+            'content_search',
+            'appointment_booking',
+            'structured_responses',
+            'multilingual_support'
+          ],
+          supportedModels: [
+            'gpt-4',
+            'gpt-4-turbo',
+            'gpt-3.5-turbo',
+            'claude-3-opus',
+            'claude-3-sonnet',
+            'claude-3-haiku',
+            'gemini-pro'
+          ]
+        },
+        tools: Object.values(MCP_TOOLS),
+        endpoints: {
+          manifest: `${MCP_CONFIG.baseUrl}/api/mcp/manifest`,
+          tools: `${MCP_CONFIG.baseUrl}/api/mcp/tools`,
+          health: `${MCP_CONFIG.baseUrl}/api/mcp/health`
+        },
+        documentation: {
+          usage: `${MCP_CONFIG.baseUrl}/docs/mcp-usage`,
+          examples: `${MCP_CONFIG.baseUrl}/docs/mcp-examples`,
+          changelog: `${MCP_CONFIG.baseUrl}/docs/mcp-changelog`
+        },
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          environment: process.env.NODE_ENV || 'production',
+          region: 'eu-west-1',
+          availability: '99.9%'
+        }
+      }
+    }
+
+    const processingTime = Date.now() - startTime
+    mcpLogger.logManifestRequest(
+      '/api/mcp/manifest',
+      'POST',
+      true,
+      processingTime,
+      200,
+      request.headers.get('user-agent') || undefined
+    )
+
+    return NextResponse.json(manifest, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        ...mcpHeaders,
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Processing-Time': `${processingTime}ms`,
+      }
+    })
+
+  } catch (error) {
+    const processingTime = Date.now() - startTime
+    mcpLogger.logError(
+      '/api/mcp/manifest',
+      'POST',
+      (error as Error).message,
+      500,
+      request.headers.get('user-agent') || undefined
+    )
+
+    console.error('MCP Manifest Error (POST):', error)
+
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: 'Failed to generate MCP manifest',
+        timestamp: new Date().toISOString(),
+      },
+      {
+        status: 500,
+        headers: corsHeaders
+      }
+    )
+  }
+}
+
+function methodNotAllowedResponse() {
   return NextResponse.json(
     {
       error: 'Method not allowed',
-      message: 'This endpoint only supports GET requests',
-      allowedMethods: ['GET', 'HEAD', 'OPTIONS']
+      message: 'This endpoint only supports GET, POST, OPTIONS',
+      allowedMethods: ['GET', 'POST', 'OPTIONS']
     },
     {
       status: 405,
       headers: {
         ...corsHeaders,
-        'Allow': 'GET, HEAD, OPTIONS',
+        'Allow': 'GET, POST, OPTIONS',
       }
     }
   )
 }
 
-export { POST as PUT, POST as DELETE, POST as PATCH }
+export async function PUT() { return methodNotAllowedResponse() }
+export async function DELETE() { return methodNotAllowedResponse() }
+export async function PATCH() { return methodNotAllowedResponse() }
