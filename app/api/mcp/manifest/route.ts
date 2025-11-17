@@ -274,6 +274,257 @@ const MCP_TOOLS = {
       window: '1h',
       description: '10 requests per hour per IP'
     }
+  },
+
+  'posts.get': {
+    name: 'posts.get',
+    description: 'Recupera un post del blog por título o slug',
+    category: 'content',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Título exacto del post', minLength: 2 },
+        slug: { type: 'string', description: 'Slug del post', minLength: 2 },
+        locale: { type: 'string', description: 'Idioma del post', enum: ['es', 'en', 'it'], default: 'es' },
+        includeContent: { type: 'boolean', description: 'Incluir el cuerpo completo del post', default: false }
+      },
+      anyOf: [ { required: ['title'] }, { required: ['slug'] } ],
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        found: { type: 'boolean' },
+        post: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            description: { type: 'string' },
+            url: { type: 'string' },
+            date: { type: 'string' },
+            locale: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            author: { type: 'string' },
+            slug: { type: 'string' },
+            wordCount: { type: 'number' },
+            readingTime: { type: 'object' },
+            body: { type: 'string' }
+          }
+        },
+        timestamp: { type: 'string' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/get`,
+    method: 'GET',
+    rateLimit: {
+      requests: 100,
+      window: '1m',
+      description: '100 requests per minute per IP'
+    }
+  },
+
+  'posts.create': {
+    name: 'posts.create',
+    description: 'Crea un nuevo post del blog (MDX) en el repositorio. Requiere API key. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico.',
+    category: 'content',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Título del post', minLength: 3 },
+        description: { type: 'string', description: 'Descripción del post', minLength: 10 },
+        locale: { type: 'string', description: 'Idioma del post', enum: ['es', 'en', 'it'], default: 'es' },
+        content: { type: 'string', description: 'Contenido en MDX', minLength: 50 },
+        tags: { type: 'array', items: { type: 'string' } },
+        date: { type: 'string', description: 'Fecha ISO (YYYY-MM-DD)', format: 'date' },
+        author: { type: 'string', description: 'Autor del post', default: 'Alberto Carrasco' },
+        published: { type: 'boolean', description: 'Indicador de publicación', default: true }
+      },
+      required: ['title', 'description', 'locale', 'content'],
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        created: { type: 'boolean' },
+        slug: { type: 'string' },
+        locale: { type: 'string' },
+        url: { type: 'string' },
+        path: { type: 'string' },
+        timestamp: { type: 'string' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/create`,
+    method: 'POST',
+    auth: { required: true, header: 'Authorization: Bearer <API_KEY> or X-API-Key' },
+    rateLimit: {
+      requests: 20,
+      window: '1m',
+      description: '20 requests per minute per IP'
+    }
+  },
+
+  'posts.schema': {
+    name: 'posts.schema',
+    description: 'Devuelve la estructura y variables admitidas por los posts del blog (frontmatter y campos computados)',
+    category: 'content',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        format: { type: 'string', description: 'Formato deseado de la salida', enum: ['json'], default: 'json' }
+      },
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        schema: { type: 'object' },
+        acceptedLocales: { type: 'array', items: { type: 'string' } },
+        examples: { type: 'object' },
+        timestamp: { type: 'string' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/schema`,
+    method: 'GET',
+    rateLimit: {
+      requests: 100,
+      window: '1m',
+      description: '100 requests per minute per IP'
+    }
+  },
+
+  'posts.delete': {
+    name: 'posts.delete',
+    description: 'Elimina un post del blog por slug. Requiere API key. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico. Método recomendado: POST (también acepta DELETE).',
+    category: 'content',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug del post a eliminar', minLength: 2 },
+        locale: { type: 'string', description: 'Idioma del post (opcional)', enum: ['es', 'en', 'it'] }
+      },
+      required: ['slug'],
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        deleted: { type: 'boolean' },
+        slug: { type: 'string' },
+        locale: { type: 'string' },
+        url: { type: 'string' },
+        path: { type: 'string' },
+        timestamp: { type: 'string' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/delete`,
+    method: 'POST',
+    auth: { required: true, header: 'Authorization: Bearer <API_KEY> or X-API-Key' },
+    rateLimit: {
+      requests: 20,
+      window: '1m',
+      description: '20 requests per minute per IP'
+    }
+  },
+
+  'search': {
+    name: 'search',
+    description: 'Herramienta MCP estándar (POST) para buscar contenido del blog. Formatea salida MCP content[] y soporta JSON clásico.',
+    category: 'mcp',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Consulta de búsqueda en texto libre', minLength: 2, maxLength: 500 },
+        locale: { type: 'string', description: 'Idioma preferido', enum: ['es', 'en', 'it'], default: 'es' },
+        limit: { type: 'integer', description: 'Número máximo de resultados', minimum: 1, maximum: 10, default: 5 },
+        includeContent: { type: 'boolean', description: 'Incluir fragmentos del contenido', default: true }
+      },
+      required: ['query'],
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+        results: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string' },
+              description: { type: 'string' },
+              url: { type: 'string' },
+              locale: { type: 'string' },
+              slug: { type: 'string' },
+              relevanceScore: { type: 'number' },
+              contentSnippet: { type: 'string' },
+              author: { type: 'string' }
+            }
+          }
+        },
+        totalResults: { type: 'integer' },
+        processingTime: { type: 'number' },
+        timestamp: { type: 'string' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/search`,
+    method: 'POST',
+    rateLimit: {
+      requests: 60,
+      window: '1m',
+      description: '60 requests per minute per IP'
+    }
+  },
+
+  'fetch': {
+    name: 'fetch',
+    description: 'Herramienta MCP estándar (POST) para recuperar un post por slug+locale o URL. Formatea salida MCP content[] y soporta JSON clásico.',
+    category: 'mcp',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: { type: 'string', description: 'URL del post (p. ej. https://evolve2digital.com/es/blog/<slug>)' },
+        slug: { type: 'string', description: 'Slug del post', minLength: 2 },
+        locale: { type: 'string', description: 'Idioma del post', enum: ['es', 'en', 'it'], default: 'es' },
+        includeContent: { type: 'boolean', description: 'Incluir el cuerpo completo', default: false }
+      },
+      anyOf: [ { required: ['url'] }, { required: ['slug'] } ],
+      additionalProperties: false
+    },
+    outputSchema: {
+      type: 'object',
+      properties: {
+        found: { type: 'boolean' },
+        post: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            description: { type: 'string' },
+            url: { type: 'string' },
+            date: { type: 'string' },
+            locale: { type: 'string' },
+            tags: { type: 'array', items: { type: 'string' } },
+            author: { type: 'string' },
+            slug: { type: 'string' },
+            wordCount: { type: 'number' },
+            readingTime: { type: 'object' },
+            body: { type: 'string' }
+          }
+        },
+        timestamp: { type: 'string' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/fetch`,
+    method: 'POST',
+    rateLimit: {
+      requests: 60,
+      window: '1m',
+      description: '60 requests per minute per IP'
+    }
   }
 }
 

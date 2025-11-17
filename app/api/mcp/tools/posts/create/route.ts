@@ -1,0 +1,156 @@
+import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs/promises'
+import path from 'path'
+import { allPosts } from '@/.contentlayer/generated'
+import type { Post } from '@/.contentlayer/generated'
+import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
+import { mcpLogger } from '@/lib/mcp-logger'
+import { requireApiKey } from '@/lib/mcp-auth'
+import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+const TOOL_NAME = 'posts.create'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, User-Agent, X-Requested-With',
+  'Access-Control-Max-Age': '86400',
+}
+
+const mcpHeaders = {
+  'X-MCP-Tool': TOOL_NAME,
+  'X-MCP-Version': '1.0',
+  'X-Content-Type': 'mcp-tool-response',
+}
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
+function validateLocale(locale: string): boolean {
+  return ['es', 'en', 'it'].includes(locale)
+}
+
+export async function OPTIONS() {
+  // return new NextResponse(null, { status: 200, headers: corsHeaders })
+  const res = new NextResponse(null, { status: 200 })
+  return addMcpHeaders(res, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })
+}
+
+export async function POST(request: NextRequest) {
+  const start = Date.now()
+  const ua = request.headers.get('user-agent') || undefined
+
+  // Auth requerida
+  const authError = requireApiKey(request)
+  if (authError) {
+    mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, authError.status || 401, ua)
+    const code = authError.status === 401 ? 'missing_api_key' : authError.status === 403 ? 'invalid_api_key' : 'server_api_key_missing'
+    const message = authError.status === 401 ? 'Missing API key' : authError.status === 403 ? 'Invalid API key' : 'Server not configured with API key'
+    return respondErrorAsMcpOrJson(request, message, authError.status || 401, code, undefined, TOOL_NAME, authError.status === 401 ? { 'WWW-Authenticate': 'Bearer realm="mcp"' } : {})
+  }
+
+  // Rate limit (usa config por defecto bajo nombre posts.create)
+  const rateResult = createRateLimitMiddleware('posts.create')(request)
+  if (!rateResult.allowed) {
+    mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, 429, ua)
+    return respondErrorAsMcpOrJson(request, 'Rate limit exceeded', 429, 'rate_limit_exceeded', { retryAfter: rateResult.retryAfter }, TOOL_NAME, getRateLimitHeaders(rateResult))
+  }
+
+  let payload: any
+  try {
+    payload = await request.json()
+  } catch {
+    // return NextResponse.json(
+    //   { error: 'Invalid JSON body' },
+    //   { status: 400, headers: { ...corsHeaders, ...mcpHeaders } }
+    // )
+    return respondErrorAsMcpOrJson(request, 'Invalid JSON body', 400, 'invalid_json', undefined, TOOL_NAME)
+  }
+
+  const title: string | undefined = payload?.title
+  const description: string | undefined = payload?.description
+  const locale: string = payload?.locale || 'es'
+  const content: string | undefined = payload?.content
+  const tags: string[] = Array.isArray(payload?.tags) ? payload.tags : []
+  const date: string = payload?.date || new Date().toISOString().slice(0, 10)
+  const published: boolean = payload?.published !== false
+  const author: string = payload?.author || 'Alberto Carrasco'
+
+  if (!title || typeof title !== 'string' || title.trim().length < 3) {
+    return respondErrorAsMcpOrJson(request, 'title is required and must be at least 3 characters', 400, 'invalid_params', { field: 'title' }, TOOL_NAME)
+  }
+
+  if (!description || typeof description !== 'string' || description.trim().length < 10) {
+    return respondErrorAsMcpOrJson(request, 'description is required and must be at least 10 characters', 400, 'invalid_params', { field: 'description' }, TOOL_NAME)
+  }
+
+  if (!validateLocale(locale)) {
+    return respondErrorAsMcpOrJson(request, 'Unsupported locale', 400, 'unsupported_locale', { supported: ['es','en','it'] }, TOOL_NAME)
+  }
+
+  if (!content || typeof content !== 'string' || content.trim().length < 50) {
+    return respondErrorAsMcpOrJson(request, 'content is required and must be at least 50 characters', 400, 'invalid_params', { field: 'content' }, TOOL_NAME)
+  }
+
+  const slug = slugify(title)
+
+  // Evita colisión con posts existentes en el mismo locale
+  const conflict = allPosts.find((p: Post) => p.locale === locale && p.slug.toLowerCase() === slug)
+  if (conflict) {
+    return respondErrorAsMcpOrJson(request, 'Post already exists', 409, 'conflict', { slug, locale }, TOOL_NAME)
+  }
+
+  // Genera frontmatter y contenido MDX
+  const frontmatterLines: string[] = [
+    '---',
+    `title: ${title.replace(/:\n/g, ' ').trim()}`,
+    `description: ${description.replace(/:\n/g, ' ').trim()}`,
+    `date: ${date}`,
+    `locale: ${locale}`,
+    `slug: ${slug}`,
+    tags.length ? `tags: [${tags.map(t => `'${t}'`).join(', ')}]` : 'tags: []',
+    `author: ${author}`,
+    `published: ${published ? 'true' : 'false'}`,
+    '---',
+  ]
+
+  const mdx = frontmatterLines.join('\n') + '\n\n' + content.trim() + '\n'
+
+  const postsDir = path.resolve(process.cwd(), 'content', 'posts')
+  const filePath = path.resolve(postsDir, `${slug}.mdx`)
+
+  try {
+    await fs.mkdir(postsDir, { recursive: true })
+    await fs.writeFile(filePath, mdx, { encoding: 'utf-8' })
+  } catch (err: any) {
+    mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, 500, ua)
+    return respondErrorAsMcpOrJson(request, 'Failed to write file', 500, 'internal_error', { details: err?.message || String(err) }, TOOL_NAME)
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
+  const elapsed = Date.now() - start
+
+  mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', true, elapsed, 201, ua)
+  const payloadOut = {
+    tool: TOOL_NAME,
+    created: true,
+    slug,
+    locale,
+    url: `${baseUrl}/${locale}/blog/${slug}`,
+    path: filePath,
+    timestamp: new Date().toISOString(),
+    processingTime: elapsed,
+  }
+  return respondAsMcpOrJson(request, payloadOut, 201, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })
+}
