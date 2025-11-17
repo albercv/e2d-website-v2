@@ -69,6 +69,9 @@ coverage/
 # contentlayer
 .contentlayer/
 
+# content (external prod posts)
+content/posts/
+
 # generated documentation and build reports
 docs/mcp-changelog.md
 docs/mcp-examples.md

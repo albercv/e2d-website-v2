@@ -152,5 +152,23 @@ export async function POST(request: NextRequest) {
     timestamp: new Date().toISOString(),
     processingTime: elapsed,
   }
+
+  // Trigger optional rebuild (admin endpoint) asynchronously
+  if (process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === 'true' && process.env.ADMIN_REBUILD_URL) {
+    try {
+      const rebuildUrl = process.env.ADMIN_REBUILD_URL!
+      const apiKey = process.env.E2D_MCP_API_KEY || ''
+      // Fire-and-forget; don't await to avoid delaying the response
+      fetch(rebuildUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ noRestart: false }),
+      }).catch(() => {})
+    } catch {}
+  }
+
   return respondAsMcpOrJson(request, payloadOut, 201, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })
 }
