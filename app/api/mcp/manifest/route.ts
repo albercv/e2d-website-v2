@@ -33,7 +33,7 @@ const MCP_CONFIG = {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+  'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
   'Access-Control-Max-Age': '86400',
 }
 
@@ -590,7 +590,7 @@ export async function GET(request: NextRequest) {
         },
         tools: Object.values(MCP_TOOLS),
         endpoints: {
-          manifest: `${MCP_CONFIG.baseUrl}/api/mcp/manifest`,
+          manifest: `${MCP_CONFIG.baseUrl}/mcp/manifest`,
           tools: `${MCP_CONFIG.baseUrl}/api/mcp/tools`,
           health: `${MCP_CONFIG.baseUrl}/api/mcp/health`
         },

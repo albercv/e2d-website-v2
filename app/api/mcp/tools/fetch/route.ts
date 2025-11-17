@@ -86,8 +86,8 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
-      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
       'Access-Control-Max-Age': '86400',
       ...mcpHeaders,
       'X-Processing-Time': `${Date.now() - startTime}ms`,
@@ -174,8 +174,8 @@ export async function HEAD(request: NextRequest) {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
-      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
       'Access-Control-Max-Age': '86400',
       ...mcpHeaders,
       'X-Processing-Time': `${Date.now() - startTime}ms`,

@@ -11,8 +11,8 @@ const TOOL_NAME = 'posts.get'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS, HEAD',
-  'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
   'Access-Control-Max-Age': '86400',
 }
 
