@@ -37,6 +37,17 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     maxRequests: 5,         // 5 appointments por minuto
     skipSuccessfulGET: false
   },
+  // Nuevas herramientas MCP estándar (POST)
+  'search': {
+    windowMs: 60 * 1000,    // 1 minuto
+    maxRequests: 60,        // 60 requests por minuto
+    skipSuccessfulGET: false // POST, no aplica omitidos
+  },
+  'fetch': {
+    windowMs: 60 * 1000,    // 1 minuto
+    maxRequests: 60,        // 60 requests por minuto
+    skipSuccessfulGET: false // POST, no aplica omitidos
+  },
   'default': {
     windowMs: 60 * 1000,    // 1 minuto
     maxRequests: 20,        // 20 requests por minuto por defecto

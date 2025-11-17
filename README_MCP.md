@@ -15,8 +15,13 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 ### Available Tools
 
 - **`posts.search`** - Search through blog posts with relevance scoring
+- **`posts.get`** - Get a single blog post by slug and locale
+- **`posts.create`** - Create a new blog post (MDX). Requires API key. Supports optional MCP format
+- **`posts.delete`** - Delete a blog post by slug. Requires API key. Supports optional MCP format
 - **`appointments.create`** - Create consultation appointment requests
 - **`agent.query`** - Query the E2D AI agent for comprehensive answers
+- **`search`** - General MCP search tool (POST)
+- **`fetch`** - General MCP fetch tool (POST)
 
 ## 📋 Features
 
@@ -47,56 +52,50 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
    curl "http://localhost:3000/api/mcp/tools/posts/search?query=IA&locale=es&limit=3" | jq
    ```
 
-4. Test appointment creation:
+4. Test post creation (MCP format via Accept header):
    ```bash
-   curl -X POST "http://localhost:3000/api/mcp/tools/appointments/create" \
+   curl -X POST "http://localhost:3000/api/mcp/tools/posts/create" \
      -H "Content-Type: application/json" \
+     -H "Accept: application/mcp+json" \
+     -H "Authorization: Bearer local-dev-mcp-key" \
      -d '{
-       "email": "test@example.com",
-       "name": "Test User",
-       "subject": "Test consultation",
-       "type": "consultation",
-       "message": "Test message",
-       "urgency": "medium"
+       "title": "Ejemplo título MCP",
+       "description": "Descripción de ejemplo para MCP",
+       "locale": "es",
+       "content": "# Encabezado\n\nContenido de ejemplo del post en formato MDX..."
      }' | jq
    ```
 
-5. Test agent query:
+5. Test post deletion (MCP format via POST):
+   ```bash
+   curl -X POST "http://localhost:3000/api/mcp/tools/posts/delete" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/mcp+json" \
+     -H "Authorization: Bearer local-dev-mcp-key" \
+     -d '{
+       "slug": "ejemplo-titulo-mcp",
+       "locale": "es"
+     }' | jq
+   ```
+
+6. Test agent query:
    ```bash
    curl -X POST "http://localhost:3000/api/mcp/tools/agent/query" \
      -H "Content-Type: application/json" \
      -d '{
-       "prompt": "¿Qué servicios ofrece Evolve2Digital?",
+       "prompt": "¿Qué servicios ofrece E2D?",
        "locale": "es",
        "includeContext": true
      }' | jq
    ```
-
-### Project Structure
-
-```
-/api/mcp/
-├── manifest/              # MCP manifest endpoint
-├── tools/
-│   ├── posts/search/     # Blog post search tool
-│   ├── appointments/create/ # Appointment creation tool
-│   └── agent/query/      # AI agent query tool
-└── logs/                 # Logging endpoint (admin only)
-
-/lib/
-├── mcp-rate-limiter.ts   # Rate limiting implementation
-└── mcp-logger.ts         # Centralized logging
-
-/docs/
-├── MCP_SYSTEM_DOCUMENTATION.md  # Complete technical docs
-└── MCP_QUICK_START_GUIDE.md     # Quick start guide
-```
 
 ## 📊 Rate Limits
 
 | Tool | Per Minute | Per Hour |
 |------|------------|----------|
 | posts.search | 30 | 100 |
+| posts.create | 20 | - |
+| posts.delete | 20 | - |
 | appointments.create | 5 | 20 |
 | agent.query | 10 | 50 |
 
@@ -116,6 +115,12 @@ E2D_AGENT_WEBHOOK_URL=https://api.evolve2digital.com/webhook/userMessage
 E2D_CHAT_USER=your-username
 E2D_CHAT_PASSWORD=your-password
 E2D_AGENT_API_KEY=your-api-key  # Alternative to basic auth
+
+# MCP Auth for protected tools
+E2D_MCP_API_KEY=local-dev-mcp-key
+
+# Optional: base URL used in responses for local testing
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 # Logging (optional)
 MCP_LOG_LEVEL=info
