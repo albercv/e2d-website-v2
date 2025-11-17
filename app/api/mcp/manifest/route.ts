@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { mcpLogger } from '@/lib/mcp-logger'
 
 /**
  * Configuración del manifest MCP
@@ -542,6 +543,7 @@ export async function OPTIONS() {
  * Maneja solicitudes GET del manifest
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now()
   try {
     const manifest = {
       mcp: {
@@ -588,16 +590,36 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const processingTime = Date.now() - startTime
+    mcpLogger.logManifestRequest(
+      '/api/mcp/manifest',
+      'GET',
+      true,
+      processingTime,
+      200,
+      request.headers.get('user-agent') || undefined
+    )
+
     return NextResponse.json(manifest, {
       status: 200,
       headers: {
         ...corsHeaders,
         ...mcpHeaders,
         'Content-Type': 'application/json; charset=utf-8',
+        'X-Processing-Time': `${processingTime}ms`,
       }
     })
 
   } catch (error) {
+    const processingTime = Date.now() - startTime
+    mcpLogger.logError(
+      '/api/mcp/manifest',
+      'GET',
+      (error as Error).message,
+      500,
+      request.headers.get('user-agent') || undefined
+    )
+
     console.error('MCP Manifest Error:', error)
     
     return NextResponse.json(

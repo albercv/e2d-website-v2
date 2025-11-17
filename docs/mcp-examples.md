@@ -32,6 +32,33 @@ curl -X OPTIONS \
 ```
 
 
+## fetch
+
+**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.get y admite entrada por slug+locale o url.
+
+### Ejemplo de Solicitud
+
+```bash
+curl -X OPTIONS \
+  "https://evolve2digital.comPOST /api/mcp/tools/fetch" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: YourAI/1.0" \
+  -d '{"example": "data"}' \
+```
+
+### Ejemplo de Respuesta
+
+```json
+{
+  "tool": "fetch",
+  "success": true,
+  "data": {},
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "processingTime": 150
+}
+```
+
+
 ## posts.search
 
 **Descripción:** MCP Tool: posts.search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
@@ -51,6 +78,33 @@ curl -X OPTIONS \
 ```json
 {
   "tool": "posts.search",
+  "success": true,
+  "data": {},
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "processingTime": 150
+}
+```
+
+
+## search
+
+**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
+
+### Ejemplo de Solicitud
+
+```bash
+curl -X OPTIONS \
+  "https://evolve2digital.comPOST /api/mcp/tools/search" \
+  -H "Content-Type: application/json" \
+  -H "User-Agent: YourAI/1.0" \
+  -d '{"example": "data"}' \
+```
+
+### Ejemplo de Respuesta
+
+```json
+{
+  "tool": "search",
   "success": true,
   "data": {},
   "timestamp": "2024-01-01T00:00:00.000Z",
@@ -121,4 +175,4 @@ result = client.call_tool('posts/search', {
 
 ---
 
-*Documentación generada automáticamente el 2025-11-01T06:02:32.420Z*
+*Documentación generada automáticamente el 2025-11-17T13:12:22.657Z*

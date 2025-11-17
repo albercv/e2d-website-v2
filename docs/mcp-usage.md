@@ -70,6 +70,19 @@ GET /api/mcp/manifest
 
 
 
+### fetch
+
+**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.get y admite entrada por slug+locale o url.
+
+**Ruta:** `POST /api/mcp/tools/fetch`
+**Métodos:** OPTIONS, POST, POST, POST, POST
+**Categoría:** mcp
+
+
+
+
+
+
 ### posts.search
 
 **Descripción:** MCP Tool: posts.search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
@@ -77,6 +90,19 @@ GET /api/mcp/manifest
 **Ruta:** `GET /api/mcp/tools/posts/search`
 **Métodos:** OPTIONS, GET, POST, POST, POST, POST
 **Categoría:** content
+
+
+
+
+
+
+### search
+
+**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
+
+**Ruta:** `POST /api/mcp/tools/search`
+**Métodos:** OPTIONS, POST, POST, POST, POST
+**Categoría:** mcp
 
 
 
@@ -131,4 +157,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2025-11-01T06:02:32.419Z*
+*Documentación generada automáticamente el 2025-11-17T13:12:22.656Z*

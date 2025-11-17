@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-11-01T06:02:32.420Z",
-  "duration": "2041ms",
+  "timestamp": "2025-11-17T13:12:22.657Z",
+  "duration": "1982ms",
   "success": true,
   "files": {
     "sitemap": {
@@ -23,7 +23,7 @@
     },
     "mcp": {
       "success": true,
-      "endpoints": 5,
+      "endpoints": 7,
       "files": [
         "/Users/albercv/Documents/personalProjects/e2d-website_v2/docs/mcp-usage.md",
         "/Users/albercv/Documents/personalProjects/e2d-website_v2/docs/mcp-examples.md",

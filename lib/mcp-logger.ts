@@ -150,8 +150,8 @@ export class MCPLogger {
     // Actualizar estadísticas
     this.updateStats(logEntry)
     
-    // Log a consola en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+    // Log a consola en desarrollo o si se fuerza por entorno
+    if (process.env.NODE_ENV === 'development' || process.env.MCP_LOG_TO_CONSOLE === 'true') {
       this.logToConsole(logEntry)
     }
     
