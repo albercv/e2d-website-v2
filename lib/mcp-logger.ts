@@ -482,10 +482,11 @@ export function createMCPLoggerMiddleware() {
       userAgent?: string,
       query?: string
     ) => {
+      const startTime = Date.now()
       return {
-        startTime: Date.now(),
+        startTime,
         log: (success: boolean, statusCode: number, error?: string, metadata?: Record<string, any>) => {
-          const processingTime = Date.now() - Date.now()
+          const processingTime = Date.now() - startTime
           mcpLogger.logToolInvocation(
             tool,
             endpoint,

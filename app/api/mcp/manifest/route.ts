@@ -32,7 +32,7 @@ const MCP_CONFIG = {
  */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 }
@@ -532,10 +532,29 @@ const MCP_TOOLS = {
 /**
  * Maneja solicitudes OPTIONS para CORS
  */
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const headers: Record<string, string> = { ...corsHeaders, ...mcpHeaders }
+  headers['X-Processing-Time'] = `${Date.now() - startTime}ms`
+  // Log preflight CORS requests
+  mcpLogger.logManifestRequest('/api/mcp/manifest', 'OPTIONS', true, Date.now() - startTime, 200, userAgent)
   return new NextResponse(null, {
     status: 200,
-    headers: corsHeaders,
+    headers,
+  })
+}
+
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const headers: Record<string, string> = { ...corsHeaders, ...mcpHeaders }
+  headers['X-Processing-Time'] = `${Date.now() - startTime}ms`
+  // Log HEAD requests to manifest
+  mcpLogger.logManifestRequest('/api/mcp/manifest', 'HEAD', true, Date.now() - startTime, 200, userAgent)
+  return new NextResponse(null, {
+    status: 200,
+    headers,
   })
 }
 
@@ -644,13 +663,13 @@ export async function POST() {
     {
       error: 'Method not allowed',
       message: 'This endpoint only supports GET requests',
-      allowedMethods: ['GET', 'OPTIONS']
+      allowedMethods: ['GET', 'HEAD', 'OPTIONS']
     },
     {
       status: 405,
       headers: {
         ...corsHeaders,
-        'Allow': 'GET, OPTIONS',
+        'Allow': 'GET, HEAD, OPTIONS',
       }
     }
   )

@@ -9,7 +9,7 @@ const TOOL_NAME = 'posts.schema'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS, HEAD',
   'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 }
@@ -64,8 +64,24 @@ function getFrontmatterExample() {
     `Contenido del post en MDX...\n`
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, { status: 200, headers: corsHeaders })
+export async function OPTIONS(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, { status: 200, headers: { 
+    ...corsHeaders,
+    ...mcpHeaders,
+    'X-Processing-Time': `${Date.now() - startTime}ms`,
+  } })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/posts/schema',
+    'OPTIONS',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }
 
 export async function GET(request: NextRequest) {
@@ -103,4 +119,24 @@ export async function GET(request: NextRequest) {
   // Por ahora, solo devolvemos JSON. El parámetro 'format' se reserva para futuro.
   mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/schema', 'GET', true, Date.now() - start, 200, ua)
   return NextResponse.json(result, { status: 200, headers: { ...corsHeaders, ...mcpHeaders } })
+}
+
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, { status: 200, headers: { 
+    ...corsHeaders,
+    ...mcpHeaders,
+    'X-Processing-Time': `${Date.now() - startTime}ms`,
+  } })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/posts/schema',
+    'HEAD',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }

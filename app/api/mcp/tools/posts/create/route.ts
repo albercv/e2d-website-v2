@@ -15,7 +15,7 @@ const TOOL_NAME = 'posts.create'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, User-Agent, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 }
@@ -41,10 +41,27 @@ function validateLocale(locale: string): boolean {
   return ['es', 'en', 'it'].includes(locale)
 }
 
-export async function OPTIONS() {
-  // return new NextResponse(null, { status: 200, headers: corsHeaders })
-  const res = new NextResponse(null, { status: 200 })
-  return addMcpHeaders(res, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })
+export async function OPTIONS(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, { 
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    }
+  })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/posts/create',
+    'OPTIONS',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }
 
 export async function POST(request: NextRequest) {
@@ -171,4 +188,27 @@ export async function POST(request: NextRequest) {
   }
 
   return respondAsMcpOrJson(request, payloadOut, 201, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })
+}
+
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, { 
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    }
+  })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/posts/create',
+    'HEAD',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }

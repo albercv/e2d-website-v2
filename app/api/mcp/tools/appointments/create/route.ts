@@ -33,7 +33,7 @@ const TOOL_CONFIG = {
  */
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
   'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 }
@@ -374,11 +374,27 @@ async function processAppointment(request: AppointmentRequest): Promise<{
 /**
  * Maneja solicitudes OPTIONS para CORS
  */
-export async function OPTIONS() {
-  return new NextResponse(null, {
+export async function OPTIONS(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, {
     status: 200,
-    headers: corsHeaders,
+    headers: {
+      ...corsHeaders,
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    },
   })
+  mcpLogger.logToolInvocation(
+    TOOL_CONFIG.name,
+    '/api/mcp/tools/appointments/create',
+    'OPTIONS',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }
 
 /**
@@ -617,19 +633,52 @@ export async function POST(request: NextRequest) {
 /**
  * Maneja métodos no permitidos
  */
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    },
+  })
+  mcpLogger.logToolInvocation(
+    TOOL_CONFIG.name,
+    '/api/mcp/tools/appointments/create',
+    'HEAD',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
+}
+
 export async function GET() {
+  // Añadimos log para métodos no permitidos
+  const startTime = Date.now()
+  mcpLogger.logToolInvocation(
+    TOOL_CONFIG.name,
+    '/api/mcp/tools/appointments/create',
+    'GET',
+    false,
+    Date.now() - startTime,
+    405,
+  )
   return NextResponse.json(
     {
       tool: TOOL_CONFIG.name,
       error: 'Method not allowed',
       message: 'This tool only supports POST requests',
-      allowedMethods: ['POST', 'OPTIONS']
+      allowedMethods: ['POST', 'OPTIONS', 'HEAD']
     },
     {
       status: 405,
       headers: {
         ...corsHeaders,
-        'Allow': 'POST, OPTIONS',
+        'Allow': 'POST, OPTIONS, HEAD',
       }
     }
   )

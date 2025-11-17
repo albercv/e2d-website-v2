@@ -131,9 +131,30 @@ function validateInput(body: Partial<SearchInput>): { ok: boolean; error?: strin
   return { ok: true, data: { query, locale, limit, includeContent } }
 }
 
-export async function OPTIONS() {
-  const res = new NextResponse(null, { status: 200 })
-  return addMcpHeaders(res, TOOL_NAME)
+export async function OPTIONS(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
+      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+      'Access-Control-Max-Age': '86400',
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    }
+  })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/search',
+    'OPTIONS',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }
 
 export async function POST(request: NextRequest) {
@@ -178,3 +199,29 @@ export async function POST(request: NextRequest) {
 }
 
 export { POST as PUT, POST as DELETE, POST as PATCH }
+
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
+      'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With',
+      'Access-Control-Max-Age': '86400',
+      ...mcpHeaders,
+      'X-Processing-Time': `${Date.now() - startTime}ms`,
+    }
+  })
+  mcpLogger.logToolInvocation(
+    TOOL_NAME,
+    '/api/mcp/tools/search',
+    'HEAD',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
+}

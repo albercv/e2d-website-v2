@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
           status: 429,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query',
             'X-RateLimit-Limit': rateLimitResult.limit.toString(),
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query'
           }
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query'
           }
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query'
           }
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query'
           }
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
             'X-MCP-Tool': 'agent.query'
           }
@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
            status: 400,
            headers: {
              'Access-Control-Allow-Origin': '*',
-             'Access-Control-Allow-Methods': 'POST, OPTIONS',
+             'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
              'X-MCP-Tool': 'agent.query'
            }
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
         status: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'X-MCP-Tool': 'agent.query',
           'X-Processing-Time': `${processingTime}ms`,
@@ -333,7 +333,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'X-MCP-Tool': 'agent.query',
         'X-Processing-Time': `${processingTime}ms`,
@@ -368,7 +368,7 @@ export async function POST(request: NextRequest) {
         status: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'X-MCP-Tool': 'agent.query'
         }
@@ -379,13 +379,50 @@ export async function POST(request: NextRequest) {
 
 // Manejar preflight requests
 export async function OPTIONS(request: NextRequest) {
-  return NextResponse.json({}, {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = NextResponse.json({}, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD, HEAD',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'X-MCP-Tool': 'agent.query'
+      'X-MCP-Tool': 'agent.query',
+      'X-Processing-Time': `${Date.now() - startTime}ms`
     }
   })
+  mcpLogger.logToolInvocation(
+    'agent.query',
+    '/api/mcp/tools/agent/query',
+    'OPTIONS',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
+}
+export async function HEAD(request: NextRequest) {
+  const startTime = Date.now()
+  const userAgent = request.headers.get('user-agent') || undefined
+  const res = new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS, HEAD, HEAD',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'X-MCP-Tool': 'agent.query',
+      'X-Processing-Time': `${Date.now() - startTime}ms`
+    }
+  })
+  mcpLogger.logToolInvocation(
+    'agent.query',
+    '/api/mcp/tools/agent/query',
+    'HEAD',
+    true,
+    Date.now() - startTime,
+    200,
+    userAgent
+  )
+  return res
 }
