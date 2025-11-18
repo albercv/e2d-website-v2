@@ -40,7 +40,7 @@ export async function OPTIONS(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || undefined
   const res = new NextResponse(null, {
     status: 200,
-    headers: { ...corsHeaders, ...mcpHeaders, 'X-Processing-Time': `${Date.now() - startTime}ms` },
+    headers: { ...corsHeaders },
   })
   mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/get', 'OPTIONS', true, Date.now() - startTime, 200, userAgent)
   return res

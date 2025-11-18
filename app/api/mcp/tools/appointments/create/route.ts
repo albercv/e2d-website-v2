@@ -381,8 +381,6 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       ...corsHeaders,
-      ...mcpHeaders,
-      'X-Processing-Time': `${Date.now() - startTime}ms`,
     },
   })
   mcpLogger.logToolInvocation(

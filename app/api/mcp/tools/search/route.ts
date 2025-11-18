@@ -141,8 +141,6 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
       'Access-Control-Max-Age': '86400',
-      ...mcpHeaders,
-      'X-Processing-Time': `${Date.now() - startTime}ms`,
     }
   })
   mcpLogger.logToolInvocation(

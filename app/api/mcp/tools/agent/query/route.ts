@@ -381,14 +381,12 @@ export async function POST(request: NextRequest) {
 export async function OPTIONS(request: NextRequest) {
   const startTime = Date.now()
   const userAgent = request.headers.get('user-agent') || undefined
-  const res = NextResponse.json({}, {
+  const res = new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
-      'X-MCP-Tool': 'agent.query',
-      'X-Processing-Time': `${Date.now() - startTime}ms`
     }
   })
   mcpLogger.logToolInvocation(
