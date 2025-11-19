@@ -1,3 +1,4 @@
+export const runtime = 'nodejs'
 import { generateAISitemap } from "@/lib/sitemap-generator"
 import type { MetadataRoute } from "next"
 

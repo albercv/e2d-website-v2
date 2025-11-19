@@ -39,7 +39,7 @@ function buildServerInfo() {
         version: MCP_CONFIG.version,
         baseUrl,
       },
-      manifest: `${baseUrl}/mcp/manifest`,
+      manifest: `${baseUrl}/api/mcp/manifest`,
       endpoints: {
         tools: `${baseUrl}/api/mcp/tools`,
         health: `${baseUrl}/api/mcp/health`,

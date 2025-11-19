@@ -1,3 +1,4 @@
+export const runtime = 'nodejs'
 import { defaultRSSGenerator } from "@/lib/rss-generator"
 
 export async function GET(request: Request, { params }: { params: { locale: string } }) {

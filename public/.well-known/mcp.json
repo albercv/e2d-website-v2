@@ -1,4 +1,4 @@
 {
-  "manifest": "https://evolve2digital.com/mcp/manifest",
+  "manifest": "https://evolve2digital.com/api/mcp/manifest",
   "sse": "https://evolve2digital.com/sse"
 }

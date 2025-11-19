@@ -23,6 +23,9 @@ export interface CrawlerStats {
   averageResponseTime: number
 }
 
+// Detectar si estamos en runtime Node.js (Edge no tiene fs)
+const IS_NODE_RUNTIME = typeof process !== 'undefined' && !!(process as any).versions?.node
+
 // User agents de crawlers IA conocidos
 const AI_CRAWLERS = {
   'GPTBot': /GPTBot/i,
@@ -90,6 +93,10 @@ export function createLogEntry(
  * Asegura que el directorio de logs existe
  */
 async function ensureLogDirectory(): Promise<void> {
+  if (!IS_NODE_RUNTIME) {
+    // En Edge no hay fs; no hacer nada
+    return
+  }
   try {
     await fs.access(LOG_CONFIG.logDir)
   } catch {
@@ -110,6 +117,14 @@ function getLogFileName(date: Date = new Date()): string {
  */
 export async function writeLogEntry(logEntry: CrawlerLogEntry): Promise<void> {
   try {
+    if (!IS_NODE_RUNTIME) {
+      // En runtime Edge no se puede escribir en disco: fallback a consola
+      if (LOG_CONFIG.enableConsoleLog) {
+        console.log(`[AI Crawler][EDGE] ${logEntry.crawlerType} - ${logEntry.url}`)
+      }
+      return
+    }
+
     await ensureLogDirectory()
     
     const logFileName = getLogFileName()
@@ -131,6 +146,10 @@ export async function writeLogEntry(logEntry: CrawlerLogEntry): Promise<void> {
  * Lee las entradas de log de un día específico
  */
 export async function readLogEntries(date: Date = new Date()): Promise<CrawlerLogEntry[]> {
+  if (!IS_NODE_RUNTIME) {
+    // En Edge no hay lectura de archivos
+    return []
+  }
   try {
     const logFileName = getLogFileName(date)
     const logFilePath = `${LOG_CONFIG.logDir}/${logFileName}`
@@ -213,6 +232,9 @@ export async function getCrawlerStats(
  * Limpia logs antiguos basado en la configuración de retención
  */
 export async function cleanupOldLogs(): Promise<void> {
+  if (!IS_NODE_RUNTIME) {
+    return
+  }
   try {
     await ensureLogDirectory()
     
