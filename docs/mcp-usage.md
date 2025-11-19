@@ -36,7 +36,7 @@ GET /api/mcp/manifest
 **Descripción:** MCP (Model Context Protocol) Manifest Endpoint Endpoint que expone el contrato MCP oficial del sitio, describiendo todas las herramientas disponibles para modelos de IA como ChatGPT y Claude.
 
 **Ruta:** `GET /api/mcp/manifest`
-**Métodos:** OPTIONS, GET, POST, POST, POST, POST
+**Métodos:** OPTIONS, GET, POST, PUT, DELETE, PATCH
 **Categoría:** general
 **Acceso:** Público
 
@@ -157,4 +157,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2025-11-17T13:12:22.656Z*
+*Documentación generada automáticamente el 2025-11-19T09:18:19.896Z*

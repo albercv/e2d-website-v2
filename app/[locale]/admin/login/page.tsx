@@ -51,7 +51,7 @@ function LoginForm() {
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Entrando..." : "Entrar"}
         </Button>
-        <p className="text-xs text-muted-foreground">Configura ADMIN_EMAIL y ADMIN_PASSWORD en .env.local</p>
+        
       </form>
     </div>
   )
