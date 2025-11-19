@@ -14,8 +14,13 @@ export async function POST(request: NextRequest) {
   const scope = scopeStr.split(' ').filter(Boolean)
   const state = String(form.get('state') || '')
   const cookieStore = cookies();
-  const code_challenge = cookieStore.get('e2d_pkce_challenge')?.value || null;
-  const code_challenge_method = cookieStore.get('e2d_pkce_method')?.value || null;
+  const code_challenge_cookie = cookieStore.get('e2d_pkce_challenge')?.value || ''
+  const code_challenge_method_cookie = cookieStore.get('e2d_pkce_method')?.value || ''
+  // Fallback desde el formulario si no vinieron cookies
+  const code_challenge_form = String(form.get('code_challenge') || '')
+  const code_challenge_method_form = String(form.get('code_challenge_method') || '')
+  const code_challenge = code_challenge_cookie || code_challenge_form
+  const code_challenge_method = (code_challenge_method_cookie || code_challenge_method_form || '').toUpperCase() || 'S256'
   const email = String(form.get('email') || '').trim()
   const password = String(form.get('password') || '')
   const csrf = String(form.get('csrf') || '')
@@ -31,6 +36,7 @@ export async function POST(request: NextRequest) {
       scope,
       state,
       code_challenge_method,
+      source_of_pkce: code_challenge_cookie ? 'cookie' : (code_challenge_form ? 'form' : 'none'),
       email,
       csrfField: csrf,
       cookiePreview,
@@ -49,10 +55,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 400 })
   }
 
-  // Ensure PKCE challenge is present and came from cookies
+  // Ensure PKCE challenge is present ya sea en cookies o formulario
   if (!code_challenge) {
     if (debug) {
-      console.log('[OAUTH-AUTHZ] Missing PKCE code_challenge in POST — retrieve from GET failed')
+      console.log('[OAUTH-AUTHZ] Missing PKCE code_challenge in POST — neither cookie nor form provided')
     }
     return NextResponse.json({ error: 'Missing PKCE code_challenge' }, { status: 400 })
   }

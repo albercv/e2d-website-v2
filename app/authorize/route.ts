@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
   const code_challenge = url.searchParams.get('code_challenge') || ''
   const code_challenge_method = (url.searchParams.get('code_challenge_method') || 'S256').toUpperCase()
 
-  // Validaciones básicas
-  if (!client_id || !redirect_uri || response_type !== 'code' || !code_challenge || code_challenge_method !== 'S256') {
+  // Validaciones básicas (PKCE opcional en GET)
+  if (!client_id || !redirect_uri || response_type !== 'code') {
     return NextResponse.json({ error: 'Invalid authorization request' }, { status: 400 })
   }
 
@@ -41,22 +41,24 @@ export async function GET(req: NextRequest) {
 
   const res = NextResponse.redirect(redirectUrl.toString(), 302)
 
-  // Guardar cookies PKCE
-  res.cookies.set('e2d_pkce_challenge', code_challenge, {
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 300, // 5 minutos
-  })
+  // Guardar cookies PKCE sólo si vienen en la request y el método es S256
+  if (code_challenge && code_challenge_method === 'S256') {
+    res.cookies.set('e2d_pkce_challenge', code_challenge, {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 300, // 5 minutos
+    })
 
-  res.cookies.set('e2d_pkce_method', code_challenge_method, {
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 300, // 5 minutos
-  })
+    res.cookies.set('e2d_pkce_method', code_challenge_method, {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 300, // 5 minutos
+    })
+  }
 
   return res
 }

@@ -10,42 +10,6 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
   const code_challenge = searchParams.code_challenge || ''
   const code_challenge_method = (searchParams.code_challenge_method || 'S256').toUpperCase()
 
-  // Removed PKCE cookie writing. UI-only page should not set cookies.
-  // if (code_challenge) {
-  //   const cookieStore = cookies();
-  //   cookieStore.set('e2d_pkce_challenge', code_challenge, {
-  //     httpOnly: true,
-  //     secure: true,
-  //     sameSite: 'lax',
-  //     path: '/',
-  //     maxAge: 300 // 5 minutos
-  //   });
-  // }
-  //
-  // if (code_challenge_method) {
-  //   const cookieStore = cookies();
-  //   cookieStore.set('e2d_pkce_method', code_challenge_method, {
-  //     httpOnly: true,
-  //     secure: true,
-  //     sameSite: 'lax',
-  //     path: '/',
-  //     maxAge: 300 // 5 minutos
-  //   });
-  // }
-  // Removed CSRF cookie initialization. UI-only page should not set cookies.
-  // const cookieStore = cookies();
-  // let csrfToken = cookieStore.get('e2d_csrf')?.value || ''
-  // if (!csrfToken) {
-  //   csrfToken = crypto.randomBytes(24).toString('hex')
-  // }
-  // cookieStore.set('e2d_csrf', csrfToken, {
-  //   httpOnly: true,
-  //   secure: process.env.NODE_ENV === 'production',
-  //   sameSite: 'lax',
-  //   path: '/',
-  //   maxAge: 600 // 10 minutos
-  // })
-
   const isDev = process.env.NODE_ENV !== 'production'
 
   return (
@@ -67,6 +31,8 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
           scope={scope}
           state={state}
           initialCsrf={undefined}
+          code_challenge={code_challenge}
+          code_challenge_method={code_challenge_method}
         />
       </div>
     </main>
