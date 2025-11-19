@@ -1,5 +1,5 @@
 import React from 'react'
-import { getClientById, validateRedirectUri, validateScopes } from '@/lib/oauth-db'
+import { getClientById, validateRedirectUri } from '@/lib/oauth-db'
 import AuthorizeForm from './AuthorizeForm'
 import { cookies, headers } from 'next/headers'
 import { mcpLogger } from '@/lib/mcp-logger'
@@ -76,7 +76,7 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
         ip,
         query: qs,
         success: false,
-        statusCode: 400,
+        statusCode: 200,
         error: message,
         metadata: { fullUrl, params: paramsObj, meta },
       })
@@ -84,22 +84,19 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
     return invalid(message)
   }
 
-  if (response_type !== 'code') {
-    return invalidWithLog('response_type debe ser "code"', { response_type })
-  }
-  if (!client_id || !redirect_uri || !code_challenge || code_challenge_method !== 'S256') {
-    return invalidWithLog('Parámetros requeridos: client_id, redirect_uri, scope, code_challenge y code_challenge_method=S256', {
+  // Relaxed validation for preliminary GET: only require client_id and redirect_uri
+  if (!client_id || !redirect_uri) {
+    return invalidWithLog('Parámetros requeridos: client_id y redirect_uri', {
       client_id_present: !!client_id,
       redirect_uri_present: !!redirect_uri,
-      code_challenge_present: !!code_challenge,
-      code_challenge_method,
     })
   }
+
   const client = getClientById(client_id)
   if (!client) return invalidWithLog('client_id no válido', { client_id })
   if (!validateRedirectUri(client, redirect_uri)) return invalidWithLog('redirect_uri no permitido para el cliente', { client_id, redirect_uri, allowed: client.redirect_uris })
-  const scopesCheck = validateScopes(client, scope)
-  if (!scopesCheck.ok) return invalidWithLog('scope solicitado no permitido para el cliente', { requested: scope, allowed: client.allowed_scopes })
+
+  // Do NOT enforce scope or PKCE on GET; this happens in POST /oauth/authorize
 
   // Leer CSRF existente del request (si el navegador ya lo tiene). No se puede setear en Server Component.
   const existingCsrf = cookies().get('e2d_csrf')?.value

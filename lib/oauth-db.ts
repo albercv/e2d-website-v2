@@ -77,15 +77,16 @@ export function initDb() {
 
 export function seedClients() {
   const db = getDb()
-  const getClient = db.prepare('SELECT client_id FROM oauth_clients WHERE client_id = ?')
+  const getClientRow = db.prepare('SELECT * FROM oauth_clients WHERE client_id = ?')
   const insertClient = db.prepare(`INSERT INTO oauth_clients (client_id, client_type, redirect_uris, allowed_scopes) VALUES (?, ?, ?, ?)`)
+  const updateClient = db.prepare(`UPDATE oauth_clients SET client_type = ?, redirect_uris = ?, allowed_scopes = ? WHERE client_id = ?`)
 
   const clients: OAuthClient[] = [
     {
       client_id: 'chatgpt-mcp',
       client_type: 'public',
-      redirect_uris: ['https://evolve2digital.com/oauth/callback'],
-      allowed_scopes: ['posts:read', 'search:read', 'fetch:read', 'appointments:create']
+      redirect_uris: ['https://chatgpt.com/connector_platform_oauth_redirect'],
+      allowed_scopes: ['posts:read', 'search:read', 'fetch:read', 'appointments:create', 'agent:query', 'posts:write', 'posts:delete']
     },
     {
       client_id: 'local-dev',
@@ -96,7 +97,7 @@ export function seedClients() {
   ]
 
   for (const c of clients) {
-    const existing = getClient.get(c.client_id)
+    const existing = getClientRow.get(c.client_id) as any
     if (!existing) {
       insertClient.run(
         c.client_id,
@@ -104,8 +105,35 @@ export function seedClients() {
         JSON.stringify(c.redirect_uris),
         JSON.stringify(c.allowed_scopes)
       )
+    } else {
+      // Update if scopes or redirect URIs differ
+      const currentRedirects = JSON.parse(existing.redirect_uris || '[]') as string[]
+      const currentScopes = JSON.parse(existing.allowed_scopes || '[]') as string[]
+      const redirectsChanged = JSON.stringify(currentRedirects) !== JSON.stringify(c.redirect_uris)
+      const scopesChanged = JSON.stringify(currentScopes) !== JSON.stringify(c.allowed_scopes)
+      if (redirectsChanged || scopesChanged || existing.client_type !== c.client_type) {
+        updateClient.run(
+          c.client_type,
+          JSON.stringify(c.redirect_uris),
+          JSON.stringify(c.allowed_scopes),
+          c.client_id
+        )
+      }
     }
   }
+}
+
+export function validateRedirectUri(client: OAuthClient, redirect_uri: string): boolean {
+  // Allow exact matches and simple wildcard prefixes ending with /*
+  for (const allowed of client.redirect_uris) {
+    if (allowed.endsWith('/*')) {
+      const prefix = allowed.slice(0, -1) // keep trailing '/'
+      if (redirect_uri.startsWith(prefix)) return true
+    } else if (redirect_uri === allowed) {
+      return true
+    }
+  }
+  return false
 }
 
 export function getClientById(client_id: string): OAuthClient | null {
@@ -117,10 +145,6 @@ export function getClientById(client_id: string): OAuthClient | null {
     redirect_uris: JSON.parse(row.redirect_uris || '[]'),
     allowed_scopes: JSON.parse(row.allowed_scopes || '[]'),
   }
-}
-
-export function validateRedirectUri(client: OAuthClient, redirect_uri: string): boolean {
-  return client.redirect_uris.includes(redirect_uri)
 }
 
 export function validateScopes(client: OAuthClient, requestedScopes: string[]): { ok: boolean, granted: string[] } {

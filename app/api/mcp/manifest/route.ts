@@ -645,6 +645,7 @@ export async function GET(request: NextRequest) {
         tools: Object.values(MCP_TOOLS),
         endpoints: {
           manifest: `${MCP_CONFIG.baseUrl}/mcp/manifest`,
+          sse: `${MCP_CONFIG.baseUrl}/sse`,
           tools: `${MCP_CONFIG.baseUrl}/api/mcp/tools`,
           health: `${MCP_CONFIG.baseUrl}/api/mcp/health`
         },
