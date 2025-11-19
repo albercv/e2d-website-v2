@@ -19,10 +19,10 @@ const MCP_CONFIG = {
   version: '1.0.0',
   name: 'Evolve2Digital MCP Server',
   description: 'Herramientas MCP para consultar contenido y servicios de Evolve2Digital',
-  baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com',
+  baseUrl: 'https://evolve2digital.com',
   contact: {
     name: 'Alberto Carrasco',
-    email: 'alberto@evolve2digital.com',
+    email: 'hello@evolve2digital.com',
     website: 'https://evolve2digital.com'
   }
 }
@@ -55,7 +55,7 @@ const MCP_TOOLS = {
     name: 'agent.query',
     description: 'Consulta al agente IA interno de E2D (Johanna) para obtener respuestas especializadas sobre servicios, tecnología y automatización',
     category: 'ai-assistant',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         prompt: {
@@ -84,7 +84,7 @@ const MCP_TOOLS = {
       required: ['prompt'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         response: { 
@@ -117,6 +117,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['agent:query']
@@ -134,7 +136,7 @@ const MCP_TOOLS = {
     name: 'posts.search',
     description: 'Busca artículos del blog que coincidan con una consulta textual',
     category: 'content',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         query: {
@@ -166,7 +168,7 @@ const MCP_TOOLS = {
       required: ['query'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         query: { type: 'string' },
@@ -197,6 +199,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:read']
@@ -214,7 +218,7 @@ const MCP_TOOLS = {
     name: 'appointments.create',
     description: 'Crea una solicitud de cita o contacto comercial',
     category: 'business',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         name: {
@@ -271,7 +275,7 @@ const MCP_TOOLS = {
       required: ['name', 'email', 'service', 'message'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         success: { type: 'boolean' },
@@ -285,6 +289,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['appointments:create']
@@ -302,7 +308,7 @@ const MCP_TOOLS = {
     name: 'posts.get',
     description: 'Recupera un post del blog por título o slug',
     category: 'content',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Título exacto del post', minLength: 2 },
@@ -313,7 +319,7 @@ const MCP_TOOLS = {
       anyOf: [ { required: ['title'] }, { required: ['slug'] } ],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         found: { type: 'boolean' },
@@ -340,6 +346,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:read']
@@ -357,7 +365,7 @@ const MCP_TOOLS = {
     name: 'posts.create',
     description: 'Crea un nuevo post del blog (MDX) en el repositorio. Requiere OAuth2 (Bearer JWT) con scope posts:write. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico.',
     category: 'content',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Título del post', minLength: 3 },
@@ -372,7 +380,7 @@ const MCP_TOOLS = {
       required: ['title', 'description', 'locale', 'content'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         created: { type: 'boolean' },
@@ -389,6 +397,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:write']
@@ -404,14 +414,14 @@ const MCP_TOOLS = {
     name: 'posts.schema',
     description: 'Devuelve la estructura y variables admitidas por los posts del blog (frontmatter y campos computados)',
     category: 'content',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         format: { type: 'string', description: 'Formato deseado de la salida', enum: ['json'], default: 'json' }
       },
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         schema: { type: 'object' },
@@ -420,6 +430,15 @@ const MCP_TOOLS = {
         timestamp: { type: 'string' },
         processingTime: { type: 'number' }
       }
+    },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/schema`,
     method: 'GET',
@@ -434,7 +453,7 @@ const MCP_TOOLS = {
     name: 'posts.delete',
     description: 'Elimina un post del blog por slug. Requiere OAuth2 (Bearer JWT) con scope posts:delete. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico. Método recomendado: POST (también acepta DELETE).',
     category: 'content',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         slug: { type: 'string', description: 'Slug del post a eliminar', minLength: 2 },
@@ -443,7 +462,7 @@ const MCP_TOOLS = {
       required: ['slug'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         deleted: { type: 'boolean' },
@@ -460,6 +479,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:delete']
@@ -475,7 +496,7 @@ const MCP_TOOLS = {
     name: 'search',
     description: 'Herramienta MCP estándar (POST) para buscar contenido del blog. Formatea salida MCP content[] y soporta JSON clásico.',
     category: 'mcp',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Consulta de búsqueda en texto libre', minLength: 2, maxLength: 500 },
@@ -486,7 +507,7 @@ const MCP_TOOLS = {
       required: ['query'],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         query: { type: 'string' },
@@ -514,6 +535,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:read']
@@ -531,7 +554,7 @@ const MCP_TOOLS = {
     name: 'fetch',
     description: 'Herramienta MCP estándar (POST) para recuperar un post por slug+locale o URL. Formatea salida MCP content[] y soporta JSON clásico.',
     category: 'mcp',
-    inputSchema: {
+    input_schema: {
       type: 'object',
       properties: {
         url: { type: 'string', description: 'URL del post (p. ej. https://evolve2digital.com/es/blog/<slug>)' },
@@ -542,7 +565,7 @@ const MCP_TOOLS = {
       anyOf: [ { required: ['url'] }, { required: ['slug'] } ],
       additionalProperties: false
     },
-    outputSchema: {
+    output_schema: {
       type: 'object',
       properties: {
         found: { type: 'boolean' },
@@ -569,6 +592,8 @@ const MCP_TOOLS = {
     auth: {
       type: 'oauth2',
       description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
       scopes: ['posts:read']
@@ -644,15 +669,9 @@ export async function GET(request: NextRequest) {
         },
         tools: Object.values(MCP_TOOLS),
         endpoints: {
-          manifest: `${MCP_CONFIG.baseUrl}/mcp/manifest`,
-          sse: `${MCP_CONFIG.baseUrl}/sse`,
+          manifest: `${MCP_CONFIG.baseUrl}/api/mcp/manifest`,
           tools: `${MCP_CONFIG.baseUrl}/api/mcp/tools`,
           health: `${MCP_CONFIG.baseUrl}/api/mcp/health`
-        },
-        documentation: {
-          usage: `${MCP_CONFIG.baseUrl}/docs/mcp-usage`,
-          examples: `${MCP_CONFIG.baseUrl}/docs/mcp-examples`,
-          changelog: `${MCP_CONFIG.baseUrl}/docs/mcp-changelog`
         },
         metadata: {
           generatedAt: new Date().toISOString(),
@@ -746,11 +765,7 @@ export async function POST(request: NextRequest) {
           tools: `${MCP_CONFIG.baseUrl}/api/mcp/tools`,
           health: `${MCP_CONFIG.baseUrl}/api/mcp/health`
         },
-        documentation: {
-          usage: `${MCP_CONFIG.baseUrl}/docs/mcp-usage`,
-          examples: `${MCP_CONFIG.baseUrl}/docs/mcp-examples`,
-          changelog: `${MCP_CONFIG.baseUrl}/docs/mcp-changelog`
-        },
+
         metadata: {
           generatedAt: new Date().toISOString(),
           environment: process.env.NODE_ENV || 'production',
