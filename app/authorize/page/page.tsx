@@ -1,7 +1,5 @@
 import React from 'react'
-import { cookies } from 'next/headers'
-import crypto from 'crypto'
-import AuthorizeForm from './AuthorizeForm'
+import AuthorizeForm from '../AuthorizeForm'
 
 export default function AuthorizePage({ searchParams }: { searchParams: Record<string, string | undefined> }) {
   const client_id = searchParams.client_id || ''
@@ -12,42 +10,41 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
   const code_challenge = searchParams.code_challenge || ''
   const code_challenge_method = (searchParams.code_challenge_method || 'S256').toUpperCase()
 
-  // Guardar PKCE en cookie segura (HttpOnly, no accesible al frontend)
-  if (code_challenge) {
-    const cookieStore = cookies();
-    cookieStore.set('e2d_pkce_challenge', code_challenge, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 300 // 5 minutos
-    });
-  }
-
-  if (code_challenge_method) {
-    const cookieStore = cookies();
-    cookieStore.set('e2d_pkce_method', code_challenge_method, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 300 // 5 minutos
-    });
-  }
-
-  // Inicializar CSRF en servidor para evitar fallos de fetch en clientes restringidos
-  const cookieStore = cookies();
-  let csrfToken = cookieStore.get('e2d_csrf')?.value || ''
-  if (!csrfToken) {
-    csrfToken = crypto.randomBytes(24).toString('hex')
-  }
-  cookieStore.set('e2d_csrf', csrfToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 600 // 10 minutos
-  })
+  // Removed PKCE cookie writing. UI-only page should not set cookies.
+  // if (code_challenge) {
+  //   const cookieStore = cookies();
+  //   cookieStore.set('e2d_pkce_challenge', code_challenge, {
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: 'lax',
+  //     path: '/',
+  //     maxAge: 300 // 5 minutos
+  //   });
+  // }
+  //
+  // if (code_challenge_method) {
+  //   const cookieStore = cookies();
+  //   cookieStore.set('e2d_pkce_method', code_challenge_method, {
+  //     httpOnly: true,
+  //     secure: true,
+  //     sameSite: 'lax',
+  //     path: '/',
+  //     maxAge: 300 // 5 minutos
+  //   });
+  // }
+  // Removed CSRF cookie initialization. UI-only page should not set cookies.
+  // const cookieStore = cookies();
+  // let csrfToken = cookieStore.get('e2d_csrf')?.value || ''
+  // if (!csrfToken) {
+  //   csrfToken = crypto.randomBytes(24).toString('hex')
+  // }
+  // cookieStore.set('e2d_csrf', csrfToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === 'production',
+  //   sameSite: 'lax',
+  //   path: '/',
+  //   maxAge: 600 // 10 minutos
+  // })
 
   const isDev = process.env.NODE_ENV !== 'production'
 
@@ -69,7 +66,7 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
           redirect_uri={redirect_uri}
           scope={scope}
           state={state}
-          initialCsrf={csrfToken}
+          initialCsrf={undefined}
         />
       </div>
     </main>

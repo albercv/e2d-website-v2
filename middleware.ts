@@ -173,38 +173,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Si es la página de autorización OAuth, persistir PKCE en cookies HttpOnly
-  const isAuthorizePath = pathname === '/authorize'
-  const forwardedProto = req.headers.get('x-forwarded-proto')
-  const proto = forwardedProto || req.nextUrl.protocol.replace(':', '')
-  const isHttps = proto === 'https'
-
+  // PKCE cookie persistence moved to /authorize route handler
   response = NextResponse.next()
-
-  if (isAuthorizePath) {
-    const code_challenge = req.nextUrl.searchParams.get('code_challenge') || ''
-    const code_challenge_method = (req.nextUrl.searchParams.get('code_challenge_method') || 'S256').toUpperCase()
-
-    if (code_challenge) {
-      response.cookies.set('e2d_pkce_challenge', code_challenge, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 5 * 60,
-      })
-    }
-
-    if (code_challenge_method) {
-      response.cookies.set('e2d_pkce_method', code_challenge_method, {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 5 * 60,
-      })
-    }
-  }
 
   // Persistir el último idioma navegado en cookie NEXT_LOCALE
   const pathSegments = pathname.split('/').filter(Boolean)

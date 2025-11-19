@@ -26,7 +26,7 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_BASE_URL": "@next_public_base_url",
+    "NEXT_PUBLIC_BASE_URL": "https://evolve2digital.com",
     "MCP_ADMIN_USER": "@mcp_admin_user",
     "MCP_ADMIN_PASSWORD": "@mcp_admin_password"
   },
