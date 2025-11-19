@@ -1,6 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { mcpLogger } from '@/lib/mcp-logger'
-import { applyCORS, applyMCPHeaders } from '@/lib/mcp-headers'
+
+// Runtime and caching controls for MCP manifest
+export const runtime = 'nodejs'
+export const dynamic = 'force-static'
+export const fetchCache = 'force-no-store'
+export const revalidate = 0
 
 /**
  * MCP (Model Context Protocol) Manifest Público
@@ -19,6 +24,23 @@ const MCP_CONFIG = {
     email: 'alberto@evolve2digital.com',
     website: 'https://evolve2digital.com',
   },
+}
+
+// Strict headers to avoid transformations and streaming
+const MANIFEST_CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key',
+}
+
+const MANIFEST_BASE_HEADERS: Record<string, string> = {
+  ...MANIFEST_CORS_HEADERS,
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store, no-transform',
+  'Content-Encoding': 'identity',
+  'X-MCP-Version': '1.0',
+  'X-MCP-Server': 'evolve2digital',
+  'X-Content-Type': 'mcp-manifest',
 }
 
 /** Definición de herramientas MCP disponibles */
@@ -441,33 +463,29 @@ function buildManifest() {
 export async function OPTIONS(request: NextRequest) {
   const startTime = Date.now()
   const userAgent = request.headers.get('user-agent') || undefined
-  const headers: Record<string, string> = { ...applyCORS(['GET', 'POST', 'OPTIONS']) }
   mcpLogger.logManifestRequest('/mcp/manifest', 'OPTIONS', true, Date.now() - startTime, 200, userAgent)
-  return new NextResponse(null, { status: 200, headers })
+  return new Response(null, { status: 200, headers: MANIFEST_CORS_HEADERS })
 }
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   try {
     const manifest = buildManifest()
-    const processingTime = Date.now() - startTime
-    mcpLogger.logManifestRequest('/mcp/manifest', 'GET', true, processingTime, 200, request.headers.get('user-agent') || undefined)
-    return NextResponse.json(manifest, {
-      status: 200,
-      headers: {
-        ...applyCORS(['GET', 'POST', 'OPTIONS']),
-        ...applyMCPHeaders(),
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Processing-Time': `${processingTime}ms`,
-      },
-    })
+    const bodyString = JSON.stringify(manifest)
+    const bodyBuffer = Buffer.from(bodyString, 'utf-8')
+    const headers = new Headers(MANIFEST_BASE_HEADERS)
+    headers.set('Content-Length', String(bodyBuffer.byteLength))
+    mcpLogger.logManifestRequest('/mcp/manifest', 'GET', true, Date.now() - startTime, 200, request.headers.get('user-agent') || undefined)
+    return new Response(bodyBuffer, { status: 200, headers })
   } catch (error) {
-    const processingTime = Date.now() - startTime
     mcpLogger.logError('/mcp/manifest', 'GET', (error as Error).message, 500, request.headers.get('user-agent') || undefined)
-    return NextResponse.json(
-      { error: 'Internal server error', message: 'Failed to generate MCP manifest', timestamp: new Date().toISOString() },
-      { status: 500, headers: applyCORS(['GET', 'POST', 'OPTIONS']) }
+    const errBody = Buffer.from(
+      JSON.stringify({ error: 'Internal server error', message: 'Failed to generate MCP manifest', timestamp: new Date().toISOString() }),
+      'utf-8'
     )
+    const headers = new Headers(MANIFEST_BASE_HEADERS)
+    headers.set('Content-Length', String(errBody.byteLength))
+    return new Response(errBody, { status: 500, headers })
   }
 }
 
@@ -475,23 +493,20 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
   try {
     const manifest = buildManifest()
-    const processingTime = Date.now() - startTime
-    mcpLogger.logManifestRequest('/mcp/manifest', 'POST', true, processingTime, 200, request.headers.get('user-agent') || undefined)
-    return NextResponse.json(manifest, {
-      status: 200,
-      headers: {
-        ...applyCORS(['GET', 'POST', 'OPTIONS']),
-        ...applyMCPHeaders(),
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Processing-Time': `${processingTime}ms`,
-      },
-    })
+    const bodyString = JSON.stringify(manifest)
+    const bodyBuffer = Buffer.from(bodyString, 'utf-8')
+    const headers = new Headers(MANIFEST_BASE_HEADERS)
+    headers.set('Content-Length', String(bodyBuffer.byteLength))
+    mcpLogger.logManifestRequest('/mcp/manifest', 'POST', true, Date.now() - startTime, 200, request.headers.get('user-agent') || undefined)
+    return new Response(bodyBuffer, { status: 200, headers })
   } catch (error) {
-    const processingTime = Date.now() - startTime
     mcpLogger.logError('/mcp/manifest', 'POST', (error as Error).message, 500, request.headers.get('user-agent') || undefined)
-    return NextResponse.json(
-      { error: 'Internal server error', message: 'Failed to generate MCP manifest', timestamp: new Date().toISOString() },
-      { status: 500, headers: applyCORS(['GET', 'POST', 'OPTIONS']) }
+    const errBody = Buffer.from(
+      JSON.stringify({ error: 'Internal server error', message: 'Failed to generate MCP manifest', timestamp: new Date().toISOString() }),
+      'utf-8'
     )
+    const headers = new Headers(MANIFEST_BASE_HEADERS)
+    headers.set('Content-Length', String(errBody.byteLength))
+    return new Response(errBody, { status: 500, headers })
   }
 }

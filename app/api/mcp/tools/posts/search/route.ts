@@ -16,6 +16,7 @@ import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 /**
  * Configuración de la herramienta
@@ -368,6 +369,24 @@ export async function GET(request: NextRequest) {
     )
   }
   
+  // Autorización OAuth: requiere posts:read
+  const { error: authError } = requireOAuthScopes(request, ['posts:read'])
+  if (authError) {
+  // Log de error de autorización
+  mcpLogger.logToolInvocation(
+    TOOL_CONFIG.name,
+    '/api/mcp/tools/posts/search',
+    'GET',
+    false,
+    Date.now() - startTime,
+    authError.status || 401,
+    userAgent,
+    undefined,
+    'Authorization failed (missing scope posts:read)'
+  )
+  return authError
+  }
+  
   try {
     const { searchParams } = new URL(request.url)
     
@@ -498,6 +517,23 @@ export async function POST(request: NextRequest) {
   
   try {
     const body = await request.json()
+    
+    // Autorización OAuth: requiere posts:read
+    const { error: authErrorPost } = requireOAuthScopes(request, ['posts:read'])
+    if (authErrorPost) {
+    mcpLogger.logToolInvocation(
+      TOOL_CONFIG.name,
+      '/api/mcp/tools/posts/search',
+      'POST',
+      false,
+      Date.now() - startTime,
+      authErrorPost.status || 401,
+      userAgent,
+      body?.query || undefined,
+      'Authorization failed (missing scope posts:read)'
+    )
+    return authErrorPost
+    }
     
     // Validar parámetros del body
     const searchParams = new URLSearchParams()

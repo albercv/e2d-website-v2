@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 /**
  * Configuración de la herramienta
@@ -401,7 +402,22 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const userAgent = request.headers.get('user-agent') || undefined
-  
+
+  // Auth requerida (OAuth2 JWT + scope appointments:create)
+  const { error: authError } = requireOAuthScopes(request, ['appointments:create'])
+  if (authError) {
+    mcpLogger.logToolInvocation(
+      TOOL_CONFIG.name,
+      '/api/mcp/tools/appointments/create',
+      'POST',
+      false,
+      Date.now() - startTime,
+      authError.status || 401,
+      userAgent
+    )
+    return authError
+  }
+
   // Verificar rate limiting
   const rateLimitCheck = createRateLimitMiddleware('appointments.create')(request)
   if (!rateLimitCheck.allowed) {

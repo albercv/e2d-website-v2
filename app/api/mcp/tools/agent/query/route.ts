@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { mcpLogger } from "@/lib/mcp-logger"
 import { rateLimiter, getRateLimitConfig } from "@/lib/rate-limiter"
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 /**
  * MCP Tool: agent.query
@@ -90,7 +91,21 @@ async function callExternalAgent(prompt: string, locale: string = 'es'): Promise
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
-  
+
+  // Auth requerida (OAuth2 JWT + scope agent:query)
+  const { error: authError } = requireOAuthScopes(request, ['agent:query'])
+  if (authError) {
+    mcpLogger.logToolInvocation(
+      'agent.query',
+      '/api/mcp/tools/agent/query',
+      'POST',
+      false,
+      Date.now() - startTime,
+      authError.status || 401,
+      request.headers.get('user-agent') || undefined
+    )
+    return authError
+  }
   try {
     // Aplicar rate limiting
     const rateLimitConfig = getRateLimitConfig('MCP_AGENT')

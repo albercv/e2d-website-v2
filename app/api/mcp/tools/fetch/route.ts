@@ -16,6 +16,7 @@ import type { Post } from '@/.contentlayer/generated'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -111,6 +112,13 @@ export async function POST(request: NextRequest) {
   if (!rateResult.allowed) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/fetch', 'POST', false, Date.now() - start, 429, ua)
     return respondErrorAsMcpOrJson(request, 'Rate limit exceeded', 429, 'rate_limit_exceeded', { retryAfter: rateResult.retryAfter }, TOOL_NAME, getRateLimitHeaders(rateResult))
+  }
+
+  // OAuth2 authorization: require posts:read scope
+  const { error: authError } = requireOAuthScopes(request, ['posts:read'])
+  if (authError) {
+    mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/fetch', 'POST', false, Date.now() - start, authError.status || 401, ua, undefined, 'Authorization failed (missing scope posts:read)')
+    return authError
   }
 
   try {

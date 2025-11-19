@@ -3,6 +3,7 @@ import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -49,6 +50,13 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const start = Date.now()
   const ua = request.headers.get('user-agent') || undefined
+
+  // Auth requerida (OAuth2 JWT + scope posts:read)
+  const { error: authError } = requireOAuthScopes(request, ['posts:read'])
+  if (authError) {
+    mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/get', 'GET', false, Date.now() - start, authError.status || 401, ua)
+    return authError
+  }
 
   // Reutilizamos el rate limiter de consultas públicas (similar a posts.search)
   const rateResult = createRateLimitMiddleware('posts.search')(request)

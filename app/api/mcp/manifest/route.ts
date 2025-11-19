@@ -114,6 +114,13 @@ const MCP_TOOLS = {
       },
       required: ['response', 'source', 'timestamp']
     },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['agent:query']
+    },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/agent/query`,
     method: 'POST',
     rateLimit: {
@@ -186,6 +193,13 @@ const MCP_TOOLS = {
         processingTime: { type: 'number' },
         timestamp: { type: 'string' }
       }
+    },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/search`,
     method: 'GET',
@@ -268,6 +282,13 @@ const MCP_TOOLS = {
         timestamp: { type: 'string' }
       }
     },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['appointments:create']
+    },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/appointments/create`,
     method: 'POST',
     rateLimit: {
@@ -316,6 +337,13 @@ const MCP_TOOLS = {
         processingTime: { type: 'number' }
       }
     },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:read']
+    },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/get`,
     method: 'GET',
     rateLimit: {
@@ -327,7 +355,7 @@ const MCP_TOOLS = {
 
   'posts.create': {
     name: 'posts.create',
-    description: 'Crea un nuevo post del blog (MDX) en el repositorio. Requiere API key. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico.',
+    description: 'Crea un nuevo post del blog (MDX) en el repositorio. Requiere OAuth2 (Bearer JWT) con scope posts:write. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico.',
     category: 'content',
     inputSchema: {
       type: 'object',
@@ -358,7 +386,13 @@ const MCP_TOOLS = {
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/create`,
     method: 'POST',
-    auth: { required: true, header: 'Authorization: Bearer <API_KEY> or X-API-Key' },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:write']
+    },
     rateLimit: {
       requests: 20,
       window: '1m',
@@ -398,7 +432,7 @@ const MCP_TOOLS = {
 
   'posts.delete': {
     name: 'posts.delete',
-    description: 'Elimina un post del blog por slug. Requiere API key. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico. Método recomendado: POST (también acepta DELETE).',
+    description: 'Elimina un post del blog por slug. Requiere OAuth2 (Bearer JWT) con scope posts:delete. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico. Método recomendado: POST (también acepta DELETE).',
     category: 'content',
     inputSchema: {
       type: 'object',
@@ -423,7 +457,13 @@ const MCP_TOOLS = {
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/delete`,
     method: 'POST',
-    auth: { required: true, header: 'Authorization: Bearer <API_KEY> or X-API-Key' },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:delete']
+    },
     rateLimit: {
       requests: 20,
       window: '1m',
@@ -470,6 +510,13 @@ const MCP_TOOLS = {
         processingTime: { type: 'number' },
         timestamp: { type: 'string' }
       }
+    },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/search`,
     method: 'POST',
@@ -518,6 +565,13 @@ const MCP_TOOLS = {
         timestamp: { type: 'string' },
         processingTime: { type: 'number' }
       }
+    },
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/fetch`,
     method: 'POST',

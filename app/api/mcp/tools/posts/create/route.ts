@@ -5,7 +5,7 @@ import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
-import { requireApiKey } from '@/lib/mcp-auth'
+import { requireOAuthScopes } from '@/lib/mcp-oauth'
 import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
 
 export const runtime = 'nodejs'
@@ -66,13 +66,11 @@ export async function POST(request: NextRequest) {
   const start = Date.now()
   const ua = request.headers.get('user-agent') || undefined
 
-  // Auth requerida
-  const authError = requireApiKey(request)
+  // Auth requerida (OAuth2 JWT + scope posts:write)
+  const { error: authError } = requireOAuthScopes(request, ['posts:write'])
   if (authError) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, authError.status || 401, ua)
-    const code = authError.status === 401 ? 'missing_api_key' : authError.status === 403 ? 'invalid_api_key' : 'server_api_key_missing'
-    const message = authError.status === 401 ? 'Missing API key' : authError.status === 403 ? 'Invalid API key' : 'Server not configured with API key'
-    return respondErrorAsMcpOrJson(request, message, authError.status || 401, code, undefined, TOOL_NAME, authError.status === 401 ? { 'WWW-Authenticate': 'Bearer realm="mcp"' } : {})
+    return authError
   }
 
   // Rate limit (usa config por defecto bajo nombre posts.create)
