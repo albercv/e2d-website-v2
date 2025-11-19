@@ -2,7 +2,8 @@
 
 import React from 'react'
 
-export default function AuthorizeForm({ client_id, redirect_uri, scope, state, code_challenge, code_challenge_method, initialCsrf }: { client_id: string, redirect_uri: string, scope: string[], state: string, code_challenge: string, code_challenge_method: string, initialCsrf?: string }) {
+type Props = { client_id: string, redirect_uri: string, scope: string[], state: string, initialCsrf?: string }
+export default function AuthorizeForm({ client_id, redirect_uri, scope, state, initialCsrf }: Props) {
   const [csrfToken, setCsrfToken] = React.useState(initialCsrf ?? '')
   const [loading, setLoading] = React.useState(!initialCsrf)
   const [error, setError] = React.useState<string | null>(null)
@@ -38,8 +39,6 @@ export default function AuthorizeForm({ client_id, redirect_uri, scope, state, c
         <input type="hidden" name="redirect_uri" value={redirect_uri} />
         <input type="hidden" name="scope" value={scope.join(' ')} />
         <input type="hidden" name="state" value={state} />
-        <input type="hidden" name="code_challenge" value={code_challenge} />
-        <input type="hidden" name="code_challenge_method" value={code_challenge_method} />
         <input type="hidden" name="csrf" value={csrfToken} />
 
         {loading && <p style={{ color: '#6b7280', textAlign: 'center' }}>Preparando autorización…</p>}

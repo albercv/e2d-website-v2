@@ -7,12 +7,15 @@ import { validateAdminCredentials } from '@/lib/oauth-users'
 export async function POST(request: NextRequest) {
   const form = await request.formData()
   const client_id = String(form.get('client_id') || '')
-  const redirect_uri = String(form.get('redirect_uri') || '')
+  let redirect_uri = String(form.get('redirect_uri') || '')
+  // Sanitizar posibles backticks y espacios extra provenientes del cliente
+  redirect_uri = redirect_uri.trim().replace(/^`|`$/g, '')
   const scopeStr = String(form.get('scope') || '')
   const scope = scopeStr.split(' ').filter(Boolean)
   const state = String(form.get('state') || '')
-  const code_challenge = String(form.get('code_challenge') || '')
-  const code_challenge_method = String(form.get('code_challenge_method') || 'S256').toUpperCase()
+  const cookieStore = cookies();
+  const code_challenge = cookieStore.get('e2d_pkce_challenge')?.value || null;
+  const code_challenge_method = cookieStore.get('e2d_pkce_method')?.value || null;
   const email = String(form.get('email') || '').trim()
   const password = String(form.get('password') || '')
   const csrf = String(form.get('csrf') || '')
@@ -46,7 +49,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 400 })
   }
 
-  if (!client_id || !redirect_uri || !code_challenge || code_challenge_method !== 'S256') {
+  // Ensure PKCE challenge is present and came from cookies
+  if (!code_challenge) {
+    if (debug) {
+      console.log('[OAUTH-AUTHZ] Missing PKCE code_challenge in POST — retrieve from GET failed')
+    }
+    return NextResponse.json({ error: 'Missing PKCE code_challenge' }, { status: 400 })
+  }
+
+  if (!client_id || !redirect_uri || code_challenge_method !== 'S256') {
     if (debug) {
       console.log('[OAUTH-AUTHZ] Invalid parameters', {
         client_id,
@@ -91,7 +102,7 @@ export async function POST(request: NextRequest) {
     client_id,
     user_email: admin.email,
     redirect_uri,
-    code_challenge,
+    code_challenge: code_challenge as string,
     expires_at,
     scope: scopesCheck.granted,
   })
@@ -115,7 +126,9 @@ export async function POST(request: NextRequest) {
     path: '/',
   })
 
-  // Limpiar CSRF
+  // Limpiar PKCE y CSRF
+  cookies().set('e2d_pkce_challenge', '', { httpOnly: true, secure: isHttps, sameSite: 'lax', maxAge: 0, path: '/' })
+  cookies().set('e2d_pkce_method', '', { httpOnly: true, secure: isHttps, sameSite: 'lax', maxAge: 0, path: '/' })
   cookies().set('e2d_csrf', '', { httpOnly: true, secure: isHttps, sameSite: 'lax', maxAge: 0, path: '/' })
 
   const redirectUrl = new URL(redirect_uri)
