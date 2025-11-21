@@ -24,18 +24,29 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     return {}
   }
 
+  const baseUrl = "https://evolve2digital.com"
+  const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
+
   return {
     title: `${post.title} - E2D Blog`,
     description: post.description,
     authors: [{ name: post.author }],
+    alternates: {
+      canonical: `${baseUrl}/${locale}/blog/${slug}`,
+      languages: {
+        es: `${baseUrl}/es/blog/${slug}`,
+        en: `${baseUrl}/en/blog/${slug}`,
+        it: `${baseUrl}/it/blog/${slug}`,
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.description,
       type: "article",
       publishedTime: post.date,
       authors: [post.author],
-      locale: locale,
-      url: `https://evolve2digital.com/${locale}/blog/${slug}`,
+      locale: ogLocale,
+      url: `${baseUrl}/${locale}/blog/${slug}`,
       images: [
         {
           url: post.cover || "/placeholder.jpg",
@@ -51,6 +62,11 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       description: post.description,
       images: [post.cover || "/placeholder.jpg"],
     },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    keywords: post.tags ?? undefined,
   }
 }
 

@@ -24,17 +24,46 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     it: "Articoli su automazione, chatbot, sviluppo web e tecnologia per PMI",
   }
 
+  const baseUrl = "https://evolve2digital.com"
+  const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
+  const smeWord = locale === "es" ? "PYME" : locale === "it" ? "PMI" : "SME"
+
   return {
     title: titles[locale] ?? titles.es,
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
-      canonical: `/${locale}/blog`,
+      canonical: `${baseUrl}/${locale}/blog`,
       languages: {
-        es: "/es/blog",
-        en: "/en/blog",
-        it: "/it/blog",
+        es: `${baseUrl}/es/blog`,
+        en: `${baseUrl}/en/blog`,
+        it: `${baseUrl}/it/blog`,
       },
     },
+    openGraph: {
+      type: "website",
+      locale: ogLocale,
+      url: `${baseUrl}/${locale}/blog`,
+      siteName: "E2D - Evolve2Digital",
+      title: titles[locale] ?? titles.es,
+      description: descriptions[locale] ?? descriptions.es,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: titles[locale] ?? titles.es,
+      description: descriptions[locale] ?? descriptions.es,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    keywords: [
+      locale === "es" ? "automatización" : locale === "it" ? "automazione" : "automation",
+      "chatbots",
+      "WhatsApp",
+      "voicebots",
+      smeWord,
+      "blog",
+    ],
   }
 }
 

@@ -69,17 +69,43 @@ export async function generateMetadata({ params }: DocsSlugPageProps): Promise<M
     it: `Documentazione tecnica su ${title.toLowerCase()} nel progetto E2D`,
   }
 
+  const baseUrl = "https://evolve2digital.com"
+  const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
+  const smeWord = locale === "es" ? "PYME" : locale === "it" ? "PMI" : "SME"
+
   return {
     title: `${title} - E2D Docs`,
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
-      canonical: `/${locale}/docs/${slug}`,
+      canonical: `${baseUrl}/${locale}/docs/${slug}`,
       languages: {
-        es: `/es/docs/${slug}`,
-        en: `/en/docs/${slug}`,
-        it: `/it/docs/${slug}`,
+        es: `${baseUrl}/es/docs/${slug}`,
+        en: `${baseUrl}/en/docs/${slug}`,
+        it: `${baseUrl}/it/docs/${slug}`,
       },
     },
+    openGraph: {
+      type: "article",
+      locale: ogLocale,
+      url: `${baseUrl}/${locale}/docs/${slug}`,
+      siteName: "E2D - Evolve2Digital",
+      title: `${title} - E2D Docs`,
+      description: descriptions[locale] ?? descriptions.es,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} - E2D Docs`,
+      description: descriptions[locale] ?? descriptions.es,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    keywords: [
+      locale === "es" ? "documentación" : locale === "it" ? "documentazione" : "documentation",
+      title.toLowerCase(),
+      smeWord,
+    ],
   }
 }
 
