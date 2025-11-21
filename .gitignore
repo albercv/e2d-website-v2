@@ -81,3 +81,13 @@ public/rss-en.xml
 public/rss-es.xml
 public/rss-it.xml
 public/sitemap.xml
+ 
+build-prod.sh
+next.config.js
+node20Downgrade.sh
+
+ecosystem.config.js
+next.config.mjs
+docs/mcp-changelog.md
+docs/mcp-examples.md
+docs/mcp-usage.md
