@@ -20,6 +20,8 @@ const SSE_HEADERS: Record<string, string> = {
   ...CORS_HEADERS,
   'Content-Type': 'text/event-stream',
   'Cache-Control': 'no-cache, no-transform',
+  'Pragma': 'no-cache',
+  'CDN-Cache-Control': 'no-store',
   'Connection': 'keep-alive',
 }
 
@@ -45,6 +47,8 @@ function buildServerInfo() {
         health: `${baseUrl}/api/mcp/health`,
       },
       auth: {
+        pkce_required: true,
+        code_challenge_methods_supported: ['S256'],
         authorization_endpoint: `${baseUrl}/authorize`,
         token_endpoint: `${baseUrl}/token`,
       }
