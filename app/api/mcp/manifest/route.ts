@@ -121,6 +121,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['agent:query']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/agent/query`,
@@ -203,6 +204,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/search`,
@@ -293,6 +295,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['appointments:create']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/appointments/create`,
@@ -350,6 +353,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/get`,
@@ -401,6 +405,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:write']
     },
     rateLimit: {
@@ -438,6 +443,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/schema`,
@@ -483,6 +489,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:delete']
     },
     rateLimit: {
@@ -539,6 +546,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/search`,
@@ -596,6 +604,7 @@ const MCP_TOOLS = {
       code_challenge_method: 'S256',
       authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
       token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
       scopes: ['posts:read']
     },
     endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/fetch`,

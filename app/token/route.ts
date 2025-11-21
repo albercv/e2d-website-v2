@@ -51,9 +51,17 @@ export async function POST(request: NextRequest) {
     const code_verifier = body.code_verifier || ''
     const client_id = body.client_id || ''
     const redirect_uri = body.redirect_uri || ''
+    let resource = (body.resource || '').trim().replace(/^`|`$/g, '')
     if (!code || !code_verifier || !client_id || !redirect_uri) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params', { code: !!code, code_verifier: !!code_verifier, client_id: !!client_id, redirect_uri: !!redirect_uri })
       return error('Parámetros requeridos: code, code_verifier, client_id, redirect_uri', 400)
+    }
+    // Validar resource
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
+    const allowedResource = `${baseUrl}/sse`
+    if (!resource || resource !== allowedResource) {
+      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (authorization_code)', { resource, expected: allowedResource })
+      return error('Parámetro resource inválido', 400)
     }
     const authCode = getAuthorizationCode(code)
     if (!authCode) return error('authorization_code inválido o usado', 400)
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
       email: authCode.user_email,
       role: role as any,
       scope: authCode.scope,
-      aud: client_id,
+      aud: resource,
     }, 3600)
     const refresh_token = randomToken(48)
     createRefreshToken({
@@ -117,9 +125,17 @@ export async function POST(request: NextRequest) {
   if (grant_type === 'refresh_token') {
     const refresh_token = body.refresh_token || ''
     const client_id = body.client_id || ''
+    let resource = (body.resource || '').trim().replace(/^`|`$/g, '')
     if (!refresh_token || !client_id) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params (refresh)', { refresh_token: !!refresh_token, client_id: !!client_id })
       return error('Parámetros requeridos: refresh_token, client_id', 400)
+    }
+    // Validar resource
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
+    const allowedResource = `${baseUrl}/sse`
+    if (!resource || resource !== allowedResource) {
+      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (refresh_token)', { resource, expected: allowedResource })
+      return error('Parámetro resource inválido', 400)
     }
     const rt = getRefreshToken(refresh_token)
     if (!rt) return error('refresh_token inválido', 400)
@@ -139,7 +155,7 @@ export async function POST(request: NextRequest) {
       email: rt.user_email,
       role: role as any,
       scope: rt.scope,
-      aud: client_id,
+      aud: resource,
     }, 3600)
     const new_refresh_token = randomToken(48)
     createRefreshToken({

@@ -7,6 +7,18 @@ export async function GET() {
     authorization_endpoint: `${issuer}/authorize`,
     token_endpoint: `${issuer}/token`,
     registration_endpoint: `${issuer}/register`,
+    code_challenge_methods_supported: ['S256'],
+    response_types_supported: ['code'],
+    grant_types_supported: ['authorization_code'],
+    scopes_supported: [
+      'posts:read',
+      'search:read',
+      'fetch:read',
+      'appointments:create',
+      'agent:query',
+      'posts:write',
+      'posts:delete',
+    ],
   }
   return NextResponse.json(body, {
     status: 200,

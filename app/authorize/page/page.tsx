@@ -9,6 +9,7 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
   const response_type = (searchParams.response_type || 'code').toLowerCase()
   const code_challenge = searchParams.code_challenge || ''
   const code_challenge_method = (searchParams.code_challenge_method || 'S256').toUpperCase()
+  const resource = (searchParams.resource || '').trim().replace(/^`|`$/g, '')
 
   const isDev = process.env.NODE_ENV !== 'production'
 
@@ -23,6 +24,7 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
             <p>Scopes solicitados: <code style={{ color: '#f9fafb' }}>{scope.join(' ')}</code></p>
             <p>response_type: <code style={{ color: '#f9fafb' }}>{response_type}</code></p>
             <p>code_challenge_method: <code style={{ color: '#f9fafb' }}>{code_challenge_method}</code></p>
+            {resource && <p>resource: <code style={{ color: '#f9fafb' }}>{resource}</code></p>}
           </div>
         )}
         <AuthorizeForm
@@ -33,6 +35,7 @@ export default function AuthorizePage({ searchParams }: { searchParams: Record<s
           initialCsrf={undefined}
           code_challenge={code_challenge}
           code_challenge_method={code_challenge_method}
+          resource={resource}
         />
       </div>
     </main>

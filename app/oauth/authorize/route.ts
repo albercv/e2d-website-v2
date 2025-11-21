@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
   const scopeStr = String(form.get('scope') || '')
   const scope = scopeStr.split(' ').filter(Boolean)
   const state = String(form.get('state') || '')
+  let resource = String(form.get('resource') || '')
+  resource = resource.trim().replace(/^`|`$/g, '')
   const cookieStore = cookies();
   const code_challenge_cookie = cookieStore.get('e2d_pkce_challenge')?.value || ''
   const code_challenge_method_cookie = cookieStore.get('e2d_pkce_method')?.value || ''
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
       redirect_uri,
       scope,
       state,
+      resource,
       code_challenge_method,
       source_of_pkce: code_challenge_cookie ? 'cookie' : (code_challenge_form ? 'form' : 'none'),
       email,
@@ -73,6 +76,15 @@ export async function POST(request: NextRequest) {
       })
     }
     return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 })
+  }
+  // Validar parámetro resource (audiencia objetivo)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
+  const allowedResource = `${baseUrl}/sse`
+  if (!resource || resource !== allowedResource) {
+    if (debug) {
+      console.log('[OAUTH-AUTHZ] Invalid resource', { resource, expected: allowedResource })
+    }
+    return NextResponse.json({ error: 'Invalid resource' }, { status: 400 })
   }
   const client = getClientById(client_id)
   if (!client) {
