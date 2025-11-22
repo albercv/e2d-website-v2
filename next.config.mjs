@@ -39,6 +39,8 @@ const nextConfig = {
       '@react-three/drei',
       'ogl'
     ],
+    // Permitir el uso de módulos nativos en Server Components (p.ej. better-sqlite3)
+    serverComponentsExternalPackages: ['better-sqlite3'],
     // Habilitar optimizaciones experimentales
     // optimizeCss: true, // Deshabilitado temporalmente para evitar error de critters
     webVitalsAttribution: ['CLS', 'LCP', 'FCP', 'FID', 'TTFB', 'INP'],
@@ -46,6 +48,15 @@ const nextConfig = {
   
   // Configuración agresiva de webpack
   webpack: (config, { isServer, dev }) => {
+    // Asegurar que better-sqlite3 se trate como dependencia externa en el bundle del servidor
+    // para evitar que Webpack intente empaquetar el binario nativo.
+    if (isServer) {
+      const externals = config.externals || []
+      config.externals = Array.isArray(externals)
+        ? [...externals, 'better-sqlite3']
+        : [externals, 'better-sqlite3']
+    }
+
     // Configuración específica para Web Workers
     if (!isServer) {
       // Permitir importación de archivos .worker.ts como URLs
