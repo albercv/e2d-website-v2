@@ -9,9 +9,6 @@ export async function GET(req: NextRequest) {
   let redirect_uri = url.searchParams.get('redirect_uri') || ''
   redirect_uri = redirect_uri.trim().replace(/^`|`$/g, '')
   const response_type = (url.searchParams.get('response_type') || 'code').toLowerCase()
-  const scopeStr = url.searchParams.get('scope') || ''
-  const scope = scopeStr.split(' ').filter(Boolean)
-  const state = url.searchParams.get('state') || ''
   const code_challenge = url.searchParams.get('code_challenge') || ''
   const code_challenge_method = (url.searchParams.get('code_challenge_method') || 'S256').toUpperCase()
 

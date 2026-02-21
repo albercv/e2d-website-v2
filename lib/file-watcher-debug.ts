@@ -24,7 +24,7 @@ class FileWatcherDebug {
   constructor() {
     if (this.isEnabled && typeof window !== 'undefined') {
       this.setupClientSideMonitoring()
-      ;(window as any).__fileWatcherDebug = this
+      ;(window as unknown as { __fileWatcherDebug?: FileWatcherDebug }).__fileWatcherDebug = this
     }
   }
 
@@ -118,7 +118,7 @@ class FileWatcherDebug {
     })
 
     const suspiciousFiles = Array.from(pathCounts.entries())
-      .filter(([_, count]) => count > 2)
+      .filter(([, count]) => count > 2)
       .sort((a, b) => b[1] - a[1])
 
     if (suspiciousFiles.length > 0) {
@@ -213,7 +213,7 @@ class FileWatcherDebug {
 
   getFrequentlyChangedFiles(threshold = 3): Array<[string, number]> {
     return Array.from(this.suspiciousPatterns.entries())
-      .filter(([_, count]) => count >= threshold)
+      .filter(([, count]) => count >= threshold)
       .sort((a, b) => b[1] - a[1])
   }
 

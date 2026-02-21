@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 
@@ -28,7 +29,6 @@ export async function GET(request: NextRequest) {
     if (!allHealthy) {
       console.warn('Integrity check failed, some files are missing')
       // Intentar regenerar archivos faltantes
-      const { execSync } = require('child_process')
       execSync('npm run seo:regenerate', { stdio: 'inherit' })
     }
     

@@ -6,7 +6,7 @@ import type { Post } from '@/.contentlayer/generated'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
-import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     return respondErrorAsMcpOrJson(request, 'Rate limit exceeded', 429, 'rate_limit_exceeded', { retryAfter: rateResult.retryAfter }, TOOL_NAME, getRateLimitHeaders(rateResult))
   }
 
-  let payload: any
+  let payload: unknown
   try {
     payload = await request.json()
   } catch {
@@ -91,14 +91,15 @@ export async function POST(request: NextRequest) {
     return respondErrorAsMcpOrJson(request, 'Invalid JSON body', 400, 'invalid_json', undefined, TOOL_NAME)
   }
 
-  const title: string | undefined = payload?.title
-  const description: string | undefined = payload?.description
-  const locale: string = payload?.locale || 'es'
-  const content: string | undefined = payload?.content
-  const tags: string[] = Array.isArray(payload?.tags) ? payload.tags : []
-  const date: string = payload?.date || new Date().toISOString().slice(0, 10)
-  const published: boolean = payload?.published !== false
-  const author: string = payload?.author || 'Alberto Carrasco'
+  const payloadObj = (typeof payload === 'object' && payload !== null ? (payload as Record<string, unknown>) : {})
+  const title = typeof payloadObj.title === 'string' ? payloadObj.title : undefined
+  const description = typeof payloadObj.description === 'string' ? payloadObj.description : undefined
+  const locale = typeof payloadObj.locale === 'string' ? payloadObj.locale : 'es'
+  const content = typeof payloadObj.content === 'string' ? payloadObj.content : undefined
+  const tags = Array.isArray(payloadObj.tags) ? payloadObj.tags.filter(t => typeof t === 'string') as string[] : []
+  const date = typeof payloadObj.date === 'string' ? payloadObj.date : new Date().toISOString().slice(0, 10)
+  const published = payloadObj.published !== false
+  const author = typeof payloadObj.author === 'string' ? payloadObj.author : 'Alberto Carrasco'
 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     return respondErrorAsMcpOrJson(request, 'title is required and must be at least 3 characters', 400, 'invalid_params', { field: 'title' }, TOOL_NAME)
@@ -146,9 +147,10 @@ export async function POST(request: NextRequest) {
   try {
     await fs.mkdir(postsDir, { recursive: true })
     await fs.writeFile(filePath, mdx, { encoding: 'utf-8' })
-  } catch (err: any) {
+  } catch (err) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, 500, ua)
-    return respondErrorAsMcpOrJson(request, 'Failed to write file', 500, 'internal_error', { details: err?.message || String(err) }, TOOL_NAME)
+    const details = err instanceof Error ? err.message : String(err)
+    return respondErrorAsMcpOrJson(request, 'Failed to write file', 500, 'internal_error', { details }, TOOL_NAME)
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'

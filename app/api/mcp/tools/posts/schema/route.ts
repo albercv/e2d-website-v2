@@ -98,7 +98,14 @@ export async function GET(request: NextRequest) {
   const format = (url.searchParams.get('format') || 'json').toLowerCase()
 
   const schema = getPostSchema()
-  const result: any = {
+  const result: {
+    tool: string
+    schema: ReturnType<typeof getPostSchema>
+    acceptedLocales: string[]
+    examples: { frontmatter: string }
+    timestamp: string
+    processingTime: number
+  } = {
     tool: TOOL_NAME,
     schema,
     acceptedLocales,

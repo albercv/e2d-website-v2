@@ -21,9 +21,10 @@ export default function AuthorizeForm({ client_id, redirect_uri, scope, state, i
           setCsrfToken(data.csrf || '')
           setLoading(false)
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (active) {
-          setError(e?.message || 'No se pudo obtener CSRF')
+          const message = e instanceof Error ? e.message : 'No se pudo obtener CSRF'
+          setError(message)
           setLoading(false)
         }
       }

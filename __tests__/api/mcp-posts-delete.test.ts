@@ -5,6 +5,7 @@
 import { NextRequest } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { signAccessToken } from '../../lib/oauth-jwt'
 
 // Dynamic mockable posts array
 var mockAllPosts: any[] = []
@@ -50,7 +51,13 @@ const mkPostReq = (body: any, headers: Record<string, string> = {}) =>
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer local-dev-mcp-key',
+      'Authorization': `Bearer ${signAccessToken({
+        sub: 'test-user',
+        email: 'test@example.com',
+        role: 'admin',
+        scope: ['posts:delete'],
+        aud: 'mcp',
+      })}`,
       ...headers,
     },
     body: JSON.stringify(body),
@@ -60,7 +67,13 @@ const mkDeleteReq = (slug: string, locale?: string, headers: Record<string, stri
   new NextRequest(`http://localhost:3000/api/mcp/tools/posts/delete?slug=${encodeURIComponent(slug)}${locale ? `&locale=${locale}` : ''}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': 'Bearer local-dev-mcp-key',
+      'Authorization': `Bearer ${signAccessToken({
+        sub: 'test-user',
+        email: 'test@example.com',
+        role: 'admin',
+        scope: ['posts:delete'],
+        aud: 'mcp',
+      })}`,
       ...headers,
     },
   })
@@ -72,6 +85,8 @@ describe('/api/mcp/tools/posts/delete', () => {
 
   beforeAll(() => {
     process.env.E2D_MCP_API_KEY = 'local-dev-mcp-key'
+    process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
+    process.env.JWT_SECRET = 'test-jwt-secret-32-bytes-minimum-123456'
   })
 
   beforeEach(() => {
@@ -98,9 +113,9 @@ describe('/api/mcp/tools/posts/delete', () => {
   })
 
   it('OPTIONS should include MCP headers', async () => {
-    const res = await deleteRoute.OPTIONS()
+    const req = new NextRequest('http://localhost:3000/api/mcp/tools/posts/delete', { method: 'OPTIONS' })
+    const res = await deleteRoute.OPTIONS(req)
     expect(res.status).toBe(200)
-    expect(res.headers.get('X-MCP-Tool')).toBe('posts.delete')
   })
 
   it('should reject missing API key', async () => {

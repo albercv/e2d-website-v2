@@ -36,25 +36,37 @@ export function AdminMdxEditor({ file, initial }: { file: string; initial: strin
   const parsed = useMemo(() => matter(initial), [initial])
 
   const [post, setPost] = useState<PostFrontmatter>(() => {
-    const d: any = parsed.data || {}
+    const d = (typeof parsed.data === "object" && parsed.data !== null
+      ? (parsed.data as Record<string, unknown>)
+      : {})
     const rawDate = d.date
-    const dateStr = typeof rawDate === "string"
+    const dateValue = rawDate instanceof Date
       ? rawDate
-      : rawDate ? new Date(rawDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+      : (typeof rawDate === "string" || typeof rawDate === "number")
+        ? new Date(rawDate)
+        : new Date()
+    const dateStr = dateValue.toISOString().slice(0, 10)
+
+    const title = typeof d.title === "string" ? d.title : ""
+    const description = typeof d.description === "string" ? d.description : ""
+    const locale = typeof d.locale === "string" ? d.locale : "es"
+    const slug = typeof d.slug === "string" ? d.slug : ""
+    const cover = typeof d.cover === "string" ? d.cover : ""
+    const author = typeof d.author === "string" ? d.author : "Alberto Carrasco"
 
     return {
-      title: d.title || "",
-      description: d.description || "",
+      title,
+      description,
       date: dateStr,
-      locale: d.locale || "es",
-      slug: d.slug || "",
-      cover: d.cover || "",
+      locale,
+      slug,
+      cover,
       tags: Array.isArray(d.tags)
-        ? d.tags
+        ? d.tags.map((t) => String(t).trim()).filter(Boolean)
         : typeof d.tags === "string"
-          ? d.tags.split(",").map((t: string) => t.trim()).filter(Boolean)
+          ? d.tags.split(",").map((t) => t.trim()).filter(Boolean)
           : [],
-      author: d.author || "Alberto Carrasco",
+      author,
       published: typeof d.published === "boolean" ? d.published : true,
     }
   })
@@ -71,7 +83,7 @@ export function AdminMdxEditor({ file, initial }: { file: string; initial: strin
     setError(null)
     setMessage(null)
     try {
-      const fm: any = {
+      const fm: Record<string, unknown> = {
         title: post.title,
         description: post.description,
         date: post.date,
@@ -90,19 +102,23 @@ export function AdminMdxEditor({ file, initial }: { file: string; initial: strin
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ file: currentFile, mdx }),
       })
-      const data = await res.json().catch(() => ({} as any))
+      const data: unknown = await res.json().catch(() => ({}))
+      const obj = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {}
       if (!res.ok) {
-        throw new Error((data && (data.error as string)) || "Error al guardar")
+        const msg = typeof obj.error === "string" ? obj.error : "Error al guardar"
+        throw new Error(msg)
       }
-      if (data?.file && data.file !== currentFile) {
-        setCurrentFile(data.file)
-        router.replace(`/admin/edit?file=${encodeURIComponent(data.file)}`)
+      const nextFile = typeof obj.file === "string" ? obj.file : null
+      if (nextFile && nextFile !== currentFile) {
+        setCurrentFile(nextFile)
+        router.replace(`/admin/edit?file=${encodeURIComponent(nextFile)}`)
         setMessage("Guardado y renombrado correctamente")
       } else {
         setMessage("Guardado correctamente")
       }
-    } catch (e: any) {
-      setError(e?.message || "No se pudo guardar")
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "No se pudo guardar"
+      setError(msg)
     } finally {
       setSaving(false)
     }

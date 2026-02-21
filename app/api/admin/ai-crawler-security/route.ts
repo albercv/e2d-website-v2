@@ -4,7 +4,6 @@ import {
   defaultSecurityConfig, 
   updateSecurityConfig,
   cleanupOldData,
-  type SecurityConfig 
 } from '@/lib/ai-crawler-security'
 
 // GET /api/admin/ai-crawler-security - Obtener estadísticas de seguridad

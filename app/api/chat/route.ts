@@ -53,11 +53,12 @@ export async function POST(request: NextRequest) {
         headers: { "Content-Type": res.headers.get("Content-Type") || "text/plain" },
       })
     }
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Proxy error"
     return NextResponse.json(
       {
         error: true,
-        message: err?.message || "Proxy error",
+        message,
       },
       { status: 500 },
     )

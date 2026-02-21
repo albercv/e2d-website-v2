@@ -28,8 +28,9 @@ function LoginForm() {
       }
       const redirect = searchParams.get("redirect") || "/admin"
       window.location.href = redirect
-    } catch (e: any) {
-      setError(e?.message || "No se pudo iniciar sesión")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo iniciar sesión"
+      setError(message)
     } finally {
       setLoading(false)
     }

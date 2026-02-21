@@ -1,12 +1,9 @@
 "use client"
 
-import { useTranslations } from "next-intl"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 export default function CookiesClientPage() {
-  const t = useTranslations("cookies")
-
   return (
     <div className="min-h-screen bg-background pt-20">
       <div className="container mx-auto px-4 py-12">

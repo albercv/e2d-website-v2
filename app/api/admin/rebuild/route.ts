@@ -5,7 +5,7 @@ import path from 'path'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-function json(msg: any, status = 200) {
+function json(msg: unknown, status = 200) {
   return NextResponse.json(msg, { status })
 }
 
@@ -32,17 +32,27 @@ export async function POST(request: NextRequest) {
   if (authErr) return json({ error: authErr.error }, authErr.status)
 
   // Permitir override de comandos por body
-  let body: any = {}
-  try { body = await request.json() } catch {}
-  const BUILD_COMMAND = (body?.buildCommand as string) || process.env.BUILD_COMMAND || 'npm run build'
-  const RESTART_COMMAND = (body?.restartCommand as string) || process.env.RESTART_COMMAND || ''
+  let body: unknown = {}
+  try {
+    body = await request.json()
+  } catch {
+    body = {}
+  }
+
+  const bodyObj = (typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {})
+  const buildCommand = typeof bodyObj.buildCommand === 'string' ? bodyObj.buildCommand : undefined
+  const restartCommand = typeof bodyObj.restartCommand === 'string' ? bodyObj.restartCommand : undefined
+  const noRestart = bodyObj.noRestart === true
+
+  const BUILD_COMMAND = buildCommand || process.env.BUILD_COMMAND || 'npm run build'
+  const RESTART_COMMAND = restartCommand || process.env.RESTART_COMMAND || ''
   const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd()
 
   // Ejecutar scripts/rebuild-and-restart.js como proceso desacoplado
   const scriptPath = path.join(PROJECT_DIR, 'scripts', 'rebuild-and-restart.js')
   const args: string[] = []
   // Pasar env vía process.env (ya está) y permitir body controlar no-restart
-  if (body?.noRestart === true) args.push('--no-restart')
+  if (noRestart) args.push('--no-restart')
 
   const child = spawn('node', [scriptPath, ...args], {
     cwd: PROJECT_DIR,

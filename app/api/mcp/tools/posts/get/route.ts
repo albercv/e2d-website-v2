@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { allPosts } from '@/.contentlayer/generated'
-import type { Post } from '@/.contentlayer/generated'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
+import { getPost as getBlogPost, type BlogLocale, type BlogPostResult } from '@/lib/blog/posts'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,17 +22,10 @@ const mcpHeaders = {
   'X-Content-Type': 'mcp-tool-response',
 }
 
-function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: string }): Post | null {
-  const posts = allPosts.filter(p => p.locale === locale && p.published !== false)
-  if (slug) {
-    const match = posts.find(p => p.slug.toLowerCase() === slug!.toLowerCase())
-    if (match) return match
-  }
-  if (title) {
-    const match = posts.find(p => p.title.trim().toLowerCase() === title!.trim().toLowerCase())
-    if (match) return match
-  }
-  return null
+function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: string }): BlogPostResult | null {
+  const id = slug || title
+  if (!id) return null
+  return getBlogPost({ id, includeContent: false, locale: locale as BlogLocale })
 }
 
 export async function OPTIONS(request: NextRequest) {
@@ -99,14 +91,32 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-  const result: any = {
+  const result: {
+    tool: string
+    found: boolean
+    post: {
+      title: string
+      description: string
+      url: string
+      date: string
+      locale: string
+      tags: string[]
+      author: string
+      slug: string
+      wordCount: number
+      readingTime: BlogPostResult['readingTime']
+      body?: string
+    }
+    timestamp: string
+    processingTime: number
+    metadata: { includeContent: boolean }
+  } = {
     tool: TOOL_NAME,
     found: true,
     post: {
       title: post.title,
-      description: post.description || '',
-      url: `${baseUrl}/${post.locale}/blog/${post.slug}`,
+      description: post.excerpt || '',
+      url: post.url,
       date: post.date,
       locale: post.locale,
       tags: post.tags || [],
@@ -120,8 +130,11 @@ export async function GET(request: NextRequest) {
     metadata: { includeContent }
   }
 
-  if (includeContent && post.body?.raw) {
-    result.post.body = post.body.raw
+  if (includeContent) {
+    const fullPost = getBlogPost({ id: slug || title || "", includeContent: true, locale: locale as BlogLocale })
+    if (fullPost?.content) {
+      result.post.body = fullPost.content
+    }
   }
 
   mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/get', 'GET', true, elapsed, 200, ua)

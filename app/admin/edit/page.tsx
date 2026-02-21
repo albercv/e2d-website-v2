@@ -16,7 +16,7 @@ export default async function EditPostPage({ searchParams }: { searchParams: Pro
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-3xl mx-auto space-y-4">
           <h1 className="text-2xl font-semibold">Editor</h1>
-          <p className="text-muted-foreground">Falta el parámetro "file"</p>
+          <p className="text-muted-foreground">Falta el parámetro &quot;file&quot;</p>
           <Link href="/admin"><Button variant="outline">Volver</Button></Link>
         </div>
       </div>
@@ -28,7 +28,7 @@ export default async function EditPostPage({ searchParams }: { searchParams: Pro
   let mdx = ""
   try {
     mdx = await fs.readFile(filePath, "utf8")
-  } catch (e) {
+  } catch {
     mdx = `---\n` +
       `title: ""\n` +
       `description: ""\n` +

@@ -263,61 +263,72 @@ function generateNextSteps(type: AppointmentType, locale: string = 'es'): string
 /**
  * Valida parámetros de entrada
  */
-function validateAppointmentRequest(data: any) {
+function validateAppointmentRequest(data: unknown) {
   const errors: string[] = []
+
+  const obj = (typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : {})
+  const name = obj.name
+  const email = obj.email
+  const subject = obj.subject
+  const message = obj.message
+  const type = obj.type
+  const preferredDate = obj.preferredDate
+  const timezone = obj.timezone
+  const locale = obj.locale
+  const urgency = obj.urgency
   
   // Validar campos requeridos
-  if (!data.name || typeof data.name !== 'string' || data.name.trim().length < 2) {
+  if (!name || typeof name !== 'string' || name.trim().length < 2) {
     errors.push('Name is required and must be at least 2 characters long')
   }
   
-  if (!data.email || typeof data.email !== 'string' || !isValidEmail(data.email)) {
+  if (!email || typeof email !== 'string' || !isValidEmail(email)) {
     errors.push('Valid email address is required')
   }
   
-  if (!data.subject || typeof data.subject !== 'string' || data.subject.trim().length < 5) {
+  if (!subject || typeof subject !== 'string' || subject.trim().length < 5) {
     errors.push('Subject is required and must be at least 5 characters long')
   }
   
-  if (!data.message || typeof data.message !== 'string' || data.message.trim().length < 10) {
+  if (!message || typeof message !== 'string' || message.trim().length < 10) {
     errors.push('Message is required and must be at least 10 characters long')
   }
   
-  if (!data.type || !TOOL_CONFIG.allowedTypes.includes(data.type)) {
+  if (!type || typeof type !== 'string' || !TOOL_CONFIG.allowedTypes.includes(type as AppointmentType)) {
     errors.push(`Type must be one of: ${TOOL_CONFIG.allowedTypes.join(', ')}`)
   }
   
   // Validar longitudes máximas
-  if (data.name && data.name.length > TOOL_CONFIG.maxNameLength) {
+  if (typeof name === 'string' && name.length > TOOL_CONFIG.maxNameLength) {
     errors.push(`Name must not exceed ${TOOL_CONFIG.maxNameLength} characters`)
   }
   
-  if (data.email && data.email.length > TOOL_CONFIG.maxEmailLength) {
+  if (typeof email === 'string' && email.length > TOOL_CONFIG.maxEmailLength) {
     errors.push(`Email must not exceed ${TOOL_CONFIG.maxEmailLength} characters`)
   }
   
-  if (data.subject && data.subject.length > TOOL_CONFIG.maxSubjectLength) {
+  if (typeof subject === 'string' && subject.length > TOOL_CONFIG.maxSubjectLength) {
     errors.push(`Subject must not exceed ${TOOL_CONFIG.maxSubjectLength} characters`)
   }
   
-  if (data.message && data.message.length > TOOL_CONFIG.maxMessageLength) {
+  if (typeof message === 'string' && message.length > TOOL_CONFIG.maxMessageLength) {
     errors.push(`Message must not exceed ${TOOL_CONFIG.maxMessageLength} characters`)
   }
   
   // Validar campos opcionales
-  if (data.preferredDate && !isValidDate(data.preferredDate)) {
+  if (typeof preferredDate === 'string' && !isValidDate(preferredDate)) {
     errors.push('Preferred date must be a valid ISO 8601 datetime string')
   }
   
-  if (data.timezone && !isValidTimezone(data.timezone)) {
+  if (typeof timezone === 'string' && !isValidTimezone(timezone)) {
     errors.push('Invalid timezone identifier')
   }
   
-  if (data.locale && !['es', 'en', 'it'].includes(data.locale)) {
+  if (typeof locale === 'string' && !['es', 'en', 'it'].includes(locale)) {
     errors.push('Locale must be either "es", "en", or "it"')
   }
   
-  if (data.urgency && !['low', 'medium', 'high'].includes(data.urgency)) {
+  if (typeof urgency === 'string' && !['low', 'medium', 'high'].includes(urgency)) {
     errors.push('Urgency must be one of: low, medium, high')
   }
   
@@ -452,7 +463,7 @@ export async function POST(request: NextRequest) {
     )
   }
   
-  let requestData: any
+  let requestData: unknown
   
   try {
     requestData = await request.json()
@@ -490,6 +501,8 @@ export async function POST(request: NextRequest) {
   try {
     // Validar entrada
     const validation = validateAppointmentRequest(requestData)
+    const requestObj = (typeof requestData === 'object' && requestData !== null ? (requestData as Record<string, unknown>) : {})
+    const requestEmail = typeof requestObj.email === 'string' ? requestObj.email : undefined
     if (!validation.valid) {
       mcpLogger.logToolInvocation(
         TOOL_CONFIG.name,
@@ -499,7 +512,7 @@ export async function POST(request: NextRequest) {
         Date.now() - startTime,
         400,
         userAgent,
-        requestData.email || undefined,
+        requestEmail,
         `Validation failed: ${validation.errors.join(', ')}`
       )
       
@@ -534,7 +547,7 @@ export async function POST(request: NextRequest) {
         Date.now() - startTime,
         500,
         userAgent,
-        requestData.email || undefined,
+        requestEmail,
         result.error || 'Failed to create appointment'
       )
       
@@ -557,8 +570,12 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    const locale = typeof requestObj.locale === 'string' ? requestObj.locale : 'es'
+    const type = typeof requestObj.type === 'string' ? (requestObj.type as AppointmentType) : TOOL_CONFIG.allowedTypes[0]
+    const urgency = typeof requestObj.urgency === 'string' ? requestObj.urgency : undefined
+    const preferredDate = typeof requestObj.preferredDate === 'string' ? requestObj.preferredDate : undefined
+
     // Preparar respuesta exitosa
-    const locale = requestData.locale || 'es'
     const response: ToolResponse = {
       tool: TOOL_CONFIG.name,
       success: true,
@@ -571,12 +588,12 @@ export async function POST(request: NextRequest) {
       processingTime: Date.now() - startTime,
       timestamp: new Date().toISOString(),
       metadata: {
-        type: requestData.type,
+        type,
         locale,
         version: TOOL_CONFIG.version,
-        estimatedResponse: estimateResponseTime(requestData.type, requestData.urgency)
+        estimatedResponse: estimateResponseTime(type, urgency)
       },
-      nextSteps: generateNextSteps(requestData.type, locale)
+      nextSteps: generateNextSteps(type, locale)
     }
     
     // Log exitoso
@@ -588,13 +605,13 @@ export async function POST(request: NextRequest) {
       Date.now() - startTime,
       201,
       userAgent,
-      requestData.email,
+      requestEmail,
       undefined,
       {
         appointmentId: result.appointmentId,
-        type: requestData.type,
-        urgency: requestData.urgency || 'medium',
-        hasPreferredDate: !!requestData.preferredDate
+        type,
+        urgency: urgency || 'medium',
+        hasPreferredDate: !!preferredDate
       }
     )
     

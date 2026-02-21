@@ -70,8 +70,9 @@ export default function NewPostPage() {
       }
 
       window.location.href = `/admin/edit?file=${encodeURIComponent(data.file)}`
-    } catch (e: any) {
-      setError(e?.message || "Error creando el post")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error creando el post"
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -110,10 +111,8 @@ export default function NewPostPage() {
               <Input value={description} onChange={(e) => setDescription(e.target.value)} required />
             </div>
             <div className="space-y-2 md:col-span-2">
--              <Label>Cover (URL o ruta pública)</Label>
--              <Input value={cover} onChange={(e) => setCover(e.target.value)} />
-+              <Label>Foto (URL)</Label>
-+              <Input type="url" placeholder="https://..." value={cover} onChange={(e) => setCover(e.target.value)} />
+              <Label>Foto (URL)</Label>
+              <Input type="url" placeholder="https://..." value={cover} onChange={(e) => setCover(e.target.value)} />
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label>Tags (separados por coma)</Label>

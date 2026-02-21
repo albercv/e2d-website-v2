@@ -12,7 +12,7 @@ interface BlogListProps {
   locale: string
 }
 
-export function BlogList({ posts, locale }: BlogListProps) {
+export function BlogList({ posts }: BlogListProps) {
   const t = useTranslations("blog")
   const title = t("list.title")
   const subtitle = t("list.subtitle")

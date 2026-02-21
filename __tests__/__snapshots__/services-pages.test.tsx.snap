@@ -1,0 +1,235 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Servicios pages – snapshots at breakpoints chatbot page snapshots at 360px, 768px, 1024px 1`] = `
+<div>
+  <section
+    class="container mx-auto max-w-3xl px-4 py-12"
+  >
+    <div
+      class="mb-8"
+    >
+      <img
+        alt="Agente IA Chatbot"
+        class="w-full h-auto rounded-md object-cover"
+        data-nimg="1"
+        decoding="async"
+        fetchpriority="high"
+        height="630"
+        src="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75"
+        srcset="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=1200&q=75 1x, /_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75 2x"
+        style="color: transparent;"
+        width="1200"
+      />
+    </div>
+    <h1
+      class="text-3xl font-bold tracking-tight"
+    >
+      Agente de IA para chatbot (pack base)
+    </h1>
+    <p
+      class="mt-4 text-muted-foreground"
+    >
+      Implementación base de un agente de IA operativo 24/7, con RAG para respuestas basadas en tu contenido y flujo de calendario de citas integrado.
+    </p>
+    <ul
+      class="mt-6 list-disc pl-6 space-y-2"
+    >
+      <li>
+        Disponibilidad 
+        <strong>
+          24/7
+        </strong>
+         para atención continua.
+      </li>
+      <li>
+        Integración de 
+        <strong>
+          RAG
+        </strong>
+         para respuestas con contexto.
+      </li>
+      <li>
+        <strong>
+          Calendario de citas
+        </strong>
+         para agendar reuniones automáticamente.
+      </li>
+    </ul>
+    <p
+      class="mt-6 text-lg font-semibold"
+    >
+      Precio: 1500€
+    </p>
+    <div
+      class="mt-8"
+    >
+      <a
+        href="/es#contacto"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+        >
+          Contactar
+        </button>
+      </a>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`Servicios pages – snapshots at breakpoints chatbot page snapshots at 360px, 768px, 1024px 2`] = `
+<div>
+  <section
+    class="container mx-auto max-w-3xl px-4 py-12"
+  >
+    <div
+      class="mb-8"
+    >
+      <img
+        alt="Agente IA Chatbot"
+        class="w-full h-auto rounded-md object-cover"
+        data-nimg="1"
+        decoding="async"
+        fetchpriority="high"
+        height="630"
+        src="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75"
+        srcset="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=1200&q=75 1x, /_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75 2x"
+        style="color: transparent;"
+        width="1200"
+      />
+    </div>
+    <h1
+      class="text-3xl font-bold tracking-tight"
+    >
+      Agente de IA para chatbot (pack base)
+    </h1>
+    <p
+      class="mt-4 text-muted-foreground"
+    >
+      Implementación base de un agente de IA operativo 24/7, con RAG para respuestas basadas en tu contenido y flujo de calendario de citas integrado.
+    </p>
+    <ul
+      class="mt-6 list-disc pl-6 space-y-2"
+    >
+      <li>
+        Disponibilidad 
+        <strong>
+          24/7
+        </strong>
+         para atención continua.
+      </li>
+      <li>
+        Integración de 
+        <strong>
+          RAG
+        </strong>
+         para respuestas con contexto.
+      </li>
+      <li>
+        <strong>
+          Calendario de citas
+        </strong>
+         para agendar reuniones automáticamente.
+      </li>
+    </ul>
+    <p
+      class="mt-6 text-lg font-semibold"
+    >
+      Precio: 1500€
+    </p>
+    <div
+      class="mt-8"
+    >
+      <a
+        href="/es#contacto"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+        >
+          Contactar
+        </button>
+      </a>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`Servicios pages – snapshots at breakpoints chatbot page snapshots at 360px, 768px, 1024px 3`] = `
+<div>
+  <section
+    class="container mx-auto max-w-3xl px-4 py-12"
+  >
+    <div
+      class="mb-8"
+    >
+      <img
+        alt="Agente IA Chatbot"
+        class="w-full h-auto rounded-md object-cover"
+        data-nimg="1"
+        decoding="async"
+        fetchpriority="high"
+        height="630"
+        src="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75"
+        srcset="/_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=1200&q=75 1x, /_next/image?url=%2Fimages%2Fagente-ia-chatbot.jpg&w=3840&q=75 2x"
+        style="color: transparent;"
+        width="1200"
+      />
+    </div>
+    <h1
+      class="text-3xl font-bold tracking-tight"
+    >
+      Agente de IA para chatbot (pack base)
+    </h1>
+    <p
+      class="mt-4 text-muted-foreground"
+    >
+      Implementación base de un agente de IA operativo 24/7, con RAG para respuestas basadas en tu contenido y flujo de calendario de citas integrado.
+    </p>
+    <ul
+      class="mt-6 list-disc pl-6 space-y-2"
+    >
+      <li>
+        Disponibilidad 
+        <strong>
+          24/7
+        </strong>
+         para atención continua.
+      </li>
+      <li>
+        Integración de 
+        <strong>
+          RAG
+        </strong>
+         para respuestas con contexto.
+      </li>
+      <li>
+        <strong>
+          Calendario de citas
+        </strong>
+         para agendar reuniones automáticamente.
+      </li>
+    </ul>
+    <p
+      class="mt-6 text-lg font-semibold"
+    >
+      Precio: 1500€
+    </p>
+    <div
+      class="mt-8"
+    >
+      <a
+        href="/es#contacto"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+        >
+          Contactar
+        </button>
+      </a>
+    </div>
+  </section>
+</div>
+`;

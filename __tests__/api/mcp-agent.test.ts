@@ -3,13 +3,34 @@
  */
 
 import { NextRequest } from 'next/server'
+import { signAccessToken } from '../../lib/oauth-jwt'
 
-// Mock AI answers service
-jest.mock('../../lib/ai-answers-service', () => ({
-  aiAnswersService: {
-    processQuery: jest.fn()
+class ResponseMock {
+  ok: boolean
+  status: number
+  headers: { get: (k: string) => string | null }
+  private _body: any
+  constructor(body: any, init: { status?: number; headers?: Record<string, string> } = {}) {
+    this._body = body
+    this.status = init.status ?? 200
+    this.ok = this.status >= 200 && this.status < 300
+    const hdrs = init.headers ?? {}
+    this.headers = {
+      get: (k: string) => {
+        const key = Object.keys(hdrs).find((kk) => kk.toLowerCase() === k.toLowerCase())
+        return key ? hdrs[key] : null
+      },
+    }
   }
-}))
+  async json(): Promise<any> {
+    if (typeof this._body === 'string') return JSON.parse(this._body)
+    return this._body
+  }
+  async text(): Promise<string> {
+    if (typeof this._body === 'string') return this._body
+    return JSON.stringify(this._body)
+  }
+}
 
 // Mock MCP logger
 jest.mock('../../lib/mcp-logger', () => ({
@@ -31,17 +52,21 @@ jest.mock('../../lib/rate-limiter', () => ({
 
 // Import the route handlers and mocked services after mocking
 import { POST, OPTIONS } from '../../app/api/mcp/tools/agent/query/route'
-import { aiAnswersService } from '../../lib/ai-answers-service'
 import { rateLimiter, getRateLimitConfig } from '../../lib/rate-limiter'
 
+const mockFetch = jest.fn()
+;(globalThis as any).fetch = mockFetch
+
 // Type the mocked services
-const mockAiAnswersService = aiAnswersService as jest.Mocked<typeof aiAnswersService>
 const mockRateLimiter = rateLimiter as jest.Mocked<typeof rateLimiter>
 const mockGetRateLimitConfig = getRateLimitConfig as jest.MockedFunction<typeof getRateLimitConfig>
 
 describe('/api/mcp/tools/agent/query', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+
+    process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
+    process.env.JWT_SECRET = 'test-jwt-secret-32-bytes-minimum-123456'
     
     // Setup default mock returns
     mockGetRateLimitConfig.mockReturnValue({
@@ -58,42 +83,45 @@ describe('/api/mcp/tools/agent/query', () => {
     })
     
     mockRateLimiter.generateIdentifier.mockReturnValue('test-identifier')
-    
-    mockAiAnswersService.processQuery.mockResolvedValue({
-      query: 'test query',
-      answer: 'test answer',
-      source: 'https://evolve2digital.com/test',
-      sourceTitle: 'Test Article',
-      lastUpdated: '2024-01-01T00:00:00Z',
-      locale: 'es',
-      confidence: 0.9,
-      relatedTags: ['test'],
-      metadata: {
-        contentType: 'blog_post',
-        author: 'Test Author',
-        wordCount: 100,
-        publishedDate: '2024-01-01T00:00:00Z'
-      }
-    })
+
+    mockFetch.mockResolvedValue(
+      new ResponseMock(JSON.stringify({ response: 'test answer' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }) as any,
+    )
   })
 
   describe('OPTIONS', () => {
     it('should return CORS headers', async () => {
-      const response = await OPTIONS()
+      const request = new NextRequest('http://localhost:3000/api/mcp/tools/agent/query', {
+        method: 'OPTIONS',
+      })
+      const response = await OPTIONS(request)
       
       expect(response.status).toBe(200)
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
-      expect(response.headers.get('Access-Control-Allow-Methods')).toBe('POST, OPTIONS')
-      expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Authorization')
+      expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, OPTIONS')
+      expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, User-Agent, X-Requested-With, Authorization, X-API-Key')
     })
   })
 
   describe('POST', () => {
+    const getAccessToken = () =>
+      signAccessToken({
+        sub: 'test-user',
+        email: 'test@example.com',
+        role: 'admin',
+        scope: ['agent:query'],
+        aud: 'mcp',
+      })
+
     const createRequest = (body: any, headers: Record<string, string> = {}) => {
       return new NextRequest('http://localhost:3000/api/mcp/tools/agent/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAccessToken()}`,
           ...headers
         },
         body: JSON.stringify(body)
@@ -133,7 +161,8 @@ describe('/api/mcp/tools/agent/query', () => {
         const request = new NextRequest('http://localhost:3000/api/mcp/tools/agent/query', {
           method: 'POST',
           headers: {
-            'Content-Type': 'text/plain'
+            'Content-Type': 'text/plain',
+            'Authorization': `Bearer ${getAccessToken()}`,
           },
           body: JSON.stringify({ prompt: 'test' })
         })
@@ -149,7 +178,8 @@ describe('/api/mcp/tools/agent/query', () => {
         const request = new NextRequest('http://localhost:3000/api/mcp/tools/agent/query', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAccessToken()}`,
           },
           body: 'invalid json'
         })
@@ -202,7 +232,7 @@ describe('/api/mcp/tools/agent/query', () => {
 
         expect(response.status).toBe(400)
         const data = await response.json()
-        expect(data.error).toBe('Unsupported locale. Supported: es, en')
+        expect(data.error).toBe('Unsupported locale. Supported: es, en, it')
       })
     })
 
@@ -222,20 +252,21 @@ describe('/api/mcp/tools/agent/query', () => {
       })
 
       it('should return fallback response when AI service returns null', async () => {
-        mockAiAnswersService.processQuery.mockResolvedValue(null)
+        mockFetch.mockResolvedValue(new ResponseMock(JSON.stringify({}), { status: 502 }) as any)
         
         const request = createRequest({ prompt: 'test query', locale: 'es' })
         const response = await POST(request)
 
         expect(response.status).toBe(200)
         const data = await response.json()
-        expect(data.response).toContain('Lo siento, no pude encontrar información específica')
-        expect(data.source).toBe('E2D Agent')
+        expect(data.response).toContain('Lo siento, no pude conectar con nuestro agente en este momento')
+        expect(data.source).toBe('E2D Agent (Fallback)')
         expect(data.confidence).toBe(0)
         expect(data.metadata).toEqual({
           agent: "E2D Assistant",
           version: "1.0.0",
-          processing_time_ms: expect.any(Number)
+          processing_time_ms: expect.any(Number),
+          fallback: true
         })
       })
 
@@ -251,8 +282,11 @@ describe('/api/mcp/tools/agent/query', () => {
     })
 
     describe('Error Handling', () => {
-      it('should handle AI service errors gracefully', async () => {
-        mockAiAnswersService.processQuery.mockRejectedValue(new Error('AI service error'))
+      it('should handle internal errors gracefully', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+        mockRateLimiter.checkLimit.mockImplementation(() => {
+          throw new Error('rate limiter broke')
+        })
 
         const request = createRequest({ prompt: 'test query' })
         const response = await POST(request)
@@ -260,6 +294,7 @@ describe('/api/mcp/tools/agent/query', () => {
         expect(response.status).toBe(500)
         const data = await response.json()
         expect(data.error).toBe('Internal server error')
+        consoleSpy.mockRestore()
       })
     })
 
@@ -268,8 +303,7 @@ describe('/api/mcp/tools/agent/query', () => {
         const request = createRequest({ prompt: 'test query' })
         await POST(request)
 
-        // Verify logging was called (mocked)
-        expect(jest.isMockFunction(mockAiAnswersService.processQuery)).toBe(true)
+        expect(mockFetch).toHaveBeenCalled()
       })
 
       it('should log rate limit exceeded events', async () => {

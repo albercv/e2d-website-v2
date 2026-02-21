@@ -28,13 +28,13 @@ export default function PrivacyClientPage() {
                 <p className="text-muted-foreground leading-relaxed">
                   <strong>Responsable del tratamiento:</strong>
                   <br />
-                  Alberto Carrasco Hernández
+                  Alberto Carrasco
                   <br />
                   E2D - Evolve2Digital
                   <br />
                   Email: hello@evolve2digital.com
                   <br />
-                  Teléfono: +34 123 456 789
+                  Teléfono: 605497639
                 </p>
               </section>
 
@@ -151,7 +151,7 @@ export default function PrivacyClientPage() {
                   </li>
                 </ul>
                 <p className="text-muted-foreground leading-relaxed mt-4">
-                  Para ejercer estos derechos, contacte con nosotros en: alberto@evolve2digital.com
+                  Para ejercer estos derechos, contacte con nosotros en: hello@evolve2digital.com
                 </p>
               </section>
 
@@ -176,10 +176,10 @@ export default function PrivacyClientPage() {
                 </p>
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                   <p>
-                    <strong>Email:</strong> alberto@evolve2digital.com
+                    <strong>Email:</strong> hello@evolve2digital.com
                   </p>
                   <p>
-                    <strong>Teléfono:</strong> +34 123 456 789
+                    <strong>Teléfono:</strong> 605497639
                   </p>
                   <p>
                     <strong>Dirección:</strong> Madrid, España

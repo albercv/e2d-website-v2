@@ -8,8 +8,8 @@ import type * as THREE from "three"
 import { useComponentDebugLogger } from '@/lib/component-debug-logger'
 
 function AnimatedSphere() {
-  const meshRef = useRef<any>(null)
-  const { renderCount } = useComponentDebugLogger('AnimatedSphere')
+  const meshRef = useRef<THREE.Mesh | null>(null)
+  useComponentDebugLogger('AnimatedSphere')
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -32,8 +32,8 @@ function AnimatedSphere() {
 }
 
 function NetworkNodes() {
-  const groupRef = useRef<any>(null)
-  const { renderCount } = useComponentDebugLogger('NetworkNodes')
+  const groupRef = useRef<THREE.Group | null>(null)
+  useComponentDebugLogger('NetworkNodes')
 
   const nodes = useMemo(() => {
     const nodeArray = []
@@ -68,7 +68,7 @@ function NetworkNodes() {
 }
 
 export function Hero3D() {
-  const { renderCount } = useComponentDebugLogger('Hero3D')
+  useComponentDebugLogger('Hero3D')
 
   return (
     <Canvas

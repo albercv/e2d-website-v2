@@ -147,9 +147,10 @@ export async function middleware(req: NextRequest) {
   // Lógica de autenticación existente para rutas admin
   const isAdminPath = pathname.startsWith("/admin")
   const isAdminApiPath = pathname.startsWith("/api/admin")
+  const isAuthApiPath = pathname.startsWith("/api/auth")
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
 
-  if ((isAdminPath || isAdminApiPath) && !isPublic) {
+  if ((isAdminPath || isAdminApiPath || isAuthApiPath) && !isPublic) {
     const token = req.cookies.get(COOKIE_NAME)?.value
     const secret = process.env.ADMIN_SESSION_SECRET
 
@@ -208,6 +209,7 @@ export const config = {
     // Rutas admin existentes
     "/admin/:path*", 
     "/api/admin/:path*",
+    "/api/auth/:path*",
     // Todas las rutas públicas para logging de crawlers IA
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

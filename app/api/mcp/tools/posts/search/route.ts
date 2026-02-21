@@ -11,12 +11,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { aiAnswersService } from '@/lib/ai-answers-service'
-import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
+import { searchPosts as searchBlogPosts, type BlogLocale } from '@/lib/blog/posts'
 
 /**
  * Configuración de la herramienta
@@ -61,7 +60,7 @@ interface SearchResult {
   lastUpdated: string
   locale: string
   tags: string[]
-  readingTime: any
+  readingTime: Post['readingTime']
   relevanceScore: number
   contentSnippet?: string
   author: string
@@ -91,76 +90,6 @@ interface ToolResponse {
 }
 
 /**
- * Calcula puntuación de relevancia para un post
- */
-function calculateRelevanceScore(query: string, post: Post): number {
-  const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 1) // Changed from > 2 to > 1
-  let score = 0
-  
-  // Puntuación por título (peso: 3)
-  const titleMatches = queryWords.filter(word => 
-    post.title.toLowerCase().includes(word)
-  ).length
-  score += (titleMatches / queryWords.length) * 3
-  
-  // Puntuación por descripción (peso: 2)
-  if (post.description) {
-    const descMatches = queryWords.filter(word => 
-      post.description!.toLowerCase().includes(word)
-    ).length
-    score += (descMatches / queryWords.length) * 2
-  }
-  
-  // Puntuación por tags (peso: 2)
-  if (post.tags) {
-    const tagMatches = queryWords.filter(word => 
-      post.tags!.some(tag => tag.toLowerCase().includes(word))
-    ).length
-    score += (tagMatches / queryWords.length) * 2
-  }
-  
-  // Puntuación por contenido (peso: 1)
-  if (post.body?.raw) {
-    const contentMatches = queryWords.filter(word => 
-      post.body.raw.toLowerCase().includes(word)
-    ).length
-    score += (contentMatches / queryWords.length) * 1
-  }
-  
-  return Math.min(score, 1) // Normalizar a 0-1
-}
-
-/**
- * Extrae fragmento relevante del contenido
- */
-function extractContentSnippet(content: string, query: string, maxLength: number = 200): string {
-  const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 2)
-  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0)
-  
-  // Buscar la oración más relevante
-  let bestSentence = sentences[0] || ''
-  let maxMatches = 0
-  
-  for (const sentence of sentences) {
-    const matches = queryWords.filter(word => 
-      sentence.toLowerCase().includes(word)
-    ).length
-    
-    if (matches > maxMatches) {
-      maxMatches = matches
-      bestSentence = sentence
-    }
-  }
-  
-  // Truncar si es necesario
-  if (bestSentence.length > maxLength) {
-    bestSentence = bestSentence.substring(0, maxLength - 3) + '...'
-  }
-  
-  return bestSentence.trim()
-}
-
-/**
  * Busca posts relevantes
  */
 function searchPosts(
@@ -169,56 +98,31 @@ function searchPosts(
   limit: number = TOOL_CONFIG.defaultLimit,
   includeContent: boolean = true
 ): SearchResult[] {
-  // Filtrar posts por locale y estado publicado
-  const availablePosts = allPosts.filter(post => 
-    post.locale === locale && 
-    post.published !== false
-  )
-  
-  if (availablePosts.length === 0) {
-    return []
-  }
-  
-  // Calcular relevancia y ordenar
-  const scoredPosts = availablePosts
-    .map(post => ({
-      post,
-      score: calculateRelevanceScore(query, post)
-    }))
-    .filter(item => item.score > 0.1) // Filtrar resultados muy irrelevantes
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-  
-  // Convertir a formato de respuesta
-  return scoredPosts.map(({ post, score }) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-    const postUrl = `${baseUrl}/${post.locale}/blog/${post.slug}`
-    
-    const result: SearchResult = {
-      title: post.title,
-      description: post.description || '',
-      url: postUrl,
-      publishedDate: post.date,
-      lastUpdated: post.date, // Using same date as no lastUpdated field exists
-      locale: post.locale,
-      tags: post.tags || [],
-      readingTime: post.readingTime,
-      relevanceScore: Math.round(score * 100) / 100, // Redondear a 2 decimales
-      author: post.author || 'Alberto Carrasco',
-      metadata: {
-        wordCount: post.wordCount || 0,
-        contentType: 'blog_post',
-        slug: post.slug
-      }
-    }
-    
-    // Incluir fragmento de contenido si se solicita
-    if (includeContent && post.body?.raw) {
-      result.contentSnippet = extractContentSnippet(post.body.raw, query)
-    }
-    
-    return result
+  const results = searchBlogPosts({
+    query,
+    locale: locale as BlogLocale,
+    limit,
+    includeSnippet: includeContent,
   })
+
+  return results.map((item) => ({
+    title: item.title,
+    description: item.excerpt || '',
+    url: item.url,
+    publishedDate: item.date,
+    lastUpdated: item.date,
+    locale: item.locale,
+    tags: item.tags,
+    readingTime: item.readingTime as Post['readingTime'],
+    relevanceScore: item.relevanceScore,
+    ...(includeContent && item.contentSnippet ? { contentSnippet: item.contentSnippet } : {}),
+    author: item.author,
+    metadata: {
+      wordCount: item.wordCount,
+      contentType: 'blog_post',
+      slug: item.slug,
+    },
+  }))
 }
 
 /**

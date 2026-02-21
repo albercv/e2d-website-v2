@@ -5,6 +5,7 @@
 import { NextRequest } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { signAccessToken } from '../../lib/oauth-jwt'
 
 // Dynamic mockable posts array
 var mockAllPosts: any[] = []
@@ -49,11 +50,18 @@ beforeAll(() => {
 })
 
 const mkRequest = (url: string, body: any, headers: Record<string, string> = {}) => {
+  const token = signAccessToken({
+    sub: 'test-user',
+    email: 'test@example.com',
+    role: 'admin',
+    scope: ['posts:write'],
+    aud: 'mcp',
+  })
   return new NextRequest(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer local-dev-mcp-key',
+      'Authorization': `Bearer ${token}`,
       ...headers,
     },
     body: JSON.stringify(body),
@@ -66,6 +74,7 @@ describe('/api/mcp/tools/posts/create', () => {
   beforeAll(() => {
     process.env.E2D_MCP_API_KEY = 'local-dev-mcp-key'
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
+    process.env.JWT_SECRET = 'test-jwt-secret-32-bytes-minimum-123456'
     // Ensure clean posts directory
     if (!fs.existsSync(postsDir)) {
       fs.mkdirSync(postsDir, { recursive: true })
@@ -89,9 +98,9 @@ describe('/api/mcp/tools/posts/create', () => {
   })
 
   it('OPTIONS should include MCP/CORS headers', async () => {
-    const res = await createRoute.OPTIONS()
+    const req = new NextRequest('http://localhost:3000/api/mcp/tools/posts/create', { method: 'OPTIONS' })
+    const res = await createRoute.OPTIONS(req)
     expect(res.status).toBe(200)
-    expect(res.headers.get('X-MCP-Tool')).toBe('posts.create')
     expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 
