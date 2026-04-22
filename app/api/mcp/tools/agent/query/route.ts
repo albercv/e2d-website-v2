@@ -24,14 +24,14 @@ interface AgentQueryResponse {
   timestamp: string
   confidence?: number
   tokens_used?: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 interface ExternalAgentResponse {
   response?: string
   answer?: string
   message?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 /**
@@ -81,8 +81,7 @@ async function callExternalAgent(prompt: string, locale: string = 'es'): Promise
       return null
     }
 
-    const data = await response.json()
-    return data
+    return (await response.json()) as ExternalAgentResponse
   } catch (error) {
     console.error('Error calling external agent:', error)
     return null
@@ -161,7 +160,7 @@ export async function POST(request: NextRequest) {
     let body: AgentQueryRequest
     try {
       body = await request.json()
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid JSON body' },
         { 
@@ -300,12 +299,13 @@ export async function POST(request: NextRequest) {
       en: 'Response unavailable',
       it: 'Risposta non disponibile'
     }
-    const agentResponse = externalResponse.response || 
-                         externalResponse.answer || 
-                         externalResponse.message || 
-                         externalResponse.userMessage ||
-                         externalResponse.text ||
-                         (fallbackNoResponse[locale] || fallbackNoResponse.es)
+    const agentResponse =
+      (typeof externalResponse.response === 'string' ? externalResponse.response : undefined) ||
+      (typeof externalResponse.answer === 'string' ? externalResponse.answer : undefined) ||
+      (typeof externalResponse.message === 'string' ? externalResponse.message : undefined) ||
+      (typeof externalResponse['userMessage'] === 'string' ? (externalResponse['userMessage'] as string) : undefined) ||
+      (typeof externalResponse['text'] === 'string' ? (externalResponse['text'] as string) : undefined) ||
+      (fallbackNoResponse[locale] || fallbackNoResponse.es)
 
     // Construir respuesta estructurada
     const response: AgentQueryResponse = {
@@ -360,8 +360,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    const processingTime = Date.now() - startTime
-    
     // Log de error
     mcpLogger.logError(
       '/api/mcp/tools/agent/query',
@@ -369,7 +367,7 @@ export async function POST(request: NextRequest) {
       (error as Error).message,
       500,
       request.headers.get('user-agent') || undefined,
-      { error: (error as Error).stack }
+      { error: (error as Error).stack, processingTimeMs: Date.now() - startTime }
     )
 
     console.error('Error in agent.query MCP tool:', error)

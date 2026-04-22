@@ -15,7 +15,7 @@ import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
-import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 export const runtime = 'nodejs'
@@ -45,8 +45,13 @@ function parseSlugLocaleFromUrl(url: string): { slug?: string; locale?: 'es'|'en
     if (parts.length >= 3 && ['es','en','it'].includes(parts[0]) && parts[1] === 'blog') {
       return { locale: parts[0] as 'es'|'en'|'it', slug: parts[2] }
     }
-  } catch (_) {}
+  } catch {}
   return {}
+}
+
+function getPostBodyRaw(post: Post): string | undefined {
+  const candidate = (post as unknown as { body?: { raw?: unknown } }).body?.raw
+  return typeof candidate === 'string' ? candidate : undefined
 }
 
 function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: 'es'|'en'|'it' }): Post | null {
@@ -122,7 +127,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json().catch(() => ({}))
+    const body = (await request.json().catch(() => ({}))) as Partial<FetchInput>
     const validation = validateInput(body)
     if (!validation.ok) {
       mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/fetch', 'POST', false, Date.now() - start, 400, ua, body?.slug || body?.url, validation.error)
@@ -138,7 +143,26 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-    const payload: any = {
+    const payload: {
+      tool: string
+      found: boolean
+      post: {
+        title: string
+        description: string
+        url: string
+        date: string
+        locale: string
+        tags: string[]
+        author: string
+        slug: string
+        wordCount: number
+        readingTime: Post['readingTime']
+        body?: string
+      }
+      timestamp: string
+      processingTime: number
+      metadata: { includeContent: boolean }
+    } = {
       tool: TOOL_NAME,
       found: true,
       post: {
@@ -158,8 +182,9 @@ export async function POST(request: NextRequest) {
       metadata: { includeContent }
     }
 
-    if (includeContent && (post as any).body?.raw) {
-      payload.post.body = (post as any).body.raw
+    const bodyRaw = getPostBodyRaw(post)
+    if (includeContent && bodyRaw) {
+      payload.post.body = bodyRaw
     }
 
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/fetch', 'POST', true, Date.now() - start, 200, ua, slug)

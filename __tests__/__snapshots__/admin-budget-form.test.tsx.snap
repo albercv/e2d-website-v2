@@ -1,0 +1,463 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`BudgetWebhookForm renders and snapshots at 360px, 768px, 1024px 1`] = `
+<div>
+  <div
+    class="border rounded-lg p-4 bg-card space-y-4"
+  >
+    <form
+      class="space-y-4"
+    >
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-name"
+          >
+            Nombre
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-name"
+            required=""
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-email"
+          >
+            Email
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-email"
+            required=""
+            type="email"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-phone"
+          >
+            Teléfono (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-phone"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-company"
+          >
+            Empresa (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-company"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-range"
+          >
+            Rango de presupuesto (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-range"
+            placeholder="Ej: 1000–3000€"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-message"
+          >
+            Mensaje
+          </label>
+          <textarea
+            class="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            data-slot="textarea"
+            id="budget-message"
+            required=""
+            rows="6"
+          />
+        </div>
+      </div>
+      <div
+        class="flex items-center gap-2"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="submit"
+        >
+          Llamar webhook
+        </button>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="button"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+    <div
+      class="space-y-2"
+    >
+      <div
+        class="flex items-center justify-between gap-2 flex-wrap"
+      >
+        <h2
+          class="text-sm font-medium"
+        >
+          Respuesta
+        </h2>
+      </div>
+      <pre
+        class="text-xs bg-muted/40 border rounded-md p-3 overflow-auto max-h-[420px]"
+      >
+        Aún no hay respuesta.
+      </pre>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`BudgetWebhookForm renders and snapshots at 360px, 768px, 1024px 2`] = `
+<div>
+  <div
+    class="border rounded-lg p-4 bg-card space-y-4"
+  >
+    <form
+      class="space-y-4"
+    >
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-name"
+          >
+            Nombre
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-name"
+            required=""
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-email"
+          >
+            Email
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-email"
+            required=""
+            type="email"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-phone"
+          >
+            Teléfono (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-phone"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-company"
+          >
+            Empresa (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-company"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-range"
+          >
+            Rango de presupuesto (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-range"
+            placeholder="Ej: 1000–3000€"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-message"
+          >
+            Mensaje
+          </label>
+          <textarea
+            class="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            data-slot="textarea"
+            id="budget-message"
+            required=""
+            rows="6"
+          />
+        </div>
+      </div>
+      <div
+        class="flex items-center gap-2"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="submit"
+        >
+          Llamar webhook
+        </button>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="button"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+    <div
+      class="space-y-2"
+    >
+      <div
+        class="flex items-center justify-between gap-2 flex-wrap"
+      >
+        <h2
+          class="text-sm font-medium"
+        >
+          Respuesta
+        </h2>
+      </div>
+      <pre
+        class="text-xs bg-muted/40 border rounded-md p-3 overflow-auto max-h-[420px]"
+      >
+        Aún no hay respuesta.
+      </pre>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`BudgetWebhookForm renders and snapshots at 360px, 768px, 1024px 3`] = `
+<div>
+  <div
+    class="border rounded-lg p-4 bg-card space-y-4"
+  >
+    <form
+      class="space-y-4"
+    >
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-name"
+          >
+            Nombre
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-name"
+            required=""
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-email"
+          >
+            Email
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-email"
+            required=""
+            type="email"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-phone"
+          >
+            Teléfono (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-phone"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-company"
+          >
+            Empresa (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-company"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-range"
+          >
+            Rango de presupuesto (opcional)
+          </label>
+          <input
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+            data-slot="input"
+            id="budget-range"
+            placeholder="Ej: 1000–3000€"
+            value=""
+          />
+        </div>
+        <div
+          class="space-y-2 md:col-span-2"
+        >
+          <label
+            class="text-sm text-muted-foreground"
+            for="budget-message"
+          >
+            Mensaje
+          </label>
+          <textarea
+            class="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            data-slot="textarea"
+            id="budget-message"
+            required=""
+            rows="6"
+          />
+        </div>
+      </div>
+      <div
+        class="flex items-center gap-2"
+      >
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="submit"
+        >
+          Llamar webhook
+        </button>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+          data-slot="button"
+          type="button"
+        >
+          Limpiar
+        </button>
+      </div>
+    </form>
+    <div
+      class="space-y-2"
+    >
+      <div
+        class="flex items-center justify-between gap-2 flex-wrap"
+      >
+        <h2
+          class="text-sm font-medium"
+        >
+          Respuesta
+        </h2>
+      </div>
+      <pre
+        class="text-xs bg-muted/40 border rounded-md p-3 overflow-auto max-h-[420px]"
+      >
+        Aún no hay respuesta.
+      </pre>
+    </div>
+  </div>
+</div>
+`;

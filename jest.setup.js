@@ -1,5 +1,17 @@
 import '@testing-library/jest-dom'
 
+jest.mock('next-intl', () => ({
+  useLocale: () => 'es',
+  useTranslations: () => (key) => key,
+  useFormatter: () => ({
+    dateTime: (value) => String(value),
+    number: (value) => String(value),
+    relativeTime: (value) => String(value),
+    list: (value) => String(value),
+  }),
+  NextIntlClientProvider: ({ children }) => children,
+}))
+
 // Mock IntersectionObserver
 if (typeof global !== 'undefined' && typeof global.IntersectionObserver === 'undefined') {
   global.IntersectionObserver = class IntersectionObserver {

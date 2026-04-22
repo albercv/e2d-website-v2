@@ -7,8 +7,8 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void
-    dataLayer: any[]
+    gtag: (...args: unknown[]) => void
+    dataLayer: unknown[]
   }
 }
 
@@ -16,9 +16,10 @@ export function GoogleAnalytics() {
   useEffect(() => {
     // Initialize gtag with denied consent by default
     if (typeof window !== "undefined") {
+      if (!GA_MEASUREMENT_ID) return
       window.dataLayer = window.dataLayer || []
-      window.gtag = function gtag() {
-        window.dataLayer.push(arguments)
+      window.gtag = (...args: unknown[]) => {
+        window.dataLayer.push(args)
       }
       window.gtag("js", new Date())
       window.gtag("config", GA_MEASUREMENT_ID, {
@@ -48,7 +49,7 @@ export function GoogleAnalytics() {
 
 // Analytics event tracking functions
 export const trackEvent = (action: string, category: string, label?: string, value?: number) => {
-  if (typeof window !== "undefined" && window.gtag) {
+  if (typeof window !== "undefined" && GA_MEASUREMENT_ID && window.gtag) {
     window.gtag("event", action, {
       event_category: category,
       event_label: label,
@@ -58,7 +59,7 @@ export const trackEvent = (action: string, category: string, label?: string, val
 }
 
 export const trackPageView = (url: string, title: string) => {
-  if (typeof window !== "undefined" && window.gtag) {
+  if (typeof window !== "undefined" && GA_MEASUREMENT_ID && window.gtag) {
     window.gtag("config", GA_MEASUREMENT_ID, {
       page_title: title,
       page_location: url,
@@ -67,7 +68,7 @@ export const trackPageView = (url: string, title: string) => {
 }
 
 export const trackConversion = (conversionId: string, value?: number, currency?: string) => {
-  if (typeof window !== "undefined" && window.gtag) {
+  if (typeof window !== "undefined" && GA_MEASUREMENT_ID && window.gtag) {
     window.gtag("event", "conversion", {
       send_to: conversionId,
       value: value,

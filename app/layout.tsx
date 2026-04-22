@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
-import { Suspense } from "react"
 import "./globals.css"
 import { PreloadResources } from "@/components/performance/preload-resources"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"

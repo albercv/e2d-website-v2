@@ -712,13 +712,13 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    const processingTime = Date.now() - startTime
     mcpLogger.logError(
       '/api/mcp/manifest',
       'GET',
       (error as Error).message,
       500,
-      request.headers.get('user-agent') || undefined
+      request.headers.get('user-agent') || undefined,
+      { processingTimeMs: Date.now() - startTime }
     )
 
     console.error('MCP Manifest Error:', error)
@@ -805,13 +805,13 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    const processingTime = Date.now() - startTime
     mcpLogger.logError(
       '/api/mcp/manifest',
       'POST',
       (error as Error).message,
       500,
-      request.headers.get('user-agent') || undefined
+      request.headers.get('user-agent') || undefined,
+      { processingTimeMs: Date.now() - startTime }
     )
 
     console.error('MCP Manifest Error (POST):', error)

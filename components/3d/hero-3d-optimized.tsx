@@ -43,7 +43,7 @@ function useIntersectionObserver(threshold = 0.1, rootMargin = "100px") {
 
 interface Hero3DOptimizedProps {
   className?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function Hero3DOptimized({ className, ...props }: Hero3DOptimizedProps) {

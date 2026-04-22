@@ -1,0 +1,517 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
+<div>
+  <div
+    class="min-h-screen bg-background p-4 sm:p-6"
+  >
+    <div
+      class="max-w-5xl mx-auto space-y-4"
+    >
+      <div
+        class="flex flex-col gap-2"
+        data-orientation="horizontal"
+        data-slot="tabs"
+        dir="ltr"
+      >
+        <div
+          class="flex items-center justify-between gap-3 flex-wrap"
+        >
+          <div
+            aria-orientation="horizontal"
+            class="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-[3px] w-full sm:w-auto"
+            data-orientation="horizontal"
+            data-slot="tabs-list"
+            role="tablist"
+            style="outline: none;"
+            tabindex="0"
+          >
+            <button
+              aria-controls="radix-:r3:-content-cms"
+              aria-selected="true"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="active"
+              id="radix-:r3:-trigger-cms"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              CMS Blog
+            </button>
+            <button
+              aria-controls="radix-:r3:-content-budget"
+              aria-selected="false"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="inactive"
+              id="radix-:r3:-trigger-budget"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              Presupuesto
+            </button>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <form
+              action="/api/admin/logout"
+              method="post"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+                type="submit"
+              >
+                Salir
+              </button>
+            </form>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r3:-trigger-cms"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="active"
+          id="radix-:r3:-content-cms"
+          role="tabpanel"
+          style="animation-duration: 0s;"
+          tabindex="0"
+        >
+          <header
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <h1
+              class="text-2xl font-semibold"
+            >
+              CMS Blog
+            </h1>
+            <a
+              href="/admin/new"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+              >
+                Nuevo post
+              </button>
+            </a>
+          </header>
+          <div
+            class="overflow-x-auto border rounded-lg"
+          >
+            <table
+              class="w-full text-sm"
+            >
+              <thead
+                class="bg-muted/50 text-muted-foreground"
+              >
+                <tr>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Título
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Locale
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Slug
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Fecha
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Publicado
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Archivo
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody />
+            </table>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r3:-trigger-budget"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="inactive"
+          hidden=""
+          id="radix-:r3:-content-budget"
+          role="tabpanel"
+          tabindex="0"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
+<div>
+  <div
+    class="min-h-screen bg-background p-4 sm:p-6"
+  >
+    <div
+      class="max-w-5xl mx-auto space-y-4"
+    >
+      <div
+        class="flex flex-col gap-2"
+        data-orientation="horizontal"
+        data-slot="tabs"
+        dir="ltr"
+      >
+        <div
+          class="flex items-center justify-between gap-3 flex-wrap"
+        >
+          <div
+            aria-orientation="horizontal"
+            class="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-[3px] w-full sm:w-auto"
+            data-orientation="horizontal"
+            data-slot="tabs-list"
+            role="tablist"
+            style="outline: none;"
+            tabindex="0"
+          >
+            <button
+              aria-controls="radix-:r6:-content-cms"
+              aria-selected="true"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="active"
+              id="radix-:r6:-trigger-cms"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              CMS Blog
+            </button>
+            <button
+              aria-controls="radix-:r6:-content-budget"
+              aria-selected="false"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="inactive"
+              id="radix-:r6:-trigger-budget"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              Presupuesto
+            </button>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <form
+              action="/api/admin/logout"
+              method="post"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+                type="submit"
+              >
+                Salir
+              </button>
+            </form>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r6:-trigger-cms"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="active"
+          id="radix-:r6:-content-cms"
+          role="tabpanel"
+          style="animation-duration: 0s;"
+          tabindex="0"
+        >
+          <header
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <h1
+              class="text-2xl font-semibold"
+            >
+              CMS Blog
+            </h1>
+            <a
+              href="/admin/new"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+              >
+                Nuevo post
+              </button>
+            </a>
+          </header>
+          <div
+            class="overflow-x-auto border rounded-lg"
+          >
+            <table
+              class="w-full text-sm"
+            >
+              <thead
+                class="bg-muted/50 text-muted-foreground"
+              >
+                <tr>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Título
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Locale
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Slug
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Fecha
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Publicado
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Archivo
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody />
+            </table>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r6:-trigger-budget"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="inactive"
+          hidden=""
+          id="radix-:r6:-content-budget"
+          role="tabpanel"
+          tabindex="0"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
+<div>
+  <div
+    class="min-h-screen bg-background p-4 sm:p-6"
+  >
+    <div
+      class="max-w-5xl mx-auto space-y-4"
+    >
+      <div
+        class="flex flex-col gap-2"
+        data-orientation="horizontal"
+        data-slot="tabs"
+        dir="ltr"
+      >
+        <div
+          class="flex items-center justify-between gap-3 flex-wrap"
+        >
+          <div
+            aria-orientation="horizontal"
+            class="bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-[3px] w-full sm:w-auto"
+            data-orientation="horizontal"
+            data-slot="tabs-list"
+            role="tablist"
+            style="outline: none;"
+            tabindex="0"
+          >
+            <button
+              aria-controls="radix-:r9:-content-cms"
+              aria-selected="true"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="active"
+              id="radix-:r9:-trigger-cms"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              CMS Blog
+            </button>
+            <button
+              aria-controls="radix-:r9:-content-budget"
+              aria-selected="false"
+              class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+              data-orientation="horizontal"
+              data-radix-collection-item=""
+              data-slot="tabs-trigger"
+              data-state="inactive"
+              id="radix-:r9:-trigger-budget"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              Presupuesto
+            </button>
+          </div>
+          <div
+            class="flex items-center gap-2"
+          >
+            <form
+              action="/api/admin/logout"
+              method="post"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+                type="submit"
+              >
+                Salir
+              </button>
+            </form>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r9:-trigger-cms"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="active"
+          id="radix-:r9:-content-cms"
+          role="tabpanel"
+          style="animation-duration: 0s;"
+          tabindex="0"
+        >
+          <header
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <h1
+              class="text-2xl font-semibold"
+            >
+              CMS Blog
+            </h1>
+            <a
+              href="/admin/new"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+                data-slot="button"
+              >
+                Nuevo post
+              </button>
+            </a>
+          </header>
+          <div
+            class="overflow-x-auto border rounded-lg"
+          >
+            <table
+              class="w-full text-sm"
+            >
+              <thead
+                class="bg-muted/50 text-muted-foreground"
+              >
+                <tr>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Título
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Locale
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Slug
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Fecha
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Publicado
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Archivo
+                  </th>
+                  <th
+                    class="text-left p-3"
+                  >
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody />
+            </table>
+          </div>
+        </div>
+        <div
+          aria-labelledby="radix-:r9:-trigger-budget"
+          class="flex-1 outline-none space-y-4"
+          data-orientation="horizontal"
+          data-slot="tabs-content"
+          data-state="inactive"
+          hidden=""
+          id="radix-:r9:-content-budget"
+          role="tabpanel"
+          tabindex="0"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

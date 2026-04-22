@@ -15,7 +15,7 @@ import { allPosts } from '@/.contentlayer/generated'
 import type { Post } from '@/.contentlayer/generated'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
-import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
 
 export const runtime = 'nodejs'
@@ -68,8 +68,9 @@ function calculateRelevanceScore(query: string, post: Post): number {
     const tagMatches = qWords.filter(w => post.tags!.some(t => t.toLowerCase().includes(w))).length
     score += (tagMatches / qWords.length) * 2
   }
-  if ((post as any).body?.raw) {
-    const contentMatches = qWords.filter(w => (post as any).body.raw.toLowerCase().includes(w)).length
+  const bodyRaw = (post as unknown as { body?: { raw?: unknown } }).body?.raw
+  if (typeof bodyRaw === 'string') {
+    const contentMatches = qWords.filter(w => bodyRaw.toLowerCase().includes(w)).length
     score += (contentMatches / qWords.length) * 1
   }
   return Math.min(score, 1)
@@ -111,8 +112,9 @@ function searchPosts(query: string, locale: 'es'|'en'|'it', limit: number, inclu
       relevanceScore: Math.round(score * 100) / 100,
       author: p.author || 'Alberto Carrasco',
     }
-    if (includeContent && (p as any).body?.raw) {
-      result.contentSnippet = extractSnippet((p as any).body.raw, query)
+    const postBody = (p as unknown as { body?: { raw?: unknown } }).body?.raw
+    if (includeContent && typeof postBody === 'string') {
+      result.contentSnippet = extractSnippet(postBody, query)
     }
     return result
   })
@@ -175,7 +177,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json().catch(() => ({}))
+    const body = (await request.json().catch(() => ({}))) as Partial<SearchInput>
     const validation = validateInput(body)
     if (!validation.ok) {
       mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/search', 'POST', false, Date.now() - start, 400, ua, body?.query, validation.error)

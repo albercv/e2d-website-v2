@@ -6,7 +6,7 @@ import type { Post } from '@/.contentlayer/generated'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
-import { respondAsMcpOrJson, respondErrorAsMcpOrJson, addMcpHeaders } from '@/lib/mcp-format'
+import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -122,9 +122,10 @@ export async function POST(request: NextRequest) {
   try {
     const filePath = path.resolve(process.cwd(), 'content', target._raw.sourceFilePath)
     await fs.unlink(filePath)
-  } catch (err: any) {
+  } catch (err) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/delete', 'POST', false, Date.now() - start, 500, ua)
-    return respondErrorAsMcpOrJson(request, 'Failed to delete file', 500, 'internal_error', { details: err?.message || String(err) }, TOOL_NAME)
+    const details = err instanceof Error ? err.message : String(err)
+    return respondErrorAsMcpOrJson(request, 'Failed to delete file', 500, 'internal_error', { details }, TOOL_NAME)
   }
 
   const elapsed = Date.now() - start

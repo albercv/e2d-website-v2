@@ -25,6 +25,23 @@ interface ChatMessage {
   timestamp: Date
 }
 
+type SpeechRecognitionResultListLike = ArrayLike<ArrayLike<{ transcript: string }>>
+
+type SpeechRecognitionEventLike = {
+  results: SpeechRecognitionResultListLike
+}
+
+type SpeechRecognitionLike = {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+  start: () => void
+  stop: () => void
+}
+
 const commonIntentions = {
   es: [
     "Automatización para mi negocio",
@@ -127,7 +144,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [isListening, setIsListening] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Initialize speech recognition
@@ -142,11 +159,11 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         recognitionRef.current.interimResults = false
         recognitionRef.current.lang = ui.speechLang
 
-        recognitionRef.current.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript
-          setMessage(transcript)
-          setIsListening(false)
-        }
+      recognitionRef.current.onresult = (event: SpeechRecognitionEventLike) => {
+        const transcript = event.results[0][0].transcript
+        setMessage(transcript)
+        setIsListening(false)
+      }
 
         recognitionRef.current.onerror = () => {
           setIsListening(false)
@@ -157,7 +174,7 @@ export function AIAgentModal({ isOpen, onClose }: AIAgentModalProps) {
         }
       }
     }
-  }, [locale])
+  }, [locale, ui.speechLang])
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -653,9 +670,10 @@ function getAgentResponse(userMessage: string, locale: string): string {
 // Extend Window interface for speech recognition
 declare global {
   interface Window {
-    SpeechRecognition: any
-    webkitSpeechRecognition: any
-    gtag: any
+    SpeechRecognition: { new (): SpeechRecognitionLike }
+    webkitSpeechRecognition: { new (): SpeechRecognitionLike }
+    gtag: (...args: unknown[]) => void
+    dataLayer: unknown[]
   }
 }
 

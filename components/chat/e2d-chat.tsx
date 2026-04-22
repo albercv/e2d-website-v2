@@ -20,9 +20,8 @@ export function E2DChat() {
     const CHAT_SESSION_KEY = "sessionId" // @n8n/chat default field name
 
     const generateUUID = () => {
-      if (typeof crypto !== "undefined" && (crypto as any).randomUUID) {
-        return (crypto as any).randomUUID()
-      }
+      const randomUUID = globalThis.crypto?.randomUUID
+      if (typeof randomUUID === "function") return randomUUID()
       // Fallback RFC4122-ish UUID v4
       return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
         const r = (Math.random() * 16) | 0
@@ -40,13 +39,13 @@ export function E2DChat() {
       // Ensure the widget will send our UUID as sessionId
       window.localStorage.setItem(CHAT_SESSION_KEY, uuid)
       // Optional: expose for quick manual verification in console
-      ;(window as any).__E2D_CHAT_SESSION_ID__ = uuid
+      ;(window as unknown as { __E2D_CHAT_SESSION_ID__?: string }).__E2D_CHAT_SESSION_ID__ = uuid
     } catch {
       // Ignore storage errors (Safari private mode, etc.)
     }
 
     // Initialize chat once on mount (and when locale changes)
-    const chat = createChat({
+    createChat({
       webhookUrl: "/api/chat",
       webhookConfig: {
         method: "POST",

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const code_verifier = body.code_verifier || ''
     const client_id = body.client_id || ''
     const redirect_uri = body.redirect_uri || ''
-    let resource = (body.resource || '').trim().replace(/^`|`$/g, '')
+    const resource = (body.resource || '').trim().replace(/^`|`$/g, '')
     if (!code || !code_verifier || !client_id || !redirect_uri) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params', { code: !!code, code_verifier: !!code_verifier, client_id: !!client_id, redirect_uri: !!redirect_uri })
       return error('Parámetros requeridos: code, code_verifier, client_id, redirect_uri', 400)
@@ -82,11 +82,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Emitir token
-    const role = client.client_type === 'public' ? 'assistant' : 'admin'
+    const role: 'admin' | 'assistant' = client.client_type === 'public' ? 'assistant' : 'admin'
     const access_token = signAccessToken({
       sub: authCode.user_email,
       email: authCode.user_email,
-      role: role as any,
+      role,
       scope: authCode.scope,
       aud: resource,
     }, 3600)
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
   if (grant_type === 'refresh_token') {
     const refresh_token = body.refresh_token || ''
     const client_id = body.client_id || ''
-    let resource = (body.resource || '').trim().replace(/^`|`$/g, '')
+    const resource = (body.resource || '').trim().replace(/^`|`$/g, '')
     if (!refresh_token || !client_id) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params (refresh)', { refresh_token: !!refresh_token, client_id: !!client_id })
       return error('Parámetros requeridos: refresh_token, client_id', 400)
@@ -149,11 +149,11 @@ export async function POST(request: NextRequest) {
     // Rotación: revocar el actual y emitir uno nuevo
     revokeRefreshToken(refresh_token)
 
-    const role = client.client_type === 'public' ? 'assistant' : 'admin'
+    const role: 'admin' | 'assistant' = client.client_type === 'public' ? 'assistant' : 'admin'
     const access_token = signAccessToken({
       sub: rt.user_email,
       email: rt.user_email,
-      role: role as any,
+      role,
       scope: rt.scope,
       aud: resource,
     }, 3600)

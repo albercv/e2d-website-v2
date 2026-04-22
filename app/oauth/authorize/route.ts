@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getClientById, validateRedirectUri, validateScopes, storeAuthorizationCode } from '@/lib/oauth-db'
-import { pkceS256, addSeconds, randomToken, now } from '@/lib/oauth-utils'
+import { addSeconds, randomToken } from '@/lib/oauth-utils'
 import { validateAdminCredentials } from '@/lib/oauth-users'
 
 export async function POST(request: NextRequest) {

@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     })
 
     return res
-  } catch (e) {
+  } catch {
     return NextResponse.json({ ok: false, error: "Error procesando la solicitud" }, { status: 400 })
   }
 }

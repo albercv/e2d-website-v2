@@ -94,8 +94,9 @@ export async function POST(req: Request) {
     await fs.writeFile(filePath, mdxToWrite, "utf8")
 
     return NextResponse.json({ ok: true, file: relFile, meta: fm }, { status: 201 })
-  } catch (e: any) {
-    return errorResponse(e?.message || "Error creando el post", 400)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error creando el post"
+    return errorResponse(message, 400)
   }
 }
 
@@ -138,8 +139,9 @@ export async function PUT(req: Request) {
       await fs.writeFile(srcPath, mdxToWrite, "utf8")
       return NextResponse.json({ ok: true, file: srcRel, renamed: false })
     }
-  } catch (e: any) {
-    return errorResponse(e?.message || "Error actualizando el post", 400)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error actualizando el post"
+    return errorResponse(message, 400)
   }
 }
 
@@ -155,7 +157,8 @@ export async function DELETE(req: Request) {
     await fs.unlink(filePath)
 
     return NextResponse.json({ ok: true })
-  } catch (e: any) {
-    return errorResponse(e?.message || "Error borrando el post", 400)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error borrando el post"
+    return errorResponse(message, 400)
   }
 }

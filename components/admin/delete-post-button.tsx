@@ -18,13 +18,16 @@ export function DeletePostButton({ file, onDeleted }: { file: string; onDeleted?
         method: "DELETE",
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error || "Error al borrar el post")
+        const data: unknown = await res.json().catch(() => ({}))
+        const obj = typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {}
+        const msg = typeof obj.error === "string" ? obj.error : "Error al borrar el post"
+        throw new Error(msg)
       }
       if (onDeleted) onDeleted()
       else router.refresh()
-    } catch (e: any) {
-      setError(e?.message || "No se pudo borrar")
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "No se pudo borrar"
+      setError(msg)
     } finally {
       setLoading(false)
     }

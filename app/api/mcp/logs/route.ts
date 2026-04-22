@@ -54,7 +54,14 @@ function checkAuth(request: NextRequest): boolean {
  * Parsea parámetros de filtro
  */
 function parseFilters(searchParams: URLSearchParams) {
-  const filters: any = {}
+  const filters: {
+    eventType?: MCPEventType
+    level?: LogLevel
+    tool?: string
+    success?: boolean
+    startDate?: Date
+    endDate?: Date
+  } = {}
   
   const eventType = searchParams.get('eventType')
   if (eventType) {
