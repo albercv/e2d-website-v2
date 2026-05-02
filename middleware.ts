@@ -155,12 +155,13 @@ export async function middleware(req: NextRequest) {
     const secret = process.env.ADMIN_SESSION_SECRET
 
     if (!token || !secret || !(await verifyJwtHS256(token, secret))) {
-      const loginUrl = req.nextUrl.clone()
       // Detectar locale para construir la ruta de login localizada
       const pathSegments = pathname.split('/').filter(Boolean)
       const candidate = pathSegments[0]
       const locale = ["es", "en", "it"].includes(candidate) ? candidate : (req.cookies.get('NEXT_LOCALE')?.value?.split('-')[0] || 'es')
-      loginUrl.pathname = `/${locale}/admin/login`
+      // Usar NEXT_PUBLIC_BASE_URL para construir URL absoluta detrás del proxy reverso
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || req.nextUrl.origin
+      const loginUrl = new URL(`/${locale}/admin/login`, baseUrl)
       loginUrl.searchParams.set("redirect", pathname)
       response = NextResponse.redirect(loginUrl)
       

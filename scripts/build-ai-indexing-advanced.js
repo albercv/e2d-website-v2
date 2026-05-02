@@ -13,7 +13,7 @@ const { execSync } = require('child_process')
 
 // Configuración
 const config = {
-  baseUrl: 'https://e2d.es',
+  baseUrl: 'https://evolve2digital.com',
   outputDir: './public',
   locales: ['es', 'en', 'it'],
   defaultLocale: 'es',

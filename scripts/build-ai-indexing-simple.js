@@ -12,7 +12,7 @@ const path = require('path')
 
 // Configuración básica
 const config = {
-  baseUrl: 'https://e2d.es',
+  baseUrl: 'https://evolve2digital.com',
   outputDir: './public',
   locales: ['es', 'en'],
   defaultLocale: 'es'
