@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
   const date = typeof payloadObj.date === 'string' ? payloadObj.date : new Date().toISOString().slice(0, 10)
   const published = payloadObj.published !== false
   const author = typeof payloadObj.author === 'string' ? payloadObj.author : 'Alberto Carrasco'
+  const skipRebuild = payloadObj.skip_rebuild === true
 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     return respondErrorAsMcpOrJson(request, 'title is required and must be at least 3 characters', 400, 'invalid_params', { field: 'title' }, TOOL_NAME)
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Trigger optional rebuild (admin endpoint) asynchronously
-  if (process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === 'true' && process.env.ADMIN_REBUILD_URL) {
+  if (!skipRebuild && process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === 'true' && process.env.ADMIN_REBUILD_URL) {
     try {
       const rebuildUrl = process.env.ADMIN_REBUILD_URL!
       const apiKey = process.env.E2D_MCP_API_KEY || ''

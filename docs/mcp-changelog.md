@@ -2,6 +2,11 @@
 
 ## Historial de Cambios del Servidor MCP
 
+## 2026-05-02
+
+- **Nueva tool**: `posts.rebuild` — dispara rebuild+restart del sitio. Scope `posts:write`. Rate-limit 3/min. Devuelve 200 inmediato; el build es asíncrono (1-3 min).
+- **`posts.create`**: nuevo parámetro opcional `skip_rebuild` (default `false`). Si `true`, no dispara rebuild automático tras crear el post. Útil para encadenar varias creaciones (ej. multi-idioma) y disparar un solo rebuild al final via `posts.rebuild`.
+
 ### v1.0.0 - 2026-05-02
 
 #### Añadido
@@ -33,4 +38,4 @@
 
 ---
 
-*Changelog generado automáticamente el 2026-05-02T09:50:56.559Z*
+*Changelog generado automáticamente el 2026-05-02T09:58:38.264Z*

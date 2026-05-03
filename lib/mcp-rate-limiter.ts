@@ -48,6 +48,7 @@ const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
     maxRequests: 60,        // 60 requests por minuto
     skipSuccessfulGET: false // POST, no aplica omitidos
   },
+  'posts.rebuild': { maxRequests: 3, windowMs: 60_000, skipSuccessfulGET: false },
   'default': {
     windowMs: 60 * 1000,    // 1 minuto
     maxRequests: 20,        // 20 requests por minuto por defecto

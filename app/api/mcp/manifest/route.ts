@@ -379,7 +379,8 @@ const MCP_TOOLS = {
         tags: { type: 'array', items: { type: 'string' } },
         date: { type: 'string', description: 'Fecha ISO (YYYY-MM-DD)', format: 'date' },
         author: { type: 'string', description: 'Autor del post', default: 'Alberto Carrasco' },
-        published: { type: 'boolean', description: 'Indicador de publicación', default: true }
+        published: { type: 'boolean', description: 'Indicador de publicación', default: true },
+        skip_rebuild: { type: 'boolean', description: 'Si true, no dispara rebuild tras crear. Útil al encadenar varias creaciones seguidas (ej. multi-idioma).', default: false }
       },
       required: ['title', 'description', 'locale', 'content'],
       additionalProperties: false
@@ -496,6 +497,42 @@ const MCP_TOOLS = {
       requests: 20,
       window: '1m',
       description: '20 requests per minute per IP'
+    }
+  },
+
+  'posts.rebuild': {
+    name: 'posts.rebuild',
+    description: 'Dispara un rebuild + restart del sitio para que los posts recién creados (vía posts.create con skip_rebuild:true) sean visibles en producción. Requiere OAuth2 (Bearer JWT) con scope posts:write. Llamada típicamente una vez después de varios posts.create. El rebuild es asíncrono (1-3 min); este tool devuelve 200 inmediatamente.',
+    category: 'content',
+    input_schema: {
+      type: 'object',
+      properties: {},
+      additionalProperties: false
+    },
+    output_schema: {
+      type: 'object',
+      properties: {
+        rebuilding: { type: 'boolean' },
+        started_at: { type: 'string', format: 'date-time' },
+        processingTime: { type: 'number' }
+      }
+    },
+    endpoint: `${MCP_CONFIG.baseUrl}/api/mcp/tools/posts/rebuild`,
+    method: 'POST',
+    auth: {
+      type: 'oauth2',
+      description: 'OAuth 2.1 + PKCE bearer tokens',
+      pkce: true,
+      code_challenge_method: 'S256',
+      authorization_endpoint: `${MCP_CONFIG.baseUrl}/authorize`,
+      token_endpoint: `${MCP_CONFIG.baseUrl}/token`,
+      resource: `${MCP_CONFIG.baseUrl}/sse`,
+      scopes: ['posts:write']
+    },
+    rateLimit: {
+      requests: 3,
+      window: '1m',
+      description: '3 requests per minute per IP'
     }
   },
 
