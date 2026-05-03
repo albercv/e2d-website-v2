@@ -31,11 +31,24 @@
 
 ### Tasks manuales (5) — las hace Alberto
 
-- [ ] C1 — Configurar `.env` en el servidor (`AUTO_REBUILD_AFTER_MCP_CHANGE=true`, `ADMIN_REBUILD_URL`, `RESTART_COMMAND`)
+- [x] C1 — `.env` configurado en servidor (commit no requerido)
 - [ ] D1 — Sanity check de infraestructura en producción (curl + manifest público)
 - [ ] D2 — OAuth manual E2E con curl (aísla backend antes de tocar Claude.ai)
-- [ ] D3 — Smoke test desde Claude.ai web (Custom Connector)
+- [ ] D3 — Smoke test desde Claude.ai web (Custom Connector) — **bloqueado por DCR (Phase E)**
 - [ ] D4 — Verificación de fallo controlado (409 colisión)
+
+### Phase E — DCR (RFC 7591) — desbloquear connector de Claude.ai
+
+Diagnóstico (2026-05-03 18:00 UTC): Claude.ai falla en `/authorize` con `Invalid client_id` porque `POST /register` devuelve 501. Sin DCR, Claude.ai no puede registrarse y como fallback usa el email del user como client_id. Necesitamos implementar Dynamic Client Registration.
+
+Decisiones tomadas:
+- Cliente público + PKCE (sin `client_secret`).
+- Validación estricta de `redirect_uris`: solo `https://claude.ai/*`, `http://localhost:*`, `http://127.0.0.1:*`.
+- Persistencia sin TTL, columna `disabled` para revocar manualmente.
+
+- [ ] E1 — `lib/oauth-db.ts`: añadir columna `disabled` (idempotent ALTER), `generateClientId()`, `createClient()`. Tests primero.
+- [ ] E2 — `app/register/route.ts`: implementar DCR (POST + OPTIONS CORS). Tests primero.
+- [ ] E3 — Build, deploy, verificar en producción con curl. Después seguir con D3.
 
 ### Cambios sin commitear (preexistentes, no relacionados con el plan)
 
