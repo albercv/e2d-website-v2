@@ -379,7 +379,8 @@ const MCP_TOOLS = {
         tags: { type: 'array', items: { type: 'string' } },
         date: { type: 'string', description: 'Fecha ISO (YYYY-MM-DD)', format: 'date' },
         author: { type: 'string', description: 'Autor del post', default: 'Alberto Carrasco' },
-        published: { type: 'boolean', description: 'Indicador de publicación', default: true }
+        published: { type: 'boolean', description: 'Indicador de publicación', default: true },
+        skip_rebuild: { type: 'boolean', default: false, description: 'Si true, no dispara rebuild tras crear. Útil al encadenar varias creaciones seguidas (ej. multi-idioma).' }
       },
       required: ['title', 'description', 'locale', 'content'],
       additionalProperties: false
