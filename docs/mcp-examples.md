@@ -86,6 +86,50 @@ curl -X OPTIONS \
 ```
 
 
+### Publicar un post en es/en/it
+
+Secuencia de 4 llamadas. Las 3 primeras crean los ficheros sin rebuild; la última dispara el build.
+
+```http
+POST /api/mcp/tools/posts/create
+Authorization: Bearer <token con scope posts:write>
+Content-Type: application/json
+
+{
+  "title": "Mi post en español",
+  "description": "Descripción en español",
+  "locale": "es",
+  "content": "# Encabezado\n\nContenido en MDX...",
+  "tags": ["devops", "automatización"],
+  "skip_rebuild": true
+}
+```
+
+Respuesta 201:
+```json
+{ "created": true, "slug": "mi-post-en-espanol", "locale": "es", "url": "https://evolve2digital.com/es/blog/mi-post-en-espanol" }
+```
+
+Repetir para `locale:"en"` y `locale:"it"` con el contenido traducido (slugs distintos).
+
+Tras los 3, disparar el rebuild:
+
+```http
+POST /api/mcp/tools/posts/rebuild
+Authorization: Bearer <token con scope posts:write>
+Content-Type: application/json
+
+{}
+```
+
+Respuesta 200:
+```json
+{ "rebuilding": true, "started_at": "2026-05-02T14:00:00.000Z", "processingTime": 42 }
+```
+
+Esperar 1-3 minutos para que el build termine.
+
+
 ## search
 
 **Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
@@ -175,4 +219,4 @@ result = client.call_tool('posts/search', {
 
 ---
 
-*Documentación generada automáticamente el 2026-05-02T09:50:56.558Z*
+*Documentación generada automáticamente el 2026-05-02T09:58:38.264Z*

@@ -96,6 +96,17 @@ GET /api/mcp/manifest
 
 
 
+### Flujo multi-idioma desde Claude.ai
+
+Para publicar un post en es/en/it desde Claude.ai web (Custom Connector):
+
+1. Llamar `posts.create` 3 veces (una por idioma) con `skip_rebuild: true`. Esto crea los 3 ficheros MDX sin disparar rebuild.
+2. Llamar `posts.rebuild` una sola vez al final. Dispara el build+restart asíncrono.
+
+El build tarda 1-3 minutos. Tras completarse, las 3 URLs `/es/blog/<slug>`, `/en/blog/<slug>`, `/it/blog/<slug>` servirán los nuevos posts.
+
+Si una de las 3 creaciones falla (p.ej. 409 por colisión de slug), las otras 2 se conservan en disco. Reintenta solo la que falló y luego `posts.rebuild`.
+
 ### search
 
 **Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
@@ -157,4 +168,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2026-05-02T09:50:56.558Z*
+*Documentación generada automáticamente el 2026-05-02T09:58:38.264Z*
