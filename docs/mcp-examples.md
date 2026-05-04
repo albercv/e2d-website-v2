@@ -34,7 +34,7 @@ curl -X OPTIONS \
 
 ## fetch
 
-**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.get y admite entrada por slug+locale o url.
+**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts_get y admite entrada por slug+locale o url.
 
 ### Ejemplo de Solicitud
 
@@ -59,9 +59,9 @@ curl -X OPTIONS \
 ```
 
 
-## posts.search
+## posts_search
 
-**Descripción:** MCP Tool: posts.search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
+**Descripción:** MCP Tool: posts_search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
 
 ### Ejemplo de Solicitud
 
@@ -77,7 +77,7 @@ curl -X OPTIONS \
 
 ```json
 {
-  "tool": "posts.search",
+  "tool": "posts_search",
   "success": true,
   "data": {},
   "timestamp": "2024-01-01T00:00:00.000Z",
@@ -86,53 +86,9 @@ curl -X OPTIONS \
 ```
 
 
-### Publicar un post en es/en/it
-
-Secuencia de 4 llamadas. Las 3 primeras crean los ficheros sin rebuild; la última dispara el build.
-
-```http
-POST /api/mcp/tools/posts/create
-Authorization: Bearer <token con scope posts:write>
-Content-Type: application/json
-
-{
-  "title": "Mi post en español",
-  "description": "Descripción en español",
-  "locale": "es",
-  "content": "# Encabezado\n\nContenido en MDX...",
-  "tags": ["devops", "automatización"],
-  "skip_rebuild": true
-}
-```
-
-Respuesta 201:
-```json
-{ "created": true, "slug": "mi-post-en-espanol", "locale": "es", "url": "https://evolve2digital.com/es/blog/mi-post-en-espanol" }
-```
-
-Repetir para `locale:"en"` y `locale:"it"` con el contenido traducido (slugs distintos).
-
-Tras los 3, disparar el rebuild:
-
-```http
-POST /api/mcp/tools/posts/rebuild
-Authorization: Bearer <token con scope posts:write>
-Content-Type: application/json
-
-{}
-```
-
-Respuesta 200:
-```json
-{ "rebuilding": true, "started_at": "2026-05-02T14:00:00.000Z", "processingTime": 42 }
-```
-
-Esperar 1-3 minutos para que el build termine.
-
-
 ## search
 
-**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
+**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts_search (filtrado y scoring) sobre Contentlayer.
 
 ### Ejemplo de Solicitud
 
@@ -219,4 +175,4 @@ result = client.call_tool('posts/search', {
 
 ---
 
-*Documentación generada automáticamente el 2026-05-02T09:58:38.264Z*
+*Documentación generada automáticamente el 2026-05-04T15:49:13.838Z*

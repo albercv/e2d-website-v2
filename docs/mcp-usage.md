@@ -72,7 +72,7 @@ GET /api/mcp/manifest
 
 ### fetch
 
-**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.get y admite entrada por slug+locale o url.
+**Descripción:** MCP Wrapper Tool: fetch Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts_get y admite entrada por slug+locale o url.
 
 **Ruta:** `POST /api/mcp/tools/fetch`
 **Métodos:** OPTIONS, POST, POST, POST, POST
@@ -83,9 +83,9 @@ GET /api/mcp/manifest
 
 
 
-### posts.search
+### posts_search
 
-**Descripción:** MCP Tool: posts.search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
+**Descripción:** MCP Tool: posts_search Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual. Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados estructurados para consumo por modelos de IA.
 
 **Ruta:** `GET /api/mcp/tools/posts/search`
 **Métodos:** OPTIONS, GET, POST, POST, POST, POST
@@ -96,20 +96,9 @@ GET /api/mcp/manifest
 
 
 
-### Flujo multi-idioma desde Claude.ai
-
-Para publicar un post en es/en/it desde Claude.ai web (Custom Connector):
-
-1. Llamar `posts.create` 3 veces (una por idioma) con `skip_rebuild: true`. Esto crea los 3 ficheros MDX sin disparar rebuild.
-2. Llamar `posts.rebuild` una sola vez al final. Dispara el build+restart asíncrono.
-
-El build tarda 1-3 minutos. Tras completarse, las 3 URLs `/es/blog/<slug>`, `/en/blog/<slug>`, `/it/blog/<slug>` servirán los nuevos posts.
-
-Si una de las 3 creaciones falla (p.ej. 409 por colisión de slug), las otras 2 se conservan en disco. Reintenta solo la que falló y luego `posts.rebuild`.
-
 ### search
 
-**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
+**Descripción:** MCP Wrapper Tool: search Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[] y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format. Reutiliza la lógica de posts_search (filtrado y scoring) sobre Contentlayer.
 
 **Ruta:** `POST /api/mcp/tools/search`
 **Métodos:** OPTIONS, POST, POST, POST, POST
@@ -168,4 +157,4 @@ Todos los endpoints devuelven errores en formato JSON:
 
 ---
 
-*Documentación generada automáticamente el 2026-05-02T09:58:38.264Z*
+*Documentación generada automáticamente el 2026-05-04T15:49:13.837Z*

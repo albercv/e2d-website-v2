@@ -14,10 +14,10 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 
 ### Available Tools
 
-- **`posts.search`** - Search through blog posts with relevance scoring
-- **`posts.get`** - Get a single blog post by slug and locale
-- **`posts.create`** - Create a new blog post (MDX). Requires API key. Supports optional MCP format
-- **`posts.delete`** - Delete a blog post by slug. Requires API key. Supports optional MCP format
+- **`posts_search`** - Search through blog posts with relevance scoring
+- **`posts_get`** - Get a single blog post by slug and locale
+- **`posts_create`** - Create a new blog post (MDX). Requires API key. Supports optional MCP format
+- **`posts_delete`** - Delete a blog post by slug. Requires API key. Supports optional MCP format
 - **`appointments.create`** - Create consultation appointment requests
 - **`agent.query`** - Query the E2D AI agent for comprehensive answers
 - **`search`** - General MCP search tool (POST)
@@ -93,9 +93,9 @@ Manifest URL: https://evolve2digital.com/api/mcp/manifest
 
 | Tool | Per Minute | Per Hour |
 |------|------------|----------|
-| posts.search | 30 | 100 |
-| posts.create | 20 | - |
-| posts.delete | 20 | - |
+| posts_search | 30 | 100 |
+| posts_create | 20 | - |
+| posts_delete | 20 | - |
 | appointments.create | 5 | 20 |
 | agent.query | 10 | 50 |
 

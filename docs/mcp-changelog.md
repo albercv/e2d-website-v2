@@ -2,17 +2,12 @@
 
 ## Historial de Cambios del Servidor MCP
 
-## 2026-05-02
-
-- **Nueva tool**: `posts.rebuild` — dispara rebuild+restart del sitio. Scope `posts:write`. Rate-limit 3/min. Devuelve 200 inmediato; el build es asíncrono (1-3 min).
-- **`posts.create`**: nuevo parámetro opcional `skip_rebuild` (default `false`). Si `true`, no dispara rebuild automático tras crear el post. Útil para encadenar varias creaciones (ej. multi-idioma) y disparar un solo rebuild al final via `posts.rebuild`.
-
-### v1.0.0 - 2026-05-02
+### v1.0.0 - 2026-05-04
 
 #### Añadido
 - Servidor MCP inicial con protocolo 1.0
 - Herramienta `agent.query` para consultas al agente IA
-- Herramienta `posts.search` para búsqueda de artículos
+- Herramienta `posts_search` para búsqueda de artículos
 - Herramienta `appointments.create` para crear citas
 - Endpoint de manifest MCP
 - Endpoint de logs administrativos
@@ -38,4 +33,4 @@
 
 ---
 
-*Changelog generado automáticamente el 2026-05-02T09:58:38.264Z*
+*Changelog generado automáticamente el 2026-05-04T15:49:13.838Z*

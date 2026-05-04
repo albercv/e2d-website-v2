@@ -41,7 +41,7 @@ This document provides comprehensive technical documentation for the Model Conte
   "name": "E2D Website MCP Server",
   "version": "1.0.0",
   "tools": {
-    "posts.search": { ... },
+    "posts_search": { ... },
     "appointments.create": { ... }
   }
 }
@@ -66,7 +66,7 @@ This document provides comprehensive technical documentation for the Model Conte
 **Response Structure**:
 ```json
 {
-  "tool": "posts.search",
+  "tool": "posts_search",
   "results": [
     {
       "title": "Post Title",

@@ -3,7 +3,7 @@
  * 
  * Endpoint MCP estándar para recuperación (POST) que formatea la salida en content[]
  * y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format.
- * Reutiliza la lógica de posts.get y admite entrada por slug+locale o url.
+ * Reutiliza la lógica de posts_get y admite entrada por slug+locale o url.
  * 
  * @route POST /api/mcp/tools/fetch
  * @tool fetch

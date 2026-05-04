@@ -7,7 +7,7 @@ import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.rebuild'
+const TOOL_NAME = 'posts_rebuild'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

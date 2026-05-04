@@ -41,18 +41,18 @@ async function getManifest(): Promise<any> {
 }
 
 describe('/api/mcp/manifest', () => {
-  it('exposes posts.rebuild with posts:write scope', async () => {
+  it('exposes posts_rebuild with posts:write scope', async () => {
     const tools = await getManifest()
-    const rebuild = tools.find((t: any) => t.name === 'posts.rebuild')
+    const rebuild = tools.find((t: any) => t.name === 'posts_rebuild')
     expect(rebuild).toBeDefined()
     expect(rebuild.method).toBe('POST')
     expect(rebuild.auth.scopes).toContain('posts:write')
     expect(rebuild.endpoint).toContain('/api/mcp/tools/posts/rebuild')
   })
 
-  it('declares skip_rebuild in posts.create input_schema', async () => {
+  it('declares skip_rebuild in posts_create input_schema', async () => {
     const tools = await getManifest()
-    const create = tools.find((t: any) => t.name === 'posts.create')
+    const create = tools.find((t: any) => t.name === 'posts_create')
     expect(create).toBeDefined()
     expect(create.input_schema.properties.skip_rebuild).toBeDefined()
     expect(create.input_schema.properties.skip_rebuild.type).toBe('boolean')

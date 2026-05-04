@@ -18,7 +18,7 @@ The Model Context Protocol (MCP) allows AI assistants like ChatGPT and Claude to
    ```
 
 2. **Available Tools**:
-   - `posts.search` - Search blog posts
+   - `posts_search` - Search blog posts
    - `appointments.create` - Create appointments
    - `agent.query` - AI-powered Q&A assistant
 
