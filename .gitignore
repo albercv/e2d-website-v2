@@ -48,6 +48,9 @@ Thumbs.db
 *.swo
 *~
 
+# Claude Code runtime artifacts
+.claude/
+
 # logs
 logs/
 *.log
