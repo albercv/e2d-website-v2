@@ -82,9 +82,22 @@ describe("lib/blog/posts-write", () => {
       expect(result.locale).toBe("es")
       expect(result.url).toBe("https://evolve2digital.com/es/blog/test-post-nuevo")
       const written = await fs.readFile(result.path, "utf-8")
-      expect(written).toContain("title: Test Post Nuevo")
+      expect(written).toContain("title: 'Test Post Nuevo'")
       expect(written).toContain("locale: es")
       expect(written).toContain("# Hola mundo")
+    })
+
+    it("escapa el frontmatter cuando el título tiene dos puntos", async () => {
+      const result = await mod.createPost({
+        title: "Caso X: del caos al éxito",
+        description: "Una descripción larga sin caracteres problemáticos",
+        content: "Contenido suficientemente largo para pasar la validacion " + "x".repeat(50),
+        locale: "es",
+      })
+      const written = await fs.readFile(result.path, "utf-8")
+      const matter = require("gray-matter")
+      const parsed = matter(written)
+      expect(parsed.data.title).toBe("Caso X: del caos al éxito")
     })
 
     it("rechaza title corto (invalid_params)", async () => {

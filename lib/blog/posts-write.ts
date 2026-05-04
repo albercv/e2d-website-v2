@@ -34,6 +34,10 @@ export class PostsWriteError extends Error {
   }
 }
 
+function yamlQuote(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`
+}
+
 export function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -102,13 +106,13 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
 
   const frontmatterLines: string[] = [
     "---",
-    `title: ${title.replace(/:\n/g, " ").trim()}`,
-    `description: ${description.replace(/:\n/g, " ").trim()}`,
+    `title: ${yamlQuote(title.replace(/\n/g, " ").trim())}`,
+    `description: ${yamlQuote(description.replace(/\n/g, " ").trim())}`,
     `date: ${date}`,
     `locale: ${locale}`,
     `slug: ${slug}`,
-    tags.length ? `tags: [${tags.map((t) => `'${t}'`).join(", ")}]` : "tags: []",
-    `author: ${author}`,
+    tags.length ? `tags: [${tags.map((t) => yamlQuote(t)).join(", ")}]` : "tags: []",
+    `author: ${yamlQuote(author)}`,
     `published: ${published ? "true" : "false"}`,
     "---",
   ]
