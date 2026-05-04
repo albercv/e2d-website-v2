@@ -5,7 +5,7 @@ import { analyzeRequest, defaultSecurityConfig, cleanupOldData } from "./lib/ai-
 
 const COOKIE_NAME = "admin_session"
 
-const PUBLIC_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout", "/es/admin/login", "/en/admin/login", "/it/admin/login"]
+const PUBLIC_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout", "/api/admin/rebuild", "/es/admin/login", "/en/admin/login", "/it/admin/login"]
 
 // Rate limiting para crawlers IA (requests por minuto)
 const CRAWLER_RATE_LIMITS = {

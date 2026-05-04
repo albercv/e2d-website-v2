@@ -54,10 +54,21 @@ export async function POST(request: NextRequest) {
   // Pasar env vía process.env (ya está) y permitir body controlar no-restart
   if (noRestart) args.push('--no-restart')
 
+  // Scrub vars privadas que Next inyecta cuando corre en modo standalone.
+  // Si el hijo `next build` las hereda, usa el config JSON serializado en
+  // __NEXT_PRIVATE_STANDALONE_CONFIG (que pierde funciones como generateBuildId)
+  // en lugar de cargar next.config.mjs y falla con "generate is not a function".
+  const cleanEnv: NodeJS.ProcessEnv = {}
+  for (const [k, v] of Object.entries(process.env)) {
+    if (k.startsWith('__NEXT_')) continue
+    if (k === 'NODE_CHANNEL_FD' || k === 'NODE_CHANNEL_SERIALIZATION_MODE') continue
+    cleanEnv[k] = v
+  }
+
   const child = spawn('node', [scriptPath, ...args], {
     cwd: PROJECT_DIR,
     env: {
-      ...process.env,
+      ...cleanEnv,
       BUILD_COMMAND,
       RESTART_COMMAND,
       PROJECT_DIR,
