@@ -87,8 +87,8 @@ los posts con ese valor (típicamente 1-3).
   para tener progreso individual).
 - Validación:
   - Token: firma OK, no expirado, `purpose=media-upload`. 401 si no.
-  - MIME whitelist: `image/png`, `image/webp`, `video/mp4`,
-    `video/quicktime` (`.mov`). Cualquier otro → 415.
+  - MIME whitelist: `image/jpeg`, `image/png`, `image/webp`, `image/gif`,
+    `video/mp4`, `video/quicktime` (`.mov`), `video/webm`. Cualquier otro → 415.
   - Tamaño máximo por fichero: **1 GB**. Por encima → 413.
   - Filename: `path.basename(input)` → slugify → ext del mime → dedupe con
     counter (`foto.jpg`, `foto-2.jpg`).
@@ -120,8 +120,8 @@ frontmatter intacto.
 - **Token único por sesión de subida**: válido para múltiples ficheros
   durante su TTL.
 - **Sin token o expirado** → 401.
-- **MIME whitelist** estricta: solo `image/png`, `image/webp`, `video/mp4`,
-  `video/quicktime`.
+- **MIME whitelist** estricta: `image/jpeg`, `image/png`, `image/webp`,
+  `image/gif`, `video/mp4`, `video/quicktime`, `video/webm`.
 - **Límite por fichero**: 1 GB (configurable vía env `MEDIA_UPLOAD_MAX_BYTES`).
 - **Sin path traversal**: `path.basename()` antes de unir; rechaza si el
   filename contiene `/` o `\`.
