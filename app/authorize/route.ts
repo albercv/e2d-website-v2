@@ -30,8 +30,15 @@ export async function GET(req: NextRequest) {
   const proto = forwardedProto || req.nextUrl.protocol.replace(':', '')
   const isHttps = proto === 'https'
 
-  // Construir URL de redirección a la UI, preservando los parámetros
-  const redirectUrl = new URL(url.origin + '/authorize/page')
+  // Construir URL de redirección a la UI, preservando los parámetros.
+  // Detrás de nginx, req.url trae el host interno (localhost:3003); por eso
+  // priorizamos NEXT_PUBLIC_BASE_URL y, en su defecto, los headers x-forwarded-*.
+  const fwHost = req.headers.get('x-forwarded-host')
+  const fwProto = req.headers.get('x-forwarded-proto')
+  const publicOrigin =
+    process.env.NEXT_PUBLIC_BASE_URL
+    || (fwHost ? `${fwProto || 'https'}://${fwHost}` : url.origin)
+  const redirectUrl = new URL(publicOrigin + '/authorize/page')
   url.searchParams.forEach((value, key) => {
     redirectUrl.searchParams.set(key, value)
   })

@@ -5,7 +5,7 @@ import { mcpLogger } from '@/lib/mcp-logger'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.schema'
+const TOOL_NAME = 'posts_schema'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -85,7 +85,7 @@ export async function OPTIONS(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const start = Date.now()
   const ua = request.headers.get('user-agent') || undefined
-  const rateResult = createRateLimitMiddleware('posts.search')(request)
+  const rateResult = createRateLimitMiddleware('posts_search')(request)
   if (!rateResult.allowed) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/schema', 'GET', false, Date.now() - start, 429, ua)
     return NextResponse.json(

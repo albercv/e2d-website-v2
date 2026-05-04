@@ -1,8 +1,11 @@
-import { allPosts } from "@/.contentlayer/generated"
+import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
 import { AdminDashboardTabs } from "@/components/admin/admin-dashboard-tabs"
 
-export default function AdminDashboardPage() {
-  const posts = allPosts
+export const dynamic = "force-dynamic"
+
+export default async function AdminDashboardPage() {
+  const all = await listPostsFromDisk()
+  const posts = all
     .slice()
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 

@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Los endpoints `posts.create` y `posts.delete` permiten crear y eliminar posts (MDX) del blog dentro del repositorio. Ambos están protegidos mediante API key y soportan formato MCP opcional además de JSON clásico.
+Los endpoints `posts_create` y `posts_delete` permiten crear y eliminar posts (MDX) del blog dentro del repositorio. Ambos están protegidos mediante API key y soportan formato MCP opcional además de JSON clásico.
 
 - Autenticación: requerida mediante `Authorization: Bearer <API_KEY>` o `X-API-Key`
 - Formato de respuesta: MCP opcional por `Accept: application/mcp+json` o query `?mcp=1`
@@ -36,7 +36,7 @@ Errores de autenticación:
 - 401 `server_api_key_missing`: El servidor no tiene configurada la API key
 - 401 `invalid_api_key`: La API key no coincide
 
-## posts.create
+## posts_create
 
 - URL: `/api/mcp/tools/posts/create`
 - Método: `POST`
@@ -130,7 +130,7 @@ curl -X POST "http://localhost:3000/api/mcp/tools/posts/create" \
   }'
 ```
 
-## posts.delete
+## posts_delete
 
 - URL: `/api/mcp/tools/posts/delete`
 - Método recomendado: `POST` (también acepta `DELETE`)
@@ -222,7 +222,7 @@ curl -X DELETE "http://localhost:3000/api/mcp/tools/posts/delete?slug=ejemplo-ti
 ## Cabeceras relevantes
 
 - MCP/CORS:
-  - `X-MCP-Tool: posts.create | posts.delete`
+  - `X-MCP-Tool: posts_create | posts_delete`
   - `Access-Control-Allow-Origin: *`
   - `Access-Control-Allow-Methods: POST, DELETE, OPTIONS`
   - `Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, Accept`

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthorizationCode, deleteAuthorizationCode, getRefreshToken, createRefreshToken, revokeRefreshToken, getClientById } from '@/lib/oauth-db'
 import { pkceS256, now, addSeconds, randomToken } from '@/lib/oauth-utils'
 import { signAccessToken } from '@/lib/oauth-jwt'
+import { isAllowedResource } from '@/lib/oauth-resource'
 
 function error(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status, headers: { 'Access-Control-Allow-Origin': '*' } })
@@ -56,11 +57,10 @@ export async function POST(request: NextRequest) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params', { code: !!code, code_verifier: !!code_verifier, client_id: !!client_id, redirect_uri: !!redirect_uri })
       return error('Parámetros requeridos: code, code_verifier, client_id, redirect_uri', 400)
     }
-    // Validar resource
+    // Validar resource (RFC 8707 — multiple shapes accepted, see lib/oauth-resource).
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-    const allowedResource = `${baseUrl}/sse`
-    if (!resource || resource !== allowedResource) {
-      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (authorization_code)', { resource, expected: allowedResource })
+    if (!isAllowedResource(resource, baseUrl)) {
+      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (authorization_code)', { resource, baseUrl })
       return error('Parámetro resource inválido', 400)
     }
     const authCode = getAuthorizationCode(code)
@@ -130,11 +130,10 @@ export async function POST(request: NextRequest) {
       if (debug) console.log('[OAUTH-TOKEN] Missing params (refresh)', { refresh_token: !!refresh_token, client_id: !!client_id })
       return error('Parámetros requeridos: refresh_token, client_id', 400)
     }
-    // Validar resource
+    // Validar resource (RFC 8707 — multiple shapes accepted, see lib/oauth-resource).
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-    const allowedResource = `${baseUrl}/sse`
-    if (!resource || resource !== allowedResource) {
-      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (refresh_token)', { resource, expected: allowedResource })
+    if (!isAllowedResource(resource, baseUrl)) {
+      if (debug) console.log('[OAUTH-TOKEN] Invalid resource (refresh_token)', { resource, baseUrl })
       return error('Parámetro resource inválido', 400)
     }
     const rt = getRefreshToken(refresh_token)

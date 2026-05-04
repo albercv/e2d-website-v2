@@ -11,7 +11,7 @@ import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.create'
+const TOOL_NAME = 'posts_create'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     return authError
   }
 
-  // Rate limit (usa config por defecto bajo nombre posts.create)
-  const rateResult = createRateLimitMiddleware('posts.create')(request)
+  // Rate limit (usa config por defecto bajo nombre posts_create)
+  const rateResult = createRateLimitMiddleware('posts_create')(request)
   if (!rateResult.allowed) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/create', 'POST', false, Date.now() - start, 429, ua)
     return respondErrorAsMcpOrJson(request, 'Rate limit exceeded', 429, 'rate_limit_exceeded', { retryAfter: rateResult.retryAfter }, TOOL_NAME, getRateLimitHeaders(rateResult))

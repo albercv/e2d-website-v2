@@ -3,44 +3,60 @@
  */
 
 import { NextRequest } from "next/server"
+import * as fs from "fs/promises"
+import * as os from "os"
+import * as path from "path"
 
-const mockAllPosts = [
-  {
-    title: "Guía de n8n para automatización",
-    description: "Aprende a automatizar procesos con n8n.",
-    slug: "guia-n8n",
-    locale: "es",
-    tags: ["n8n", "automation"],
-    author: "Test Author",
-    date: "2024-01-01",
-    published: true,
-    body: { raw: "Contenido sobre n8n. n8n permite crear flujos de trabajo." },
-    readingTime: 5,
-    wordCount: 12,
-  },
-  {
-    title: "WhatsApp automation",
-    description: "Bots para WhatsApp",
-    slug: "whatsapp-automation",
-    locale: "en",
-    tags: ["whatsapp"],
-    author: "Test Author",
-    date: "2024-01-02",
-    published: true,
-    body: { raw: "WhatsApp automation content." },
-    readingTime: 8,
-    wordCount: 4,
-  },
-]
+const seedEs = `---
+title: Guía de n8n para automatización
+description: Aprende a automatizar procesos con n8n.
+date: 2024-01-01
+locale: es
+slug: guia-n8n
+tags: ['n8n', 'automation']
+author: Test Author
+published: true
+---
+
+Contenido sobre n8n. n8n permite crear flujos de trabajo.
+`
+
+const seedEn = `---
+title: WhatsApp automation
+description: Bots para WhatsApp
+date: 2024-01-02
+locale: en
+slug: whatsapp-automation
+tags: ['whatsapp']
+author: Test Author
+published: true
+---
+
+WhatsApp automation content.
+`
 
 let route: any
+let runtimeMod: typeof import("../../lib/blog/posts-runtime")
+let tmpDir: string
 
-beforeAll(() => {
+beforeAll(async () => {
+  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-streamable-"))
+  await fs.mkdir(path.join(tmpDir, "content", "posts"), { recursive: true })
+  await fs.writeFile(path.join(tmpDir, "content", "posts", "guia-n8n.mdx"), seedEs)
+  await fs.writeFile(path.join(tmpDir, "content", "posts", "whatsapp-automation.mdx"), seedEn)
+  process.env.CONTENT_ROOT = tmpDir
+
   jest.resetModules()
-  jest.doMock("@/.contentlayer/generated", () => ({
-    allPosts: mockAllPosts,
-  }))
   route = require("../../app/mcp/route")
+  runtimeMod = require("../../lib/blog/posts-runtime")
+})
+
+afterAll(async () => {
+  await fs.rm(tmpDir, { recursive: true, force: true })
+})
+
+beforeEach(() => {
+  runtimeMod.clearPostsRuntimeCache()
 })
 
 describe("/mcp (Streamable HTTP JSON-RPC)", () => {
@@ -81,7 +97,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
     })
   })
 
-  it("tools/list expone solo posts.search y posts.get", async () => {
+  it("tools/list expone los 5 tools del handler", async () => {
     const req = new NextRequest("http://localhost:3000/mcp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,10 +106,32 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
     const res = await route.POST(req)
     const json = await res.json()
     const tools = json.result.tools
-    expect(tools.map((t: any) => t.name).sort()).toEqual(["posts.get", "posts.search"])
+    expect(tools.map((t: any) => t.name).sort()).toEqual([
+      "posts_create",
+      "posts_delete",
+      "posts_get",
+      "posts_rebuild",
+      "posts_search",
+    ])
   })
 
-  it("tools/call posts.search devuelve items", async () => {
+  it("tools/call posts_create sin claims devuelve insufficient_scope", async () => {
+    const req = new NextRequest("http://localhost:3000/mcp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 99,
+        method: "tools/call",
+        params: { name: "posts_create", arguments: { title: "x", description: "y", content: "z" } },
+      }),
+    })
+    const res = await route.POST(req)
+    const json = await res.json()
+    expect(json.error).toMatchObject({ code: -32000, message: "insufficient_scope" })
+  })
+
+  it("tools/call posts_search devuelve items", async () => {
     const req = new NextRequest("http://localhost:3000/mcp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -101,7 +139,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
         jsonrpc: "2.0",
         id: 3,
         method: "tools/call",
-        params: { name: "posts.search", arguments: { query: "n8n", limit: 5 } },
+        params: { name: "posts_search", arguments: { query: "n8n", limit: 5 } },
       }),
     })
     const res = await route.POST(req)
@@ -115,7 +153,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
     expect(parsed.items[0]).toHaveProperty("excerpt")
   })
 
-  it("tools/call posts.get respeta includeContent=false", async () => {
+  it("tools/call posts_get respeta includeContent=false", async () => {
     const req = new NextRequest("http://localhost:3000/mcp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -123,7 +161,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
         jsonrpc: "2.0",
         id: 4,
         method: "tools/call",
-        params: { name: "posts.get", arguments: { id: "guia-n8n", includeContent: false } },
+        params: { name: "posts_get", arguments: { id: "guia-n8n", includeContent: false } },
       }),
     })
     const res = await route.POST(req)

@@ -133,8 +133,8 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.search': {
-    name: 'posts.search',
+  'posts_search': {
+    name: 'posts_search',
     description: 'Busca artículos del blog que coincidan con una consulta textual',
     category: 'content',
     input_schema: {
@@ -307,8 +307,8 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.get': {
-    name: 'posts.get',
+  'posts_get': {
+    name: 'posts_get',
     description: 'Recupera un post del blog por título o slug',
     category: 'content',
     input_schema: {
@@ -365,8 +365,8 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.create': {
-    name: 'posts.create',
+  'posts_create': {
+    name: 'posts_create',
     description: 'Crea un nuevo post del blog (MDX) en el repositorio. Requiere OAuth2 (Bearer JWT) con scope posts:write. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico.',
     category: 'content',
     input_schema: {
@@ -416,8 +416,8 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.schema': {
-    name: 'posts.schema',
+  'posts_schema': {
+    name: 'posts_schema',
     description: 'Devuelve la estructura y variables admitidas por los posts del blog (frontmatter y campos computados)',
     category: 'content',
     input_schema: {
@@ -456,8 +456,8 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.delete': {
-    name: 'posts.delete',
+  'posts_delete': {
+    name: 'posts_delete',
     description: 'Elimina un post del blog por slug. Requiere OAuth2 (Bearer JWT) con scope posts:delete. Soporta formato MCP (Accept: application/mcp+json o ?mcp=1) y JSON clásico. Método recomendado: POST (también acepta DELETE).',
     category: 'content',
     input_schema: {
@@ -500,9 +500,9 @@ const MCP_TOOLS = {
     }
   },
 
-  'posts.rebuild': {
-    name: 'posts.rebuild',
-    description: 'Dispara un rebuild + restart del sitio para que los posts recién creados (vía posts.create con skip_rebuild:true) sean visibles en producción. Requiere OAuth2 (Bearer JWT) con scope posts:write. Llamada típicamente una vez después de varios posts.create. El rebuild es asíncrono (1-3 min); este tool devuelve 200 inmediatamente.',
+  'posts_rebuild': {
+    name: 'posts_rebuild',
+    description: 'Publica los posts creados/borrados al sitio público (evolve2digital.com). El MCP refleja create/delete inmediatamente sin necesidad de rebuild; este tool solo es necesario para que el post nuevo aparezca en las páginas HTML del blog. Requiere OAuth2 (Bearer JWT) con scope posts:write. El rebuild es asíncrono (1-3 min); este tool devuelve 200 inmediatamente.',
     category: 'content',
     input_schema: {
       type: 'object',

@@ -3,7 +3,7 @@
  * 
  * Endpoint MCP estándar para búsqueda (POST) que formatea la salida en content[]
  * y mantiene compatibilidad dual (MCP y JSON clásico) usando lib/mcp-format.
- * Reutiliza la lógica de posts.search (filtrado y scoring) sobre Contentlayer.
+ * Reutiliza la lógica de posts_search (filtrado y scoring) sobre Contentlayer.
  * 
  * @route POST /api/mcp/tools/search
  * @tool search

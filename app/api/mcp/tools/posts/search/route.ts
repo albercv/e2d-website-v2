@@ -1,12 +1,12 @@
 /**
- * MCP Tool: posts.search
+ * MCP Tool: posts_search
  * 
  * Herramienta MCP para buscar artículos del blog que coincidan con una consulta textual.
  * Reutiliza la lógica del ai-answers-service pero devuelve múltiples resultados
  * estructurados para consumo por modelos de IA.
  * 
  * @route GET /api/mcp/tools/posts/search
- * @tool posts.search
+ * @tool posts_search
  * @category content
  */
 
@@ -21,7 +21,7 @@ import { searchPosts as searchBlogPosts, type BlogLocale } from '@/lib/blog/post
  * Configuración de la herramienta
  */
 const TOOL_CONFIG = {
-  name: 'posts.search',
+  name: 'posts_search',
   version: '1.0.0',
   maxResults: 10,
   defaultLimit: 5,
@@ -92,13 +92,13 @@ interface ToolResponse {
 /**
  * Busca posts relevantes
  */
-function searchPosts(
-  query: string, 
-  locale: string = 'es', 
+async function searchPosts(
+  query: string,
+  locale: string = 'es',
   limit: number = TOOL_CONFIG.defaultLimit,
   includeContent: boolean = true
-): SearchResult[] {
-  const results = searchBlogPosts({
+): Promise<SearchResult[]> {
+  const results = await searchBlogPosts({
     query,
     locale: locale as BlogLocale,
     limit,
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || undefined
   
   // Verificar rate limiting
-  const rateLimitCheck = createRateLimitMiddleware('posts.search')(request)
+  const rateLimitCheck = createRateLimitMiddleware('posts_search')(request)
   if (!rateLimitCheck.allowed) {
     mcpLogger.logToolInvocation(
       TOOL_CONFIG.name,
@@ -330,7 +330,7 @@ export async function GET(request: NextRequest) {
     const { query, locale, limit, includeContent } = validation
     
     // Realizar búsqueda
-    const results = searchPosts(query!, locale!, limit!, includeContent!)
+    const results = await searchPosts(query!, locale!, limit!, includeContent!)
     
     // Preparar respuesta
     const response: ToolResponse = {
@@ -377,7 +377,7 @@ export async function GET(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('MCP posts.search Error:', error)
+    console.error('MCP posts_search Error:', error)
     
     // Log error
     mcpLogger.logToolInvocation(
@@ -480,7 +480,7 @@ export async function POST(request: NextRequest) {
     const { query, locale, limit, includeContent } = validation
     
     // Realizar búsqueda
-    const results = searchPosts(query!, locale!, limit!, includeContent!)
+    const results = await searchPosts(query!, locale!, limit!, includeContent!)
     
     // Preparar respuesta
     const response: ToolResponse = {
@@ -526,7 +526,7 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('MCP posts.search POST Error:', error)
+    console.error('MCP posts_search POST Error:', error)
     
     // Log error
     mcpLogger.logToolInvocation(

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { getClientById, validateRedirectUri, validateScopes, storeAuthorizationCode } from '@/lib/oauth-db'
 import { addSeconds, randomToken } from '@/lib/oauth-utils'
 import { validateAdminCredentials } from '@/lib/oauth-users'
+import { isAllowedResource } from '@/lib/oauth-resource'
 
 export async function POST(request: NextRequest) {
   const form = await request.formData()
@@ -77,12 +78,15 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 })
   }
-  // Validar parámetro resource (audiencia objetivo)
+  // Validar parámetro resource (audiencia objetivo, RFC 8707).
+  // Aceptamos varias formas porque distintos clientes envían valores distintos:
+  //   - Claude.ai web → "https://evolve2digital.com/"
+  //   - Strict clients → "https://evolve2digital.com/sse"
+  //   - Issuer canónico → "https://evolve2digital.com"
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
-  const allowedResource = `${baseUrl}/sse`
-  if (!resource || resource !== allowedResource) {
+  if (!isAllowedResource(resource, baseUrl)) {
     if (debug) {
-      console.log('[OAUTH-AUTHZ] Invalid resource', { resource, expected: allowedResource })
+      console.log('[OAUTH-AUTHZ] Invalid resource', { resource, baseUrl })
     }
     return NextResponse.json({ error: 'Invalid resource' }, { status: 400 })
   }

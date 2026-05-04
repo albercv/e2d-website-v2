@@ -13,11 +13,11 @@ Permitir que Alberto, desde **Claude.ai web (Max)** con un Custom Connector, red
 
 ## Contexto
 
-El proyecto ya tiene operativo un servidor MCP completo con OAuth 2.1 + PKCE en producción (`https://evolve2digital.com`), con cinco tools relacionados con posts: `posts.schema`, `posts.search`, `posts.get`, `posts.create`, `posts.delete`. El blog usa Contentlayer/MDX con ficheros en `content/posts/` y locales `es | en | it`.
+El proyecto ya tiene operativo un servidor MCP completo con OAuth 2.1 + PKCE en producción (`https://evolve2digital.com`), con cinco tools relacionados con posts: `posts_schema`, `posts_search`, `posts_get`, `posts_create`, `posts_delete`. El blog usa Contentlayer/MDX con ficheros en `content/posts/` y locales `es | en | it`.
 
 Lo que **falta** para cubrir el objetivo:
 
-1. **Orquestación multi-idioma sin disparar 3 rebuilds.** El `posts.create` actual dispara un rebuild opcional cuando `AUTO_REBUILD_AFTER_MCP_CHANGE=true`. Con tres llamadas se dispararían tres builds en paralelo.
+1. **Orquestación multi-idioma sin disparar 3 rebuilds.** El `posts_create` actual dispara un rebuild opcional cuando `AUTO_REBUILD_AFTER_MCP_CHANGE=true`. Con tres llamadas se dispararían tres builds en paralelo.
 2. **Una tool MCP que dispare el rebuild explícitamente** desde Claude.ai cuando termine la secuencia de creates.
 3. **Configurar las variables de entorno** en el servidor para que el flujo de rebuild esté activo (`AUTO_REBUILD_AFTER_MCP_CHANGE`, `ADMIN_REBUILD_URL`, `RESTART_COMMAND`).
 
@@ -25,8 +25,8 @@ Lo que **falta** para cubrir el objetivo:
 
 - Subida de imágenes (`cover`) — Claude.ai web no permite subir ficheros al connector.
 - Vínculo cross-locale entre las 3 versiones del mismo post (botón "ver en otro idioma").
-- Polling de estado del build (`posts.rebuild_status`) — solo si la opacidad se vuelve un dolor real.
-- Mejora del escapado YAML del frontmatter en `posts.create` (limitación preexistente, no introducida aquí).
+- Polling de estado del build (`posts_rebuild_status`) — solo si la opacidad se vuelve un dolor real.
+- Mejora del escapado YAML del frontmatter en `posts_create` (limitación preexistente, no introducida aquí).
 - Calidad de traducción — responsabilidad de Claude.ai, no del sistema.
 
 ## UX (modo confirmación en chat)
@@ -37,8 +37,8 @@ Lo que **falta** para cubrir el objetivo:
 3. Usuario:                  "perfecto, publícalo en es/en/it"
 4. Claude:                   traduce en + it y muestra los 3 inline
 5. Usuario revisa:           "ok publica"
-6. Claude → posts.create     ×3 con skip_rebuild=true (es, en, it)
-7. Claude → posts.rebuild    ×1 (sin body)
+6. Claude → posts_create     ×3 con skip_rebuild=true (es, en, it)
+7. Claude → posts_rebuild    ×1 (sin body)
 8. Claude al usuario:        "Hecho. URLs … Tarda 1-3 min en estar visible"
 9. ~2 min después:           build termina, pm2 reinicia, las 3 URLs sirven 200
 ```
@@ -52,9 +52,9 @@ Lo que **falta** para cubrir el objetivo:
 │  Custom Connector     │         │   nginx (Let's Encrypt) ─▶ Next.js :3003 │
 │  → MCP server         │  OAuth  │                                          │
 │  → token              │ ◀─────▶ │   Tools MCP:                             │
-│    scope posts:write  │         │     posts.schema / search / get / delete │
-│                       │         │     posts.create  (+ skip_rebuild)       │
-│  Orquesta:            │         │     posts.rebuild  (NUEVA)               │
+│    scope posts:write  │         │     posts_schema / search / get / delete │
+│                       │         │     posts_create  (+ skip_rebuild)       │
+│  Orquesta:            │         │     posts_rebuild  (NUEVA)               │
 │   create×3 + rebuild  │         │                                          │
 │                       │         │   Rebuild → /api/admin/rebuild           │
 │                       │         │   → scripts/rebuild-and-restart.js       │
@@ -64,14 +64,14 @@ Lo que **falta** para cubrir el objetivo:
 
 ## Decisiones de diseño
 
-1. **3 llamadas a `posts.create` + 1 llamada a `posts.rebuild`** en vez de una tool monolítica.
+1. **3 llamadas a `posts_create` + 1 llamada a `posts_rebuild`** en vez de una tool monolítica.
    - Reutiliza la tool existente sin duplicar lógica.
    - Atomicidad estricta no aporta valor en un blog de un autor: si una traducción falla por colisión, prefieres ver el error y reintentar esa una.
    - Un solo rebuild al final.
 
-2. **Parámetro nuevo `skip_rebuild` en `posts.create`** (default `false`) para que las 3 primeras llamadas no disparen rebuild. Sin esto, o haces 3 rebuilds o desactivas globalmente `AUTO_REBUILD_AFTER_MCP_CHANGE` y pierdes el comportamiento por defecto.
+2. **Parámetro nuevo `skip_rebuild` en `posts_create`** (default `false`) para que las 3 primeras llamadas no disparen rebuild. Sin esto, o haces 3 rebuilds o desactivas globalmente `AUTO_REBUILD_AFTER_MCP_CHANGE` y pierdes el comportamiento por defecto.
 
-3. **`posts.rebuild` como tool MCP nueva**, protegida con scope `posts:write` (mismo que create). Internamente hace `POST` a `/api/admin/rebuild` con `Authorization: Bearer ${E2D_MCP_API_KEY}` y `body:{noRestart:false}`. Devuelve 200 inmediato — no espera al build.
+3. **`posts_rebuild` como tool MCP nueva**, protegida con scope `posts:write` (mismo que create). Internamente hace `POST` a `/api/admin/rebuild` con `Authorization: Bearer ${E2D_MCP_API_KEY}` y `body:{noRestart:false}`. Devuelve 200 inmediato — no espera al build.
 
 4. **No-rollback ante fallo parcial.** Si 2 de 3 creates tienen éxito y el tercero falla, los dos buenos se quedan en disco. El blog ya tiene posts que existen solo en algunos idiomas, así que el estado es válido. Claude reporta el fallo y ofrece reintentar el que faltó.
 
@@ -89,13 +89,13 @@ Lo que **falta** para cubrir el objetivo:
 - Sin cambios en validación, slug, ni respuesta.
 
 **`app/api/mcp/manifest/route.ts`** (~25 líneas):
-- En `input_schema` de `posts.create`, añadir `skip_rebuild: { type: 'boolean', default: false, description: '...' }`.
-- Añadir entrada nueva `posts.rebuild` con auth `oauth2` scope `posts:write`, `method: 'POST'`, `endpoint: …/api/mcp/tools/posts/rebuild`, `rateLimit: { requests: 3, window: '1m' }`.
+- En `input_schema` de `posts_create`, añadir `skip_rebuild: { type: 'boolean', default: false, description: '...' }`.
+- Añadir entrada nueva `posts_rebuild` con auth `oauth2` scope `posts:write`, `method: 'POST'`, `endpoint: …/api/mcp/tools/posts/rebuild`, `rateLimit: { requests: 3, window: '1m' }`.
 
 ### Crear
 
 **`app/api/mcp/tools/posts/rebuild/route.ts`** (~120 líneas):
-- Patrón idéntico a `posts.create`: CORS, OPTIONS, OAuth `posts:write`, rate-limit, `mcpLogger`, `respondAsMcpOrJson` / `respondErrorAsMcpOrJson`.
+- Patrón idéntico a `posts_create`: CORS, OPTIONS, OAuth `posts:write`, rate-limit, `mcpLogger`, `respondAsMcpOrJson` / `respondErrorAsMcpOrJson`.
 - POST sin body (o body `{}` ignorado).
 - `fetch(process.env.ADMIN_REBUILD_URL, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':\`Bearer \${process.env.E2D_MCP_API_KEY}\` }, body: JSON.stringify({ noRestart:false }) })`.
 - Si falta `E2D_MCP_API_KEY` o `ADMIN_REBUILD_URL` en el entorno → 500 con mensaje claro.
@@ -131,7 +131,7 @@ Las 3 ya las consume el código existente (`posts/create/route.ts`, `admin/rebui
 | 409 slug colisión | Esa locale no se escribe | Claude muestra conflicto; usuario decide (cambiar título / borrar viejo / saltar locale). No reintento automático |
 | 1 de 3 creates falla | 2 ficheros en disco, 1 no | No-rollback. Claude reporta y ofrece reintentar solo el que falló |
 | 500 disk write | Nada de esa locale | Igual que el anterior |
-| `posts.rebuild` 5xx | 3 MDX en disco, build no disparado | Claude reporta "creados pero rebuild falló — `pm2 restart e2d` manual o reintenta `posts.rebuild`" |
+| `posts_rebuild` 5xx | 3 MDX en disco, build no disparado | Claude reporta "creados pero rebuild falló — `pm2 restart e2d` manual o reintenta `posts_rebuild`" |
 | `npm run build` falla async | 3 MDX en disco, sitio sigue con build vieja | No detectado por v1; verificación manual vía `build.log` |
 | Rate limit 429 | Nada esa llamada | Claude respeta `Retry-After` |
 | Conector pierde sesión mid-flow | Posibles ficheros parciales | Reintentar es seguro: 409 marca los completos, los faltantes se crean |
@@ -155,8 +155,8 @@ Las 3 ya las consume el código existente (`posts/create/route.ts`, `admin/rebui
 - `skip_rebuild:"true"` (string) → tratado como `false` (solo `=== true`).
 
 **`__tests__/api/mcp-manifest.test.ts`** (nuevo, no existe aún):
-- `posts.rebuild` presente con `auth.scopes:['posts:write']`.
-- `posts.create.input_schema.properties.skip_rebuild` declarado.
+- `posts_rebuild` presente con `auth.scopes:['posts:write']`.
+- `posts_create.input_schema.properties.skip_rebuild` declarado.
 
 ### Verificación E2E manual (en producción)
 
@@ -165,7 +165,7 @@ Las 3 ya las consume el código existente (`posts/create/route.ts`, `admin/rebui
 curl -sS https://evolve2digital.com/.well-known/oauth-authorization-server | jq .
 curl -sS https://evolve2digital.com/.well-known/oauth-protected-resource | jq .
 curl -sS https://evolve2digital.com/api/mcp/manifest | jq '.tools | keys'
-# debe incluir "posts.rebuild"
+# debe incluir "posts_rebuild"
 ```
 
 **Fase 2 — OAuth manual** (`scripts/test-mcp-oauth.sh`, no commit):
@@ -182,12 +182,12 @@ Si pasa, problema en Claude.ai (si lo hay) será de UX/conector, no del backend.
 3. "Lista las tools del conector e2d" → debe ver create, search, get, delete, schema, **rebuild**.
 4. Smoke test: pedir post de prueba en es/en/it con título identificable (`"MCP smoke test 2026-05-02"`).
 5. Tras "ok publica":
-   - Logs MCP (`tail -f logs/mcp-*.log`) muestran 3 `posts.create` con `skip_rebuild:true`.
-   - Logs muestran 1 `posts.rebuild`.
+   - Logs MCP (`tail -f logs/mcp-*.log`) muestran 3 `posts_create` con `skip_rebuild:true`.
+   - Logs muestran 1 `posts_rebuild`.
    - `tail -f build.log` muestra build arrancando.
    - `pm2 logs e2d --lines 50` muestra restart limpio.
 6. Tras 2-3 min: `curl -sI https://evolve2digital.com/{es,en,it}/blog/mcp-smoke-test-2026-05-02` → 200.
-7. Cleanup: pedir a Claude `posts.delete` para los 3.
+7. Cleanup: pedir a Claude `posts_delete` para los 3.
 
 **Fase 4 — fallo controlado**:
 - Pedir a Claude crear post con título idéntico a uno existente → 409 → Claude lo reporta legible en chat.
@@ -196,16 +196,16 @@ Si pasa, problema en Claude.ai (si lo hay) será de UX/conector, no del backend.
 
 Sumar a los cambios sin commitear (`docs/mcp-changelog.md`, `docs/mcp-usage.md`, `docs/mcp-examples.md`):
 
-- **`mcp-usage.md`**: sección "Flujo multi-idioma desde Claude.ai" + uso de `skip_rebuild` y `posts.rebuild`.
+- **`mcp-usage.md`**: sección "Flujo multi-idioma desde Claude.ai" + uso de `skip_rebuild` y `posts_rebuild`.
 - **`mcp-examples.md`**: ejemplo concreto de los 4 calls en orden.
-- **`mcp-changelog.md`**: entrada `2026-05-02`: `posts.rebuild` (nuevo) + `posts.create.skip_rebuild` (nuevo).
+- **`mcp-changelog.md`**: entrada `2026-05-02`: `posts_rebuild` (nuevo) + `posts_create.skip_rebuild` (nuevo).
 
 `scripts/generate-mcp-docs.js` ya existe; si genera docs automáticamente desde el manifest, parte se actualizará al ejecutarlo.
 
 ## Definición de "hecho"
 
 - [ ] Tests verdes con cobertura ≥85% en código nuevo/modificado.
-- [ ] `https://evolve2digital.com/api/mcp/manifest` lista `posts.rebuild`.
+- [ ] `https://evolve2digital.com/api/mcp/manifest` lista `posts_rebuild`.
 - [ ] Smoke test desde Claude.ai web crea 3 posts visibles en `/{es,en,it}/blog/...`.
 - [ ] Caso 409 reportado de forma comprensible en chat.
 - [ ] Docs MCP actualizados.
@@ -213,7 +213,7 @@ Sumar a los cambios sin commitear (`docs/mcp-changelog.md`, `docs/mcp-usage.md`,
 
 ## Limitaciones aceptadas
 
-- Frontmatter escaping frágil en `posts.create` (preexistente).
+- Frontmatter escaping frágil en `posts_create` (preexistente).
 - Build async opaco — sin polling de estado en v1.
 - Cover image gestionado a mano por el autor tras la creación.
 - Sin vínculo cross-locale; cada post es independiente.

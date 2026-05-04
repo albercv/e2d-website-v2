@@ -27,14 +27,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
             tabindex="0"
           >
             <button
-              aria-controls="radix-:r3:-content-cms"
+              aria-controls="radix-:rl:-content-cms"
               aria-selected="true"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="active"
-              id="radix-:r3:-trigger-cms"
+              id="radix-:rl:-trigger-cms"
               role="tab"
               tabindex="-1"
               type="button"
@@ -42,14 +42,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
               CMS Blog
             </button>
             <button
-              aria-controls="radix-:r3:-content-budget"
+              aria-controls="radix-:rl:-content-budget"
               aria-selected="false"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="inactive"
-              id="radix-:r3:-trigger-budget"
+              id="radix-:rl:-trigger-budget"
               role="tab"
               tabindex="-1"
               type="button"
@@ -75,12 +75,12 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r3:-trigger-cms"
+          aria-labelledby="radix-:rl:-trigger-cms"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="active"
-          id="radix-:r3:-content-cms"
+          id="radix-:rl:-content-cms"
           role="tabpanel"
           style="animation-duration: 0s;"
           tabindex="0"
@@ -104,6 +104,61 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
               </button>
             </a>
           </header>
+          <div
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <div
+              class="flex items-center gap-2 flex-wrap"
+            >
+              <span
+                class="text-sm text-muted-foreground"
+              >
+                Idioma:
+              </span>
+              <button
+                aria-pressed="true"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                type="button"
+              >
+                Todos
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                ES
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                EN
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                IT
+              </button>
+            </div>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              0
+               
+              posts
+            </span>
+          </div>
           <div
             class="overflow-x-auto border rounded-lg"
           >
@@ -156,13 +211,13 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 1`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r3:-trigger-budget"
+          aria-labelledby="radix-:rl:-trigger-budget"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="inactive"
           hidden=""
-          id="radix-:r3:-content-budget"
+          id="radix-:rl:-content-budget"
           role="tabpanel"
           tabindex="0"
         />
@@ -199,14 +254,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
             tabindex="0"
           >
             <button
-              aria-controls="radix-:r6:-content-cms"
+              aria-controls="radix-:ro:-content-cms"
               aria-selected="true"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="active"
-              id="radix-:r6:-trigger-cms"
+              id="radix-:ro:-trigger-cms"
               role="tab"
               tabindex="-1"
               type="button"
@@ -214,14 +269,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
               CMS Blog
             </button>
             <button
-              aria-controls="radix-:r6:-content-budget"
+              aria-controls="radix-:ro:-content-budget"
               aria-selected="false"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="inactive"
-              id="radix-:r6:-trigger-budget"
+              id="radix-:ro:-trigger-budget"
               role="tab"
               tabindex="-1"
               type="button"
@@ -247,12 +302,12 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r6:-trigger-cms"
+          aria-labelledby="radix-:ro:-trigger-cms"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="active"
-          id="radix-:r6:-content-cms"
+          id="radix-:ro:-content-cms"
           role="tabpanel"
           style="animation-duration: 0s;"
           tabindex="0"
@@ -276,6 +331,61 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
               </button>
             </a>
           </header>
+          <div
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <div
+              class="flex items-center gap-2 flex-wrap"
+            >
+              <span
+                class="text-sm text-muted-foreground"
+              >
+                Idioma:
+              </span>
+              <button
+                aria-pressed="true"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                type="button"
+              >
+                Todos
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                ES
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                EN
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                IT
+              </button>
+            </div>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              0
+               
+              posts
+            </span>
+          </div>
           <div
             class="overflow-x-auto border rounded-lg"
           >
@@ -328,13 +438,13 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 2`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r6:-trigger-budget"
+          aria-labelledby="radix-:ro:-trigger-budget"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="inactive"
           hidden=""
-          id="radix-:r6:-content-budget"
+          id="radix-:ro:-content-budget"
           role="tabpanel"
           tabindex="0"
         />
@@ -371,14 +481,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
             tabindex="0"
           >
             <button
-              aria-controls="radix-:r9:-content-cms"
+              aria-controls="radix-:rr:-content-cms"
               aria-selected="true"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="active"
-              id="radix-:r9:-trigger-cms"
+              id="radix-:rr:-trigger-cms"
               role="tab"
               tabindex="-1"
               type="button"
@@ -386,14 +496,14 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
               CMS Blog
             </button>
             <button
-              aria-controls="radix-:r9:-content-budget"
+              aria-controls="radix-:rr:-content-budget"
               aria-selected="false"
               class="data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
               data-orientation="horizontal"
               data-radix-collection-item=""
               data-slot="tabs-trigger"
               data-state="inactive"
-              id="radix-:r9:-trigger-budget"
+              id="radix-:rr:-trigger-budget"
               role="tab"
               tabindex="-1"
               type="button"
@@ -419,12 +529,12 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r9:-trigger-cms"
+          aria-labelledby="radix-:rr:-trigger-cms"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="active"
-          id="radix-:r9:-content-cms"
+          id="radix-:rr:-content-cms"
           role="tabpanel"
           style="animation-duration: 0s;"
           tabindex="0"
@@ -448,6 +558,61 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
               </button>
             </a>
           </header>
+          <div
+            class="flex items-center justify-between gap-3 flex-wrap"
+          >
+            <div
+              class="flex items-center gap-2 flex-wrap"
+            >
+              <span
+                class="text-sm text-muted-foreground"
+              >
+                Idioma:
+              </span>
+              <button
+                aria-pressed="true"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                type="button"
+              >
+                Todos
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                ES
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                EN
+              </button>
+              <button
+                aria-pressed="false"
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5"
+                data-slot="button"
+                title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+                type="button"
+              >
+                IT
+              </button>
+            </div>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              0
+               
+              posts
+            </span>
+          </div>
           <div
             class="overflow-x-auto border rounded-lg"
           >
@@ -500,13 +665,13 @@ exports[`AdminDashboardTabs snapshots at 360px, 768px, 1024px 3`] = `
           </div>
         </div>
         <div
-          aria-labelledby="radix-:r9:-trigger-budget"
+          aria-labelledby="radix-:rr:-trigger-budget"
           class="flex-1 outline-none space-y-4"
           data-orientation="horizontal"
           data-slot="tabs-content"
           data-state="inactive"
           hidden=""
-          id="radix-:r9:-content-budget"
+          id="radix-:rr:-content-budget"
           role="tabpanel"
           tabindex="0"
         />

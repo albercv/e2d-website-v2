@@ -1,5 +1,6 @@
-import { allPosts } from "@/.contentlayer/generated"
-import type { Post } from "@/.contentlayer/generated"
+import { listPostsFromDisk, type RuntimePost } from "@/lib/blog/posts-runtime"
+
+type Post = RuntimePost
 
 export type BlogLocale = "es" | "en" | "it"
 
@@ -109,11 +110,12 @@ function extractContentSnippet(content: string, query: string, maxLength: number
   return trimmed.substring(0, maxLength - 3) + "..."
 }
 
-function getPublishedPosts(locale: BlogLocale): Post[] {
-  return allPosts.filter((post) => post.locale === locale && post.published !== false)
+async function getPublishedPosts(locale: BlogLocale): Promise<Post[]> {
+  const all = await listPostsFromDisk()
+  return all.filter((post) => post.locale === locale && post.published !== false)
 }
 
-export function searchPosts(params: SearchPostsParams): BlogSearchItem[] {
+export async function searchPosts(params: SearchPostsParams): Promise<BlogSearchItem[]> {
   const query = params.query?.trim() ?? ""
   const locale = params.locale ?? "es"
   const limit = Math.max(1, Math.min(params.limit ?? 5, 10))
@@ -121,7 +123,7 @@ export function searchPosts(params: SearchPostsParams): BlogSearchItem[] {
 
   if (query.length < 2) return []
 
-  const availablePosts = getPublishedPosts(locale)
+  const availablePosts = await getPublishedPosts(locale)
   if (availablePosts.length === 0) return []
 
   const baseUrl = getBaseUrl()
@@ -157,12 +159,12 @@ export function searchPosts(params: SearchPostsParams): BlogSearchItem[] {
   })
 }
 
-export function getPost(params: GetPostParams): BlogPostResult | null {
+export async function getPost(params: GetPostParams): Promise<BlogPostResult | null> {
   const id = params.id?.trim()
   const locale = params.locale ?? "es"
   if (!id) return null
 
-  const posts = getPublishedPosts(locale)
+  const posts = await getPublishedPosts(locale)
   const normalized = id.toLowerCase()
   const post =
     posts.find((p) => p.slug.toLowerCase() === normalized) ||

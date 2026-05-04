@@ -11,7 +11,7 @@ import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.delete'
+const TOOL_NAME = 'posts_delete'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Rate limit
-  const rateResult = createRateLimitMiddleware('posts.delete')(request)
+  const rateResult = createRateLimitMiddleware('posts_delete')(request)
   if (!rateResult.allowed) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/delete', 'POST', false, Date.now() - start, 429, ua)
     return respondErrorAsMcpOrJson(request, 'Rate limit exceeded', 429, 'rate_limit_exceeded', { retryAfter: rateResult.retryAfter }, TOOL_NAME, getRateLimitHeaders(rateResult))

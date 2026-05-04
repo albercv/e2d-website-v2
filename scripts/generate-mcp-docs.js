@@ -353,7 +353,7 @@ function generateChangelogDocs() {
 #### Añadido
 - Servidor MCP inicial con protocolo 1.0
 - Herramienta \`agent.query\` para consultas al agente IA
-- Herramienta \`posts.search\` para búsqueda de artículos
+- Herramienta \`posts_search\` para búsqueda de artículos
 - Herramienta \`appointments.create\` para crear citas
 - Endpoint de manifest MCP
 - Endpoint de logs administrativos

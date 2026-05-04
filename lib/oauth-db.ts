@@ -2,6 +2,7 @@ import 'server-only'
 import Database from 'better-sqlite3'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 
 export type OAuthClient = {
   client_id: string
@@ -73,6 +74,14 @@ export function initDb() {
     );
   `)
 
+  // Idempotent migration: add `disabled` column if missing. SQLite throws if it
+  // already exists, so we swallow that specific failure.
+  try {
+    db.exec('ALTER TABLE oauth_clients ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0')
+  } catch (e: any) {
+    if (!String(e?.message || '').includes('duplicate column name')) throw e
+  }
+
   seedClients()
 }
 
@@ -138,7 +147,7 @@ export function validateRedirectUri(client: OAuthClient, redirect_uri: string): 
 }
 
 export function getClientById(client_id: string): OAuthClient | null {
-  const row = getDb().prepare('SELECT * FROM oauth_clients WHERE client_id = ?').get(client_id) as any
+  const row = getDb().prepare('SELECT * FROM oauth_clients WHERE client_id = ? AND COALESCE(disabled, 0) = 0').get(client_id) as any
   if (!row) return null
   return {
     client_id: row.client_id,
@@ -146,6 +155,23 @@ export function getClientById(client_id: string): OAuthClient | null {
     redirect_uris: JSON.parse(row.redirect_uris || '[]'),
     allowed_scopes: JSON.parse(row.allowed_scopes || '[]'),
   }
+}
+
+export function generateClientId(): string {
+  return `e2d_${crypto.randomBytes(16).toString('hex')}`
+}
+
+export function createClient(c: OAuthClient): void {
+  getDb()
+    .prepare(
+      'INSERT INTO oauth_clients (client_id, client_type, redirect_uris, allowed_scopes, disabled) VALUES (?, ?, ?, ?, 0)'
+    )
+    .run(
+      c.client_id,
+      c.client_type,
+      JSON.stringify(c.redirect_uris),
+      JSON.stringify(c.allowed_scopes)
+    )
 }
 
 export function validateScopes(client: OAuthClient, requestedScopes: string[]): { ok: boolean, granted: string[] } {

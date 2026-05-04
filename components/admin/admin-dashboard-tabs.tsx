@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo, useState, type MouseEvent } from "react"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -15,7 +16,69 @@ export type AdminPostRow = {
   sourceFilePath: string
 }
 
+const LOCALES = ["es", "en", "it"] as const
+
+type LocaleFilterProps = {
+  active: Set<string>
+  onChange: (next: Set<string>) => void
+}
+
+function LocaleFilter({ active, onChange }: LocaleFilterProps) {
+  const allActive = active.size === 0
+
+  const handleClick = (locale: string) => (event: MouseEvent<HTMLButtonElement>) => {
+    const additive = event.ctrlKey || event.metaKey
+    const next = new Set(active)
+    if (additive) {
+      if (next.has(locale)) next.delete(locale)
+      else next.add(locale)
+    } else {
+      next.clear()
+      next.add(locale)
+    }
+    onChange(next)
+  }
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-sm text-muted-foreground">Idioma:</span>
+      <Button
+        type="button"
+        size="sm"
+        variant={allActive ? "default" : "outline"}
+        aria-pressed={allActive}
+        onClick={() => onChange(new Set())}
+      >
+        Todos
+      </Button>
+      {LOCALES.map((locale) => {
+        const isOn = active.has(locale)
+        return (
+          <Button
+            key={locale}
+            type="button"
+            size="sm"
+            variant={isOn ? "default" : "outline"}
+            aria-pressed={isOn}
+            title="Click para filtrar; Ctrl/Cmd-click para combinar idiomas"
+            onClick={handleClick(locale)}
+          >
+            {locale.toUpperCase()}
+          </Button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function AdminDashboardTabs({ posts }: { posts: AdminPostRow[] }) {
+  const [activeLocales, setActiveLocales] = useState<Set<string>>(new Set())
+
+  const visiblePosts = useMemo(() => {
+    if (activeLocales.size === 0) return posts
+    return posts.filter((post) => activeLocales.has(post.locale))
+  }, [posts, activeLocales])
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="max-w-5xl mx-auto space-y-4">
@@ -43,6 +106,16 @@ export function AdminDashboardTabs({ posts }: { posts: AdminPostRow[] }) {
               </Link>
             </header>
 
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <LocaleFilter
+                active={activeLocales}
+                onChange={(next) => setActiveLocales(next)}
+              />
+              <span className="text-sm text-muted-foreground">
+                {visiblePosts.length} {visiblePosts.length === 1 ? "post" : "posts"}
+              </span>
+            </div>
+
             <div className="overflow-x-auto border rounded-lg">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-muted-foreground">
@@ -57,7 +130,7 @@ export function AdminDashboardTabs({ posts }: { posts: AdminPostRow[] }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map((post) => (
+                  {visiblePosts.map((post) => (
                     <tr key={`${post.slug}-${post.locale}`} className="border-t">
                       <td className="p-3">{post.title}</td>
                       <td className="p-3">{post.locale}</td>
