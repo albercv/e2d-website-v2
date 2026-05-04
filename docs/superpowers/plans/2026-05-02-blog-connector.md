@@ -4,7 +4,7 @@
 
 **Goal:** Permitir publicar posts multi-idioma (es/en/it) en el blog desde Claude.ai web vía Custom Connector → MCP server, con rebuild automático tras la creación de los 3 posts.
 
-**Architecture:** El MCP server existente ya expone `posts.create`. Añadimos (1) parámetro `skip_rebuild` en `posts.create` para suprimir rebuild en llamadas intermedias y (2) tool nueva `posts.rebuild` que dispara el endpoint admin de rebuild. Claude.ai web orquesta: `posts.create` ×3 con `skip_rebuild:true` + `posts.rebuild` ×1.
+**Architecture:** El MCP server existente ya expone `posts_create`. Añadimos (1) parámetro `skip_rebuild` en `posts_create` para suprimir rebuild en llamadas intermedias y (2) tool nueva `posts_rebuild` que dispara el endpoint admin de rebuild. Claude.ai web orquesta: `posts_create` ×3 con `skip_rebuild:true` + `posts_rebuild` ×1.
 
 **Tech Stack:** Next.js 14 App Router, TypeScript, Jest, OAuth 2.1 + PKCE (existente), Contentlayer/MDX (existente), PM2.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## Phase A — `skip_rebuild` en `posts.create`
+## Phase A — `skip_rebuild` en `posts_create`
 
 ### Task A1: Tests para `skip_rebuild`
 
@@ -101,12 +101,12 @@ Expected: 3 failures. The 1st (`should NOT trigger rebuild`) **must** fail with 
 
 ```
 git add __tests__/api/mcp-posts-create.test.ts
-git commit -m "test: add skip_rebuild tests for posts.create"
+git commit -m "test: add skip_rebuild tests for posts_create"
 ```
 
 ---
 
-### Task A2: Implementar `skip_rebuild` en posts.create
+### Task A2: Implementar `skip_rebuild` en posts_create
 
 **Files:**
 - Modify: `app/api/mcp/tools/posts/create/route.ts:101` (zona de extracción de payload) y `app/api/mcp/tools/posts/create/route.ts:172` (bloque de auto-rebuild)
@@ -155,11 +155,11 @@ Expected: all PASS.
 
 ```
 git add app/api/mcp/tools/posts/create/route.ts
-git commit -m "feat(mcp): support skip_rebuild on posts.create
+git commit -m "feat(mcp): support skip_rebuild on posts_create
 
 Permite suprimir el rebuild automático tras crear un post. Necesario
-para encadenar 3 posts.create (es/en/it) y disparar un solo rebuild
-al final via posts.rebuild."
+para encadenar 3 posts_create (es/en/it) y disparar un solo rebuild
+al final via posts_rebuild."
 ```
 
 ---
@@ -167,11 +167,11 @@ al final via posts.rebuild."
 ### Task A3: Declarar `skip_rebuild` en el manifest
 
 **Files:**
-- Modify: `app/api/mcp/manifest/route.ts:374-385` (input_schema de `posts.create`)
+- Modify: `app/api/mcp/manifest/route.ts:374-385` (input_schema de `posts_create`)
 
 - [ ] **Step 1: Añadir el campo al input_schema**
 
-En `app/api/mcp/manifest/route.ts`, dentro del `input_schema.properties` de `posts.create` (entre `published` y el cierre `}`), añadir:
+En `app/api/mcp/manifest/route.ts`, dentro del `input_schema.properties` de `posts_create` (entre `published` y el cierre `}`), añadir:
 
 ```ts
         skip_rebuild: { type: 'boolean', default: false, description: 'Si true, no dispara rebuild tras crear. Útil al encadenar varias creaciones seguidas (ej. multi-idioma).' }
@@ -191,14 +191,14 @@ Expected: 0 errors. Si hay errores en otros ficheros preexistentes, revisar y re
 
 ```
 git add app/api/mcp/manifest/route.ts
-git commit -m "feat(mcp): declare skip_rebuild in posts.create input schema"
+git commit -m "feat(mcp): declare skip_rebuild in posts_create input schema"
 ```
 
 ---
 
-## Phase B — Tool nueva `posts.rebuild`
+## Phase B — Tool nueva `posts_rebuild`
 
-### Task B1: Tests para `posts.rebuild`
+### Task B1: Tests para `posts_rebuild`
 
 **Files:**
 - Create: `__tests__/api/mcp-posts-rebuild.test.ts`
@@ -380,12 +380,12 @@ Expected: failure to require the module (route file doesn't exist yet) — error
 
 ```
 git add __tests__/api/mcp-posts-rebuild.test.ts
-git commit -m "test: add posts.rebuild MCP tool tests (failing)"
+git commit -m "test: add posts_rebuild MCP tool tests (failing)"
 ```
 
 ---
 
-### Task B2: Implementar `posts.rebuild` route handler
+### Task B2: Implementar `posts_rebuild` route handler
 
 **Files:**
 - Create: `app/api/mcp/tools/posts/rebuild/route.ts`
@@ -404,7 +404,7 @@ import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.rebuild'
+const TOOL_NAME = 'posts_rebuild'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -499,12 +499,12 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- [ ] **Step 2: Añadir entrada `posts.rebuild` al rate-limiter config**
+- [ ] **Step 2: Añadir entrada `posts_rebuild` al rate-limiter config**
 
 En `lib/mcp-rate-limiter.ts`, dentro de `RATE_LIMIT_CONFIGS` (línea 29 en adelante), añadir junto a las otras entradas:
 
 ```ts
-  'posts.rebuild': {
+  'posts_rebuild': {
     maxRequests: 3,
     windowMs: 60_000,
     skipSuccessfulGET: false,
@@ -533,39 +533,39 @@ Expected: all PASS. Si algún test preexistente falla, parar y reportar antes de
 
 ```
 git add app/api/mcp/tools/posts/rebuild/route.ts lib/mcp-rate-limiter.ts
-git commit -m "feat(mcp): add posts.rebuild tool
+git commit -m "feat(mcp): add posts_rebuild tool
 
 Tool MCP nueva que dispara /api/admin/rebuild para regenerar el
 sitio tras crear posts. Protegida con OAuth scope posts:write y
 rate-limit 3/min. Diseñada para llamarse una vez después de una
-secuencia de posts.create con skip_rebuild:true."
+secuencia de posts_create con skip_rebuild:true."
 ```
 
 ---
 
-### Task B3: Registrar `posts.rebuild` en el manifest
+### Task B3: Registrar `posts_rebuild` en el manifest
 
 **Files:**
-- Modify: `app/api/mcp/manifest/route.ts` (añadir entrada nueva tras `posts.delete`, antes de la siguiente sección)
+- Modify: `app/api/mcp/manifest/route.ts` (añadir entrada nueva tras `posts_delete`, antes de la siguiente sección)
 
 - [ ] **Step 1: Localizar dónde insertar la entrada**
 
-Encontrar el cierre de la entrada `posts.delete` en el objeto `MCP_TOOLS`:
+Encontrar el cierre de la entrada `posts_delete` en el objeto `MCP_TOOLS`:
 
 ```
-grep -n "'posts.delete'" /root/e2dProject/e2d-website-v2/app/api/mcp/manifest/route.ts
+grep -n "'posts_delete'" /root/e2dProject/e2d-website-v2/app/api/mcp/manifest/route.ts
 ```
 
-La entrada `posts.delete` empieza en la línea 458 según la lectura previa. Localizar su cierre `}` y `,` (probablemente alrededor de la línea 555 — confirmar).
+La entrada `posts_delete` empieza en la línea 458 según la lectura previa. Localizar su cierre `}` y `,` (probablemente alrededor de la línea 555 — confirmar).
 
-- [ ] **Step 2: Añadir la entrada `posts.rebuild`**
+- [ ] **Step 2: Añadir la entrada `posts_rebuild`**
 
-Tras el cierre de la entrada `posts.delete` (incluida la coma), insertar:
+Tras el cierre de la entrada `posts_delete` (incluida la coma), insertar:
 
 ```ts
-  'posts.rebuild': {
-    name: 'posts.rebuild',
-    description: 'Dispara un rebuild + restart del sitio para que los posts recién creados (vía posts.create con skip_rebuild:true) sean visibles en producción. Requiere OAuth2 (Bearer JWT) con scope posts:write. Llamada típicamente una vez después de varios posts.create. El rebuild es asíncrono (1-3 min); este tool devuelve 200 inmediatamente.',
+  'posts_rebuild': {
+    name: 'posts_rebuild',
+    description: 'Dispara un rebuild + restart del sitio para que los posts recién creados (vía posts_create con skip_rebuild:true) sean visibles en producción. Requiere OAuth2 (Bearer JWT) con scope posts:write. Llamada típicamente una vez después de varios posts_create. El rebuild es asíncrono (1-3 min); este tool devuelve 200 inmediatamente.',
     category: 'content',
     input_schema: {
       type: 'object',
@@ -616,7 +616,7 @@ Arrancar el dev server brevemente y comprobar que la tool aparece:
 npx next dev -p 3099 > /tmp/next-dev.log 2>&1 &
 DEV_PID=$!
 sleep 8
-curl -sS http://localhost:3099/api/mcp/manifest | jq '.tools | map(select(.name == "posts.rebuild")) | length'
+curl -sS http://localhost:3099/api/mcp/manifest | jq '.tools | map(select(.name == "posts_rebuild")) | length'
 kill $DEV_PID
 ```
 
@@ -626,7 +626,7 @@ Expected: `1`.
 
 ```
 git add app/api/mcp/manifest/route.ts
-git commit -m "feat(mcp): register posts.rebuild in manifest"
+git commit -m "feat(mcp): register posts_rebuild in manifest"
 ```
 
 ---
@@ -678,20 +678,20 @@ async function getManifest(): Promise<any> {
 }
 
 describe('/api/mcp/manifest', () => {
-  it('exposes posts.rebuild with posts:write scope', async () => {
+  it('exposes posts_rebuild with posts:write scope', async () => {
     const data = await getManifest()
     const tools = Array.isArray(data.tools) ? data.tools : Object.values(data.tools || {})
-    const rebuild = tools.find((t: any) => t.name === 'posts.rebuild')
+    const rebuild = tools.find((t: any) => t.name === 'posts_rebuild')
     expect(rebuild).toBeDefined()
     expect(rebuild.method).toBe('POST')
     expect(rebuild.auth.scopes).toContain('posts:write')
     expect(rebuild.endpoint).toContain('/api/mcp/tools/posts/rebuild')
   })
 
-  it('declares skip_rebuild in posts.create input_schema', async () => {
+  it('declares skip_rebuild in posts_create input_schema', async () => {
     const data = await getManifest()
     const tools = Array.isArray(data.tools) ? data.tools : Object.values(data.tools || {})
-    const create = tools.find((t: any) => t.name === 'posts.create')
+    const create = tools.find((t: any) => t.name === 'posts_create')
     expect(create).toBeDefined()
     expect(create.input_schema.properties.skip_rebuild).toBeDefined()
     expect(create.input_schema.properties.skip_rebuild.type).toBe('boolean')
@@ -712,7 +712,7 @@ Expected: 2 PASS. Si las assertions de shape (`Array.isArray` vs object) fallan,
 
 ```
 git add __tests__/api/mcp-manifest.test.ts
-git commit -m "test: add manifest assertions for posts.rebuild and skip_rebuild"
+git commit -m "test: add manifest assertions for posts_rebuild and skip_rebuild"
 ```
 
 ---
@@ -787,25 +787,25 @@ Añadir al inicio (tras el header) una entrada nueva:
 ```markdown
 ## 2026-05-02
 
-- **Nueva tool**: `posts.rebuild` — dispara rebuild+restart del sitio. Scope `posts:write`. Rate-limit 3/min. Devuelve 200 inmediato; el build es asíncrono (1-3 min).
-- **`posts.create`**: nuevo parámetro opcional `skip_rebuild` (default `false`). Si `true`, no dispara rebuild automático tras crear el post. Útil para encadenar varias creaciones (ej. multi-idioma) y disparar un solo rebuild al final via `posts.rebuild`.
+- **Nueva tool**: `posts_rebuild` — dispara rebuild+restart del sitio. Scope `posts:write`. Rate-limit 3/min. Devuelve 200 inmediato; el build es asíncrono (1-3 min).
+- **`posts_create`**: nuevo parámetro opcional `skip_rebuild` (default `false`). Si `true`, no dispara rebuild automático tras crear el post. Útil para encadenar varias creaciones (ej. multi-idioma) y disparar un solo rebuild al final via `posts_rebuild`.
 ```
 
 - [ ] **Step 3: Añadir sección en `mcp-usage.md`**
 
-Añadir una sección "Flujo multi-idioma" tras la sección donde se documenta `posts.create`:
+Añadir una sección "Flujo multi-idioma" tras la sección donde se documenta `posts_create`:
 
 ```markdown
 ### Flujo multi-idioma desde Claude.ai
 
 Para publicar un post en es/en/it desde Claude.ai web (Custom Connector):
 
-1. Llamar `posts.create` 3 veces (una por idioma) con `skip_rebuild: true`. Esto crea los 3 ficheros MDX sin disparar rebuild.
-2. Llamar `posts.rebuild` una sola vez al final. Dispara el build+restart asíncrono.
+1. Llamar `posts_create` 3 veces (una por idioma) con `skip_rebuild: true`. Esto crea los 3 ficheros MDX sin disparar rebuild.
+2. Llamar `posts_rebuild` una sola vez al final. Dispara el build+restart asíncrono.
 
 El build tarda 1-3 minutos. Tras completarse, las 3 URLs `/es/blog/<slug>`, `/en/blog/<slug>`, `/it/blog/<slug>` servirán los nuevos posts.
 
-Si una de las 3 creaciones falla (p.ej. 409 por colisión de slug), las otras 2 se conservan en disco. Reintenta solo la que falló y luego `posts.rebuild`.
+Si una de las 3 creaciones falla (p.ej. 409 por colisión de slug), las otras 2 se conservan en disco. Reintenta solo la que falló y luego `posts_rebuild`.
 ```
 
 - [ ] **Step 4: Añadir ejemplo en `mcp-examples.md`**
@@ -861,10 +861,10 @@ Esperar 1-3 minutos para que el build termine.
 
 ```
 git add docs/mcp-changelog.md docs/mcp-usage.md docs/mcp-examples.md
-git commit -m "docs: document posts.rebuild and skip_rebuild flow
+git commit -m "docs: document posts_rebuild and skip_rebuild flow
 
 Cubre el flujo multi-idioma para publicar desde Claude.ai web
-con 3x posts.create + 1x posts.rebuild."
+con 3x posts_create + 1x posts_rebuild."
 ```
 
 ---
@@ -875,7 +875,7 @@ con 3x posts.create + 1x posts.rebuild."
 
 **Files:** ninguno (solo curl).
 
-Pre-requisito: Phase A, B y C completadas y desplegadas a producción (build + pm2 restart). El propio `posts.rebuild` puede usarse para esto si el código ya está en producción tras un primer despliegue manual. Para el primer despliegue, ejecutar manualmente:
+Pre-requisito: Phase A, B y C completadas y desplegadas a producción (build + pm2 restart). El propio `posts_rebuild` puede usarse para esto si el código ya está en producción tras un primer despliegue manual. Para el primer despliegue, ejecutar manualmente:
 
 - [ ] **Step 1: Build y reinicio**
 
@@ -902,16 +902,16 @@ curl -sS https://evolve2digital.com/.well-known/oauth-protected-resource | jq -r
 
 Expected: una URL conteniendo `evolve2digital.com`.
 
-- [ ] **Step 3: Verificar que `posts.rebuild` está en el manifest público**
+- [ ] **Step 3: Verificar que `posts_rebuild` está en el manifest público**
 
 ```
 curl -sS https://evolve2digital.com/api/mcp/manifest | jq '.tools | map(.name)'
 ```
 
-Expected: la lista incluye `"posts.rebuild"` y `"posts.create"`.
+Expected: la lista incluye `"posts_rebuild"` y `"posts_create"`.
 
 ```
-curl -sS https://evolve2digital.com/api/mcp/manifest | jq '.tools[] | select(.name == "posts.create") | .input_schema.properties.skip_rebuild'
+curl -sS https://evolve2digital.com/api/mcp/manifest | jq '.tools[] | select(.name == "posts_create") | .input_schema.properties.skip_rebuild'
 ```
 
 Expected: objeto con `type: "boolean"`.
@@ -1036,7 +1036,7 @@ Claude.ai abre popup OAuth → login con admin de e2d → consent (debe pedir `p
 
 En un chat nuevo: "lista las tools que tienes del conector e2d".
 
-Expected: respuesta menciona `posts.search`, `posts.get`, `posts.create`, `posts.delete`, `posts.schema`, `posts.rebuild`.
+Expected: respuesta menciona `posts_search`, `posts_get`, `posts_create`, `posts_delete`, `posts_schema`, `posts_rebuild`.
 
 - [ ] **Step 4: Smoke test multi-idioma**
 
@@ -1055,8 +1055,8 @@ Tras revisar las 3 versiones inline:
 - [ ] **Step 5: Verificar tool calls**
 
 En `logs/mcp-*.log` deben aparecer:
-- 3 entradas `posts.create` con éxito y `skip_rebuild:true` (revisar el body si está logueado)
-- 1 entrada `posts.rebuild` con éxito
+- 3 entradas `posts_create` con éxito y `skip_rebuild:true` (revisar el body si está logueado)
+- 1 entrada `posts_rebuild` con éxito
 
 En `build.log`: una entrada de build arrancando.
 
@@ -1151,12 +1151,12 @@ _Sin tarea activa. Última tarea cerrada: feature/blogConnector → conector MCP
 git push -u origin feature/blogConnector
 gh pr create --base develop --title "feat: blog connector for Claude.ai web" --body "$(cat <<'EOF'
 ## Summary
-- New MCP tool `posts.rebuild` (scope `posts:write`, rate-limit 3/min)
-- New optional `skip_rebuild` param on `posts.create`
+- New MCP tool `posts_rebuild` (scope `posts:write`, rate-limit 3/min)
+- New optional `skip_rebuild` param on `posts_create`
 - Enables multi-locale publishing flow from Claude.ai web Custom Connector
 
 ## Test plan
-- [x] Unit tests pass (posts.create extended, posts.rebuild new, manifest assertions)
+- [x] Unit tests pass (posts_create extended, posts_rebuild new, manifest assertions)
 - [x] Coverage ≥85% on changed files
 - [x] Manual OAuth + curl E2E in production
 - [x] Smoke test from Claude.ai web (3 posts in es/en/it visible)
@@ -1172,8 +1172,8 @@ EOF
 ## Self-review (post-write)
 
 **Spec coverage:**
-- ✅ `skip_rebuild` en posts.create → Phase A (3 tasks)
-- ✅ `posts.rebuild` tool → Phase B (4 tasks)
+- ✅ `skip_rebuild` en posts_create → Phase A (3 tasks)
+- ✅ `posts_rebuild` tool → Phase B (4 tasks)
 - ✅ `.env` config → Task C1
 - ✅ Manifest entry → Task B3
 - ✅ Tests con cobertura ≥85% → Phase A/B + final wrap-up
@@ -1183,7 +1183,7 @@ EOF
 
 **Placeholder scan:** ningún TBD/TODO. Steps muestran código completo. Comandos exactos.
 
-**Type consistency:** `skipRebuild` (camelCase, JS variable) vs `skip_rebuild` (snake_case, JSON field) usados consistentemente. `posts.rebuild` como nombre de tool en código + manifest + docs + tests.
+**Type consistency:** `skipRebuild` (camelCase, JS variable) vs `skip_rebuild` (snake_case, JSON field) usados consistentemente. `posts_rebuild` como nombre de tool en código + manifest + docs + tests.
 
 **Notas operacionales:**
 - Task C1 (`.env`) y D1-D4 (verificación) requieren acceso al servidor en producción y a Claude.ai. No son automatizables por subagent. Subagent puede dejar todo el código + docs listos hasta D1; D1-D4 los ejecuta el humano (Alberto).

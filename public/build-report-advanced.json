@@ -1,16 +1,16 @@
 {
-  "timestamp": "2026-05-02T09:58:38.265Z",
-  "duration": "2399ms",
+  "timestamp": "2026-05-04T15:49:13.838Z",
+  "duration": "2456ms",
   "success": true,
   "files": {
     "sitemap": {
       "path": "public/sitemap.xml",
-      "urls": 45
+      "urls": 46
     },
     "rss": {
       "es": {
         "path": "public/rss-es.xml",
-        "items": 4
+        "items": 5
       },
       "en": {
         "path": "public/rss-en.xml",
