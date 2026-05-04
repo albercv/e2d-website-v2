@@ -7,7 +7,7 @@ import { getPost as getBlogPost, type BlogLocale, type BlogPostResult } from '@/
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const TOOL_NAME = 'posts.get'
+const TOOL_NAME = 'posts_get'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,10 +22,10 @@ const mcpHeaders = {
   'X-Content-Type': 'mcp-tool-response',
 }
 
-function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: string }): BlogPostResult | null {
+async function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: string }): Promise<BlogPostResult | null> {
   const id = slug || title
   if (!id) return null
-  return getBlogPost({ id, includeContent: false, locale: locale as BlogLocale })
+  return await getBlogPost({ id, includeContent: false, locale: locale as BlogLocale })
 }
 
 export async function OPTIONS(request: NextRequest) {
@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
     return authError
   }
 
-  // Reutilizamos el rate limiter de consultas públicas (similar a posts.search)
-  const rateResult = createRateLimitMiddleware('posts.search')(request)
+  // Reutilizamos el rate limiter de consultas públicas (similar a posts_search)
+  const rateResult = createRateLimitMiddleware('posts_search')(request)
   if (!rateResult.allowed) {
     mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/posts/get', 'GET', false, Date.now() - start, 429, ua)
     return NextResponse.json(
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const post = findPost({ title, slug, locale })
+  const post = await findPost({ title, slug, locale })
   const elapsed = Date.now() - start
 
   if (!post) {
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (includeContent) {
-    const fullPost = getBlogPost({ id: slug || title || "", includeContent: true, locale: locale as BlogLocale })
+    const fullPost = await getBlogPost({ id: slug || title || "", includeContent: true, locale: locale as BlogLocale })
     if (fullPost?.content) {
       result.post.body = fullPost.content
     }
