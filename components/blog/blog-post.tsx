@@ -1,7 +1,7 @@
 "use client"
 
-import type { Post } from "@/.contentlayer/generated"
-import { useMDXComponent } from "next-contentlayer2/hooks"
+import type { CompiledPost } from "@/lib/blog/posts-runtime"
+import { MDXRemote } from "next-mdx-remote"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,11 +13,10 @@ import { BlogPostSchema, BreadcrumbSchema } from "@/components/seo/json-ld"
 import { useTranslations } from "next-intl"
 
 interface BlogPostProps {
-  post: Post
+  post: CompiledPost
 }
 
 export function BlogPost({ post }: BlogPostProps) {
-  const MDXContent = useMDXComponent(post.body.code)
   const t = useTranslations("blog")
 
   const breadcrumbItems = [
@@ -30,8 +29,8 @@ export function BlogPost({ post }: BlogPostProps) {
     <>
       <BlogPostSchema
         title={post.title}
-        description={post.description}
-        author={post.author}
+        description={post.description || ""}
+        author={post.author || "Alberto Carrasco"}
         datePublished={post.date}
         url={`https://evolve2digital.com${post.url}`}
         image={post.cover}
@@ -108,7 +107,7 @@ export function BlogPost({ post }: BlogPostProps) {
           </div>
 
           <div className="prose prose-lg prose-invert max-w-none">
-            <MDXContent components={MDXComponents} />
+            <MDXRemote {...post.compiled} components={MDXComponents} />
           </div>
 
           {/* CTA Section */}

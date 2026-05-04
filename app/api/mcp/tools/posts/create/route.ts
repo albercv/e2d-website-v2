@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { allPosts } from '@/.contentlayer/generated'
-import type { Post } from '@/.contentlayer/generated'
+import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
@@ -121,6 +120,7 @@ export async function POST(request: NextRequest) {
   const slug = slugify(title)
 
   // Evita colisión con posts existentes en el mismo locale
+  const allPosts = await listPostsFromDisk()
   const conflict = allPosts.find((p: Post) => p.locale === locale && p.slug.toLowerCase() === slug)
   if (conflict) {
     return respondErrorAsMcpOrJson(request, 'Post already exists', 409, 'conflict', { slug, locale }, TOOL_NAME)

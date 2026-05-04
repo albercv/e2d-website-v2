@@ -1,18 +1,21 @@
 /**
- * Lectura de posts MDX en runtime, sin Contentlayer.
+ * Lectura y compilación de posts MDX en runtime, sin Contentlayer.
  *
- * Reemplaza la dependencia de `@/.contentlayer/generated.allPosts` para los
- * caminos de uso del MCP (search, get, create-conflict-check, delete-lookup).
- * Así `posts_create` y `posts_delete` reflejan cambios sin necesidad de
- * `next build` + restart.
+ * Reemplaza completamente la dependencia de `@/.contentlayer/generated.allPosts`:
+ *   - MCP (search, get, create-conflict-check, delete-lookup): listPostsFromDisk()
+ *   - Blog público (/[locale]/blog y /[locale]/blog/[slug]): getCompiledPost()
+ *     que serializa el body MDX vía next-mdx-remote/serialize y lo entrega al
+ *     componente <BlogPost> que lo renderiza con <MDXRemote>.
  *
- * El blog público sigue usando Contentlayer para HTML pre-compilado.
+ * Esto elimina el ciclo "create → rebuild → static HTML" del path público:
+ * un post nuevo o borrado se refleja en el blog en la siguiente request.
  */
 
 import * as fs from "fs/promises"
 import * as path from "path"
 import matter from "gray-matter"
 import { readingTime } from "reading-time-estimator"
+import type { MDXRemoteSerializeResult } from "next-mdx-remote"
 
 export type RuntimeLocale = "es" | "en" | "it"
 
@@ -25,6 +28,8 @@ export interface RuntimePost {
   author?: string
   date: string
   published: boolean
+  cover?: string
+  url: string
   body: { raw: string }
   wordCount: number
   readingTime: ReturnType<typeof readingTime>
@@ -104,6 +109,8 @@ function parseFile(filePath: string, contentDir: string, raw: string): RuntimePo
     author: typeof fm.author === "string" ? fm.author : undefined,
     date,
     published: fm.published !== false,
+    cover: typeof fm.cover === "string" ? fm.cover : undefined,
+    url: `/${locale}/blog/${slug}`,
     body: { raw: body },
     wordCount,
     readingTime: readingTime(body, 200),
@@ -135,4 +142,30 @@ export async function listPostsFromDisk(): Promise<RuntimePost[]> {
 
 export function clearPostsRuntimeCache(): void {
   cache.clear()
+}
+
+export interface CompiledPost extends RuntimePost {
+  compiled: MDXRemoteSerializeResult
+}
+
+export async function getCompiledPost(
+  slug: string,
+  locale: RuntimeLocale
+): Promise<CompiledPost | null> {
+  const all = await listPostsFromDisk()
+  const post = all.find((p) => p.slug === slug && p.locale === locale && p.published)
+  if (!post) return null
+  // Lazy import: next-mdx-remote/serialize es ESM puro y Jest peta al cargarlo
+  // en tests que no compilan MDX. Importar dentro de la función mantiene el
+  // módulo cargable bajo CommonJS y solo paga el coste cuando es necesario.
+  const { serialize } = await import("next-mdx-remote/serialize")
+  // blockJS: false permite expresiones JS en props JSX (ej: <ProsCons
+  // pros={[...]} cons={[...]} />). El default `blockJS: true` está pensado
+  // para MDX de origen no confiable; aquí el contenido es nuestro y vive
+  // en content/ del repo.
+  const compiled = await serialize(post.body.raw, {
+    parseFrontmatter: false,
+    blockJS: false,
+  })
+  return { ...post, compiled }
 }

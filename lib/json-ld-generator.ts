@@ -10,7 +10,7 @@
  * - SSG compatibility with Next.js
  */
 
-import type { Post } from "@/.contentlayer/generated"
+import type { RuntimePost as Post } from "@/lib/blog/posts-runtime"
 
 export interface JsonLdConfig {
   baseUrl: string
@@ -411,8 +411,8 @@ export class JsonLdGenerator {
   static fromContentlayerPost(post: Post, baseUrl: string): BlogPostData {
     return {
       title: post.title,
-      description: post.description,
-      author: post.author,
+      description: post.description || "",
+      author: post.author || "Alberto Carrasco",
       datePublished: post.date,
       dateModified: post.date, // Could be enhanced with actual modification date
       url: post.url,

@@ -36,12 +36,13 @@ jest.mock('../../lib/mcp-rate-limiter', () => ({
   })),
 }))
 
-// Dynamically import route after injecting contentlayer mock
+// Dynamically import route after injecting runtime reader mock
 let deleteRoute: any
 beforeAll(() => {
   jest.resetModules()
-  jest.doMock('@/.contentlayer/generated', () => ({
-    allPosts: mockAllPosts,
+  jest.doMock('@/lib/blog/posts-runtime', () => ({
+    listPostsFromDisk: jest.fn(async () => mockAllPosts),
+    clearPostsRuntimeCache: jest.fn(),
   }))
   deleteRoute = require('../../app/api/mcp/tools/posts/delete/route')
 })
