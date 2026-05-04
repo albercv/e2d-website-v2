@@ -87,8 +87,9 @@ los posts con ese valor (típicamente 1-3).
   para tener progreso individual).
 - Validación:
   - Token: firma OK, no expirado, `purpose=media-upload`. 401 si no.
-  - MIME whitelist: `image/jpeg|png|webp|gif`, `video/mp4|webm|quicktime`.
-    415 si fuera.
+  - MIME whitelist: `image/png`, `image/webp`, `video/mp4`,
+    `video/quicktime` (`.mov`). Cualquier otro → 415.
+  - Tamaño máximo por fichero: **1 GB**. Por encima → 413.
   - Filename: `path.basename(input)` → slugify → ext del mime → dedupe con
     counter (`foto.jpg`, `foto-2.jpg`).
 - Streaming: usa `request.body` (Web Stream) → `Readable.fromWeb()` →
@@ -115,16 +116,18 @@ frontmatter intacto.
 
 - **Token**: JWT firmado con `JWT_SECRET` (compartido con resto de auth
   OAuth). Payload: `{ purpose: "media-upload", slug, locale,
-  translationKey, exp }`. TTL 30 min.
+  translationKey, exp }`. TTL 15 min.
 - **Token único por sesión de subida**: válido para múltiples ficheros
   durante su TTL.
 - **Sin token o expirado** → 401.
-- **MIME whitelist** estricta.
+- **MIME whitelist** estricta: solo `image/png`, `image/webp`, `video/mp4`,
+  `video/quicktime`.
+- **Límite por fichero**: 1 GB (configurable vía env `MEDIA_UPLOAD_MAX_BYTES`).
 - **Sin path traversal**: `path.basename()` antes de unir; rechaza si el
   filename contiene `/` o `\`.
-- **nginx**: hay que subir `client_max_body_size` a `5G` (o usar
-  `proxy_request_buffering off` para streaming pass-through). Cambio en
-  la config de nginx, no en el repo. Documentar en el plan.
+- **nginx**: subir `client_max_body_size` a `1100M` (1 GB + margen) o
+  usar `proxy_request_buffering off` para streaming pass-through. Cambio
+  en la config de nginx, no en el repo. Documentar en el plan.
 - **Disco**: sin cuota propia v1. Si llega a importar, monitorizamos
   `public/uploads/` con `du -sh`.
 - **Visibilidad**: los ficheros se sirven públicamente (es un blog). La
@@ -182,7 +185,7 @@ Existentes: `posts_create` test añade caso de `translationKey`.
 
 ## Tareas de deploy fuera del repo
 
-- Subir `client_max_body_size` en nginx a 5G (o usar
+- Subir `client_max_body_size` en nginx a `1100M` (o usar
   `proxy_request_buffering off`).
 - Verificar espacio en disco del servidor; documentar comando de
   monitorización.
@@ -203,10 +206,11 @@ Existentes: `posts_create` test añade caso de `translationKey`.
 
 ## Riesgos
 
-- **Subidas largas se cortan**: 1GB en wifi puede tardar minutos. Si se
-  corta, el fichero parcial queda en disco y el MDX no se actualiza. Se
-  puede mitigar con `try { stream pipeline } finally { fs.unlink si error }`
-  pero no resuelve el reintento. Aceptable v1.
+- **Subidas largas se cortan**: 1 GB en wifi puede tardar varios minutos.
+  Si la conexión se corta, el fichero parcial queda en disco y el MDX no
+  se actualiza. Se puede mitigar con `try { stream pipeline } finally {
+  fs.unlink si error }` pero no resuelve el reintento. Aceptable v1; los
+  vídeos largos pueden subirse desde cable.
 - **MDX append rompe diseños complejos**: si el body termina en medio de
   un componente JSX cerrado abierto, el append puede generar MDX inválido.
   Mitigación: el endpoint valida la salida con `gray-matter` + parseo
