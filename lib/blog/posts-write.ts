@@ -146,12 +146,27 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
 export interface DeletePostInput {
   slug: string
   locale: Locale
+  /**
+   * Confirmation flag — debe ser `true` para que el delete proceda. Sin él,
+   * deletePost rechaza con 400. Diseñado para evitar deletes accidentales del
+   * LLM (Claude.ai recibió 409 sobre posts_create y "ayudó" haciendo delete +
+   * recreate, perdiendo /var/lib/e2d-uploads/<key>/ con todos los binarios).
+   */
+  confirm?: boolean
+  /**
+   * Si true, además de borrar el .mdx también borra `MEDIA_UPLOADS_ROOT/<key>/`
+   * cuando es el último sibling i18n del translationKey. Si false (default),
+   * el dir de uploads se preserva — la media puede ser recuperada manualmente
+   * o reutilizada si se recrea el post con el mismo translationKey.
+   */
+  cleanupMedia?: boolean
 }
 
 export interface DeletePostResult {
   slug: string
   locale: Locale
   path: string
+  mediaCleanedUp: boolean
 }
 
 export async function deletePost(input: DeletePostInput): Promise<DeletePostResult> {
@@ -163,6 +178,14 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
   }
   if (!isValidLocale(locale)) {
     throw new PostsWriteError("unsupported_locale", 400, "locale is required and must be one of es,en,it", { supported: SUPPORTED_LOCALES })
+  }
+  if (input.confirm !== true) {
+    throw new PostsWriteError(
+      "confirm_required",
+      400,
+      "posts_delete requiere confirm:true explícito para evitar deletes accidentales. Pasa { confirm: true } en el body.",
+      { hint: "Si quieres también borrar la media subida, añade cleanupMedia: true" }
+    )
   }
 
   const existing = await listPostsFromDisk()
@@ -188,7 +211,7 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
   try {
     const auditDir = path.join(getContentRoot(), "logs")
     await fs.mkdir(auditDir, { recursive: true })
-    const entry = `${new Date().toISOString()}\tDELETE\t${slug}\t${locale}\ttranslationKey=${target.translationKey}\tcwd=${process.cwd()}\tpid=${process.pid}\n`
+    const entry = `${new Date().toISOString()}\tDELETE\t${slug}\t${locale}\ttranslationKey=${target.translationKey}\tcleanupMedia=${input.cleanupMedia === true}\tcwd=${process.cwd()}\tpid=${process.pid}\n`
     await fs.appendFile(path.join(auditDir, "posts-audit.log"), entry, "utf-8")
   } catch {
     /* no bloquear el delete por un fallo de logging */
@@ -201,19 +224,26 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
     throw new PostsWriteError("internal_error", 500, "Failed to delete file", { details })
   }
 
-  // Cleanup: if the deleted post was the last sibling of its translationKey,
-  // remove public/uploads/<key>/ as well. We must clear the runtime cache
-  // first so findPostsByTranslationKey re-reads from disk and doesn't see
-  // the just-deleted post as still present.
-  clearPostsRuntimeCache()
-  const { findPostsByTranslationKey } = await import("./translation-key")
-  const remaining = await findPostsByTranslationKey(target.translationKey)
-  if (remaining.length === 0) {
-    const { deleteMetaForKey } = await import("./media-meta")
-    await deleteMetaForKey(target.translationKey)
+  // Cleanup opcional de uploads. Solo si cleanupMedia:true Y es el último
+  // sibling i18n del translationKey. Default false: la media se preserva
+  // ante un delete (los binarios pesan y son caros — el usuario puede tener
+  // motivos para borrar el .mdx pero conservar las fotos para reuse).
+  let mediaCleanedUp = false
+  if (input.cleanupMedia === true) {
+    clearPostsRuntimeCache()
+    const { findPostsByTranslationKey } = await import("./translation-key")
+    const remaining = await findPostsByTranslationKey(target.translationKey)
+    if (remaining.length === 0) {
+      const { deleteMetaForKey } = await import("./media-meta")
+      await deleteMetaForKey(target.translationKey)
+      mediaCleanedUp = true
+    }
+  } else {
+    // Aún limpiamos cache para que el siguiente listPostsFromDisk vea estado fresco.
+    clearPostsRuntimeCache()
   }
 
-  return { slug, locale, path: filePath }
+  return { slug, locale, path: filePath, mediaCleanedUp }
 }
 
 export interface RebuildResult {

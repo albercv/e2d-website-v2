@@ -36,7 +36,7 @@ describe("deletePost — uploads cleanup", () => {
     fs.writeFileSync(path.join(tmp, "uploads", "ferdy-2026", "fachada.jpg"), "x")
     await writeMeta("ferdy-2026", { fachada: { ext: "jpg", kind: "image", alt: "", caption: "" } })
 
-    await deletePost({ slug: "solo", locale: "es" })
+    await deletePost({ slug: "solo", locale: "es", confirm: true, cleanupMedia: true })
     expect(fs.existsSync(path.join(tmp, "uploads", "ferdy-2026"))).toBe(false)
   })
 
@@ -61,7 +61,27 @@ describe("deletePost — uploads cleanup", () => {
     fs.writeFileSync(path.join(tmp, "uploads", "ferdy-2026", "fachada.jpg"), "x")
     await writeMeta("ferdy-2026", { fachada: { ext: "jpg", kind: "image", alt: "", caption: "" } })
 
-    await deletePost({ slug: "es-post", locale: "es" })
+    await deletePost({ slug: "es-post", locale: "es", confirm: true, cleanupMedia: true })
     expect(fs.existsSync(path.join(tmp, "uploads", "ferdy-2026"))).toBe(true)
+  })
+
+  it("preserves uploads dir when cleanupMedia is false (default)", async () => {
+    await createPost({
+      title: "Solo preserve",
+      description: "post solo preserve description",
+      content: "x".repeat(60),
+      locale: "es",
+      tags: [],
+      translationKey: "ferdy-preserve",
+    })
+    fs.mkdirSync(path.join(tmp, "uploads", "ferdy-preserve"))
+    fs.writeFileSync(path.join(tmp, "uploads", "ferdy-preserve", "hero.png"), "binary")
+    await writeMeta("ferdy-preserve", { hero: { ext: "png", kind: "image", alt: "", caption: "" } })
+
+    // Sin cleanupMedia (default false) — el dir sobrevive aunque sea último sibling
+    const result = await deletePost({ slug: "solo-preserve", locale: "es", confirm: true })
+    expect(result.mediaCleanedUp).toBe(false)
+    expect(fs.existsSync(path.join(tmp, "uploads", "ferdy-preserve"))).toBe(true)
+    expect(fs.existsSync(path.join(tmp, "uploads", "ferdy-preserve", "hero.png"))).toBe(true)
   })
 })

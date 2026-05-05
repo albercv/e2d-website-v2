@@ -237,11 +237,24 @@ describe("lib/mcp/rpc-handler", () => {
           jsonrpc: "2.0",
           id: 201,
           method: "tools/call",
-          params: { name: "posts_delete", arguments: { slug: "no-existe-2026", locale: "es" } },
+          params: { name: "posts_delete", arguments: { slug: "no-existe-2026", locale: "es", confirm: true } },
         },
         { claims: { sub: "u", email: "e", role: "admin", scope: ["posts:delete"], iss: "x", aud: "x", iat: 0, exp: 0 } }
       )
       expect((res as any).error).toMatchObject({ code: -32000, message: "not_found" })
+    })
+
+    it("rechaza confirm_required cuando confirm no es true", async () => {
+      const res = await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 202,
+          method: "tools/call",
+          params: { name: "posts_delete", arguments: { slug: "any", locale: "es" } },
+        },
+        { claims: { sub: "u", email: "e", role: "admin", scope: ["posts:delete"], iss: "x", aud: "x", iat: 0, exp: 0 } }
+      )
+      expect((res as any).error).toMatchObject({ code: -32000, message: "confirm_required" })
     })
   })
 

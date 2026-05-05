@@ -168,15 +168,25 @@ export function toolsList() {
       },
       {
         name: "posts_delete",
-        description: "Borra un post del blog por slug (requiere scope posts:delete).",
+        description:
+          "Borra un post del blog por slug (requiere scope posts:delete). " +
+          "OBLIGATORIO `confirm: true` — sin él devuelve 400 para evitar deletes accidentales. " +
+          "Por defecto NO borra los binarios subidos a /uploads/<translationKey>/ (las fotos/vídeos se preservan). " +
+          "Si quieres borrarlos también, pasa `cleanupMedia: true` (solo elimina cuando no quedan hermanos i18n del translationKey).",
         inputSchema: {
           type: "object",
           properties: {
             slug: { type: "string", minLength: 1 },
             locale: { type: "string", enum: ["es", "en", "it"] },
+            confirm: { type: "boolean", description: "Debe ser true. Sin él la operación se rechaza con 400." },
+            cleanupMedia: {
+              type: "boolean",
+              default: false,
+              description: "Si true, también borra el dir /uploads/<translationKey>/ cuando es el último sibling.",
+            },
             skip_rebuild: { type: "boolean", default: false },
           },
-          required: ["slug", "locale"],
+          required: ["slug", "locale", "confirm"],
         },
       },
       {
@@ -431,6 +441,8 @@ export async function handleRpcCall(
         const result = await deletePost({
           slug: typeof args.slug === "string" ? args.slug : "",
           locale,
+          confirm: args.confirm === true,
+          cleanupMedia: args.cleanupMedia === true,
         })
 
         let rebuild: unknown = null

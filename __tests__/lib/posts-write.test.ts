@@ -136,7 +136,7 @@ describe("lib/blog/posts-write", () => {
 
   describe("deletePost", () => {
     it("borra el fichero del post existente", async () => {
-      const result = await mod.deletePost({ slug: "guia-n8n", locale: "es" })
+      const result = await mod.deletePost({ slug: "guia-n8n", locale: "es", confirm: true })
       expect(result.slug).toBe("guia-n8n")
       // Re-crear el fichero para no romper otros tests.
       await fs.writeFile(path.join(tmpDir, "content", "posts", "guia-n8n.mdx"), seedPostMdx)
@@ -144,14 +144,23 @@ describe("lib/blog/posts-write", () => {
 
     it("devuelve not_found si el slug no existe", async () => {
       await expect(
-        mod.deletePost({ slug: "no-existe", locale: "es" })
+        mod.deletePost({ slug: "no-existe", locale: "es", confirm: true })
       ).rejects.toMatchObject({ code: "not_found", status: 404 })
     })
 
     it("devuelve conflict si el locale no coincide con el del post", async () => {
       await expect(
-        mod.deletePost({ slug: "guia-n8n", locale: "en" })
+        mod.deletePost({ slug: "guia-n8n", locale: "en", confirm: true })
       ).rejects.toMatchObject({ code: "conflict", status: 409 })
+    })
+
+    it("rechaza con confirm_required si confirm no es true", async () => {
+      await expect(
+        mod.deletePost({ slug: "guia-n8n", locale: "es" })
+      ).rejects.toMatchObject({ code: "confirm_required", status: 400 })
+      await expect(
+        mod.deletePost({ slug: "guia-n8n", locale: "es", confirm: false })
+      ).rejects.toMatchObject({ code: "confirm_required", status: 400 })
     })
   })
 
