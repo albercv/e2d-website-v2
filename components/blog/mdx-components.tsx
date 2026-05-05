@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react"
 import type { MDXComponents as MDXComponentsType } from "mdx/types"
+import { MediaMissing } from "./MediaMissing"
 
 // Pros/Cons Component
 function ProsConsComponent({ pros, cons }: { pros: string[]; cons: string[] }) {
@@ -119,6 +120,7 @@ export const MDXComponents: MDXComponentsType = {
   Callout: CalloutComponent,
   CTAInline: CTAInlineComponent,
   CodeBlock: CodeBlockComponent,
+  MediaMissing,
 
   // Override default elements
   h1: ({ children }) => <h1 className="text-3xl font-bold text-foreground mt-8 mb-4">{children}</h1>,
