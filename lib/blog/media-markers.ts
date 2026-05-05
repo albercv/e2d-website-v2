@@ -123,14 +123,22 @@ export type CoverResolution =
   | { ok: true; url: string }
   | { ok: false; reason: "absent" | "not_found" | "kind_mismatch" }
 
+/**
+ * Resolves the cover image URL for a post. Resolution order:
+ *  1. meta.cover (set explicitly via the upload form) — takes precedence
+ *  2. frontmatter `cover` field passed as `cover` arg
+ * If neither is set, returns absent. The resolved name must exist in
+ * `meta.files` with `kind: "image"` to succeed.
+ */
 export function resolveCover(
   cover: string | undefined,
   meta: MediaMeta,
   translationKey: string
 ): CoverResolution {
-  if (!cover) return { ok: false, reason: "absent" }
-  const entry = meta.files[cover]
+  const name = meta.cover || cover
+  if (!name) return { ok: false, reason: "absent" }
+  const entry = meta.files[name]
   if (!entry) return { ok: false, reason: "not_found" }
   if (entry.kind !== "image") return { ok: false, reason: "kind_mismatch" }
-  return { ok: true, url: `/uploads/${translationKey}/${cover}.${entry.ext}` }
+  return { ok: true, url: `/uploads/${translationKey}/${name}.${entry.ext}` }
 }

@@ -495,6 +495,7 @@ export async function handleRpcCall(
               expiresAt: Math.floor(Date.now() / 1000) + ttl,
               translationKey: key,
               existingMedia,
+              cover: meta.cover || null,
             }),
           },
         ],
@@ -545,7 +546,16 @@ export async function handleRpcCall(
         url: `/uploads/${key}/${name}.${e.ext}`,
       }))
       return successResponse(id, {
-        content: [{ type: "text", text: JSON.stringify({ translationKey: key, files }) }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              translationKey: key,
+              files,
+              cover: meta.cover || null,
+            }),
+          },
+        ],
       })
     }
 

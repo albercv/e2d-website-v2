@@ -391,6 +391,37 @@ Body
       expect(text.uploadUrl).toMatch(/\/admin\/media-upload\?token=/)
       expect(text.translationKey).toBe("ferdy-2026")
       expect(Array.isArray(text.existingMedia)).toBe(true)
+      // cover defaults to null when no _meta.json or no top-level cover present
+      expect(text.cover).toBeNull()
+    })
+
+    it("includes the current cover when meta.cover is set", async () => {
+      const keyDir = path.join(uploadTmp, "uploads", "ferdy-2026")
+      fsSync.mkdirSync(keyDir, { recursive: true })
+      fsSync.writeFileSync(
+        path.join(keyDir, "_meta.json"),
+        JSON.stringify({
+          version: 1,
+          cover: "hero",
+          files: { hero: { ext: "png", kind: "image", alt: "", caption: "" } },
+        })
+      )
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_request_upload",
+            arguments: { slug: "ferdy", locale: "es" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.cover).toBe("hero")
     })
 
     it("returns not-found error for a missing slug", async () => {
@@ -465,6 +496,34 @@ Body
       )) as any
       const text = JSON.parse(res.result.content[0].text)
       expect(text.files).toEqual([])
+      expect(text.cover).toBeNull()
+    })
+
+    it("surfaces meta.cover (top-level) when set", async () => {
+      const keyDir = path.join(listTmp, "uploads", "ferdy-2026")
+      fsSync.mkdirSync(keyDir, { recursive: true })
+      fsSync.writeFileSync(
+        path.join(keyDir, "_meta.json"),
+        JSON.stringify({
+          version: 1,
+          cover: "hero",
+          files: { hero: { ext: "jpg", kind: "image", alt: "Hero", caption: "" } },
+        })
+      )
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "posts_list_media", arguments: { slug: "ferdy", locale: "es" } },
+        },
+        { claims: { sub: "u", scope: "posts:read" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.cover).toBe("hero")
+      expect(text.files.length).toBe(1)
     })
 
     it("returns the existing media list", async () => {

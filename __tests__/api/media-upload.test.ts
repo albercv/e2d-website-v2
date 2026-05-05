@@ -149,4 +149,141 @@ Body
     const data = (await res.json()) as { existingMedia: Array<{ name: string }> }
     expect(data.existingMedia.map((m) => m.name)).toEqual(["fachada"])
   })
+
+  it("commit persists top-level cover when included in body", async () => {
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "image/png",
+      "x-media-name": "hero",
+    }) as any)
+    const res = await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "hero", alt: "Hero", caption: "" }],
+          cover: "hero",
+        }),
+      }) as any
+    )
+    expect(res.status).toBe(200)
+    const meta = JSON.parse(
+      fs.readFileSync(path.join(tmp, "uploads", "ferdy-2026", "_meta.json"), "utf-8")
+    )
+    expect(meta.cover).toBe("hero")
+  })
+
+  it("commit rejects cover that names a non-existent file (400)", async () => {
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "image/png",
+      "x-media-name": "hero",
+    }) as any)
+    const res = await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "hero", alt: "", caption: "" }],
+          cover: "ghost",
+        }),
+      }) as any
+    )
+    expect(res.status).toBe(400)
+  })
+
+  it("commit rejects cover pointing to a video (400)", async () => {
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "video/mp4",
+      "x-media-name": "testimonio",
+    }) as any)
+    const res = await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "testimonio", alt: "", caption: "" }],
+          cover: "testimonio",
+        }),
+      }) as any
+    )
+    expect(res.status).toBe(400)
+  })
+
+  it("commit clears top-level cover when cover is null", async () => {
+    // First commit with cover.
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "image/png",
+      "x-media-name": "hero",
+    }) as any)
+    await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "hero", alt: "", caption: "" }],
+          cover: "hero",
+        }),
+      }) as any
+    )
+    let meta = JSON.parse(
+      fs.readFileSync(path.join(tmp, "uploads", "ferdy-2026", "_meta.json"), "utf-8")
+    )
+    expect(meta.cover).toBe("hero")
+    // Second commit with cover: null clears it.
+    const res = await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "hero", alt: "Updated alt", caption: "" }],
+          cover: null,
+        }),
+      }) as any
+    )
+    expect(res.status).toBe(200)
+    meta = JSON.parse(
+      fs.readFileSync(path.join(tmp, "uploads", "ferdy-2026", "_meta.json"), "utf-8")
+    )
+    expect(meta.cover).toBeUndefined()
+  })
+
+  it("commit without cover field preserves the existing top-level cover", async () => {
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "image/png",
+      "x-media-name": "hero",
+    }) as any)
+    await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "hero", alt: "", caption: "" }],
+          cover: "hero",
+        }),
+      }) as any
+    )
+    // Subsequent commit without cover key in body keeps the existing cover.
+    await upload(makeStreamRequest("http://x/upload", Buffer.from("hi"), {
+      authorization: `Bearer ${token}`,
+      "content-type": "image/png",
+      "x-media-name": "side",
+    }) as any)
+    await commit(
+      jsonReq("http://x/upload/commit", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          files: [{ name: "side", alt: "", caption: "" }],
+        }),
+      }) as any
+    )
+    const meta = JSON.parse(
+      fs.readFileSync(path.join(tmp, "uploads", "ferdy-2026", "_meta.json"), "utf-8")
+    )
+    expect(meta.cover).toBe("hero")
+  })
 })

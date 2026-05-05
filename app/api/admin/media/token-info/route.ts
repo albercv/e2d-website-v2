@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     translationKey: claims.translationKey,
     siblings: siblings.map((p) => ({ slug: p.slug, locale: p.locale, title: p.title })),
     existingMedia,
+    cover: meta.cover ?? null,
     expiresAt: claims.exp * 1000,
   })
 }

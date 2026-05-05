@@ -15,6 +15,15 @@ interface BatchEntry {
   caption?: string
 }
 
+interface CommitBody {
+  files?: BatchEntry[]
+  // Top-level cover follows three-state semantics:
+  //   undefined / missing key -> preserve existing meta.cover (no change)
+  //   string                  -> set/override meta.cover (must be image kind)
+  //   null                    -> remove meta.cover
+  cover?: string | null
+}
+
 const KIND_BY_EXT: Record<string, MediaKind> = {
   jpg: "image",
   png: "image",
@@ -56,7 +65,7 @@ export async function POST(req: NextRequest) {
   const claims = verifyUploadToken(m[1])
   if (!claims) return NextResponse.json({ error: "invalid_token" }, { status: 401 })
 
-  const body = (await req.json().catch(() => null)) as { files?: BatchEntry[] } | null
+  const body = (await req.json().catch(() => null)) as CommitBody | null
   if (!body || !Array.isArray(body.files) || body.files.length === 0) {
     return NextResponse.json({ error: "missing_files" }, { status: 400 })
   }
@@ -90,7 +99,31 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  await writeMeta(claims.translationKey, newEntries)
+  // Validate the cover field (when provided). The cover must reference a
+  // file that is either being committed in this batch or already exists in
+  // the directory, and it must resolve to kind: "image".
+  let coverOpt: { cover?: string | null } = {}
+  if (body.cover === null) {
+    coverOpt = { cover: null }
+  } else if (typeof body.cover === "string") {
+    const candidate = body.cover
+    const inBatch = newEntries[candidate]
+    let resolved: { ext: string; kind: MediaKind } | null = inBatch
+      ? { ext: inBatch.ext, kind: inBatch.kind }
+      : null
+    if (!resolved) {
+      resolved = await findFile(dir, candidate)
+    }
+    if (!resolved) {
+      return NextResponse.json({ error: "cover_not_found", name: candidate }, { status: 400 })
+    }
+    if (resolved.kind !== "image") {
+      return NextResponse.json({ error: "cover_kind_mismatch", name: candidate }, { status: 400 })
+    }
+    coverOpt = { cover: candidate }
+  }
+
+  await writeMeta(claims.translationKey, newEntries, coverOpt)
   return NextResponse.json({ ok: true, files: out })
 }
 // Note: ALLOWED_MIME is imported only to keep the route's surface coherent

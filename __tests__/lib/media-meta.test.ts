@@ -73,4 +73,46 @@ describe("media-meta", () => {
     ).rejects.toThrow(/locked/i)
     await slow
   })
+
+  it("persists the optional top-level cover when provided", async () => {
+    const entry: MediaMetaEntry = { ext: "png", kind: "image", alt: "Hero", caption: "" }
+    await writeMeta("ferdy", { hero: entry }, { cover: "hero" })
+    const meta = await readMeta("ferdy")
+    expect(meta.cover).toBe("hero")
+    expect(meta.files.hero).toEqual(entry)
+  })
+
+  it("clears the top-level cover when cover is null", async () => {
+    await writeMeta(
+      "ferdy",
+      { hero: { ext: "png", kind: "image", alt: "", caption: "" } },
+      { cover: "hero" }
+    )
+    const before = await readMeta("ferdy")
+    expect(before.cover).toBe("hero")
+    // Now explicitly clear it (e.g. user un-set the cover)
+    await writeMeta("ferdy", {}, { cover: null })
+    const after = await readMeta("ferdy")
+    expect(after.cover).toBeUndefined()
+  })
+
+  it("preserves existing top-level cover when not specified in writeMeta opts", async () => {
+    await writeMeta(
+      "ferdy",
+      { hero: { ext: "png", kind: "image", alt: "", caption: "" } },
+      { cover: "hero" }
+    )
+    // Subsequent write that does NOT pass cover keeps the existing one.
+    await writeMeta("ferdy", {
+      side: { ext: "jpg", kind: "image", alt: "", caption: "" },
+    })
+    const meta = await readMeta("ferdy")
+    expect(meta.cover).toBe("hero")
+    expect(Object.keys(meta.files).sort()).toEqual(["hero", "side"])
+  })
+
+  it("readMeta default shape omits cover", async () => {
+    const meta = await readMeta("absent-key")
+    expect(meta.cover).toBeUndefined()
+  })
 })

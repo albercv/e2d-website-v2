@@ -88,4 +88,44 @@ describe("resolveCover", () => {
   it("returns null when cover is undefined", () => {
     expect(resolveCover(undefined, META, "ferdy")).toEqual({ ok: false, reason: "absent" })
   })
+
+  it("uses meta.cover when present, ignoring the frontmatter cover arg", () => {
+    const metaWithCover: MediaMeta = { ...META, cover: "fachada" }
+    // Frontmatter says "poster" (a video — would fail), but meta.cover wins.
+    expect(resolveCover("poster", metaWithCover, "ferdy")).toEqual({
+      ok: true,
+      url: "/uploads/ferdy/fachada.jpg",
+    })
+  })
+
+  it("falls back to the frontmatter cover when meta.cover is absent", () => {
+    expect(resolveCover("fachada", META, "ferdy")).toEqual({
+      ok: true,
+      url: "/uploads/ferdy/fachada.jpg",
+    })
+  })
+
+  it("uses meta.cover even when no frontmatter cover is supplied", () => {
+    const metaWithCover: MediaMeta = { ...META, cover: "fachada" }
+    expect(resolveCover(undefined, metaWithCover, "ferdy")).toEqual({
+      ok: true,
+      url: "/uploads/ferdy/fachada.jpg",
+    })
+  })
+
+  it("returns kind_mismatch when meta.cover points to a video", () => {
+    const metaWithCover: MediaMeta = { ...META, cover: "poster" }
+    expect(resolveCover(undefined, metaWithCover, "ferdy")).toEqual({
+      ok: false,
+      reason: "kind_mismatch",
+    })
+  })
+
+  it("returns not_found when meta.cover points to an unknown name", () => {
+    const metaWithCover: MediaMeta = { ...META, cover: "ghost" }
+    expect(resolveCover("fachada", metaWithCover, "ferdy")).toEqual({
+      ok: false,
+      reason: "not_found",
+    })
+  })
 })

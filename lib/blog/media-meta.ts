@@ -13,7 +13,24 @@ export interface MediaMetaEntry {
 
 export interface MediaMeta {
   version: 1
+  /**
+   * Optional slug-key of the file used as the post cover. Set by the upload
+   * form; takes precedence over the cover declared in MDX frontmatter when
+   * resolved by `resolveCover`. Must point to an existing entry in `files`
+   * with `kind: "image"`. When absent, the frontmatter cover wins.
+   */
+  cover?: string
   files: Record<string, MediaMetaEntry>
+}
+
+/**
+ * Options for writeMeta. `cover` follows three-state semantics:
+ *  - undefined  -> preserve existing top-level cover (no change)
+ *  - string     -> set/override top-level cover
+ *  - null       -> remove top-level cover
+ */
+export interface WriteMetaOptions {
+  cover?: string | null
 }
 
 interface CacheEntry {
@@ -86,7 +103,8 @@ async function releaseLock(key: string): Promise<void> {
 
 export async function writeMeta(
   key: string,
-  newEntries: Record<string, MediaMetaEntry>
+  newEntries: Record<string, MediaMetaEntry>,
+  opts: WriteMetaOptions = {}
 ): Promise<MediaMeta> {
   await acquireLock(key)
   try {
@@ -94,6 +112,15 @@ export async function writeMeta(
     const merged: MediaMeta = {
       version: 1,
       files: { ...existing.files, ...newEntries },
+    }
+    // Three-state cover handling: explicit string sets, null clears,
+    // undefined preserves whatever the existing meta had.
+    if (opts.cover === null) {
+      // remove (already absent in `merged`)
+    } else if (typeof opts.cover === "string") {
+      merged.cover = opts.cover
+    } else if (existing.cover) {
+      merged.cover = existing.cover
     }
     const file = metaPath(key)
     const tmp = `${file}.tmp`
