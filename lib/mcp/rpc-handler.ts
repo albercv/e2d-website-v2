@@ -140,7 +140,10 @@ export function toolsList() {
       },
       {
         name: "posts_create",
-        description: "Crea un post nuevo en el blog (requiere scope posts:write).",
+        description:
+          "Crea un post nuevo en el blog (requiere scope posts:write). El `content` puede contener " +
+          "markers `[image:nombre]`/`[video:nombre]`. `cover` apunta a un nombre de marker " +
+          "(imagen) usado como portada. `translationKey` agrupa hermanos i18n; default = slug.",
         inputSchema: {
           type: "object",
           properties: {
@@ -152,6 +155,8 @@ export function toolsList() {
             date: { type: "string", description: "ISO date YYYY-MM-DD; default = hoy." },
             author: { type: "string", default: "Alberto Carrasco" },
             published: { type: "boolean", default: true },
+            cover: { type: "string", description: "Nombre de marker (slug-key) usado como portada." },
+            translationKey: { type: "string", description: "Agrupa posts hermanos i18n. Default = slug." },
             skip_rebuild: {
               type: "boolean",
               default: false,
@@ -368,6 +373,8 @@ export async function handleRpcCall(
           date: typeof args.date === "string" ? args.date : undefined,
           author: typeof args.author === "string" ? args.author : undefined,
           published: args.published !== false,
+          cover: typeof args.cover === "string" ? args.cover : undefined,
+          translationKey: typeof args.translationKey === "string" ? args.translationKey : undefined,
         })
 
         let rebuild: unknown = null

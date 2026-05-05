@@ -63,6 +63,8 @@ export interface CreatePostInput {
   date?: string
   author?: string
   published?: boolean
+  cover?: string
+  translationKey?: string
 }
 
 export interface CreatePostResult {
@@ -115,6 +117,8 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
     tags.length ? `tags: [${tags.map((t) => yamlQuote(t)).join(", ")}]` : "tags: []",
     `author: ${yamlQuote(author)}`,
     `published: ${published ? "true" : "false"}`,
+    ...(input.cover ? [`cover: ${input.cover}`] : []),
+    ...(input.translationKey ? [`translationKey: ${input.translationKey}`] : []),
     "---",
   ]
   const mdx = frontmatterLines.join("\n") + "\n\n" + content + "\n"
