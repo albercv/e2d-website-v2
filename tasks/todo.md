@@ -19,6 +19,73 @@
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
 
+### TASK — Catálogo MDX para que Claude.ai escriba posts visualmente trabajados
+
+**Contexto:** los posts generados por Claude.ai vía `posts_create` / `posts_update_body` salen como prosa plana sin elementos destacables. Tras el fix tipográfico básico (commit pendiente), el problema persiste a nivel de contenido: Claude no usa los componentes ricos disponibles en MDX.
+
+**Componentes MDX existentes hoy** (`components/blog/mdx-components.tsx`):
+- `<ProsCons pros={[...]} cons={[...]} />` — dos columnas verde/rojo.
+- `<Callout type="info|warning|success|error" title="...">...</Callout>` — Alert con icono.
+- `<CTAInline text="..." href="..." />` — bloque de llamada a acción brand teal.
+- `<CodeBlock language="...">...</CodeBlock>` — bloque de código con label.
+- `<Lead>...</Lead>` — primer párrafo destacado (recién añadido).
+- `<PullQuote author="...">...</PullQuote>` — cita editorial grande con barra teal.
+- `<Figure src="..." alt="..." caption="..." />` — imagen + leyenda centrada.
+- `<Stat value="40%" label="aumento de leads" />` — KPI tipo dashboard.
+- `[image:slug]` y `[video:slug]` — markers que se expanden a media de `_meta.json`.
+
+**Plan**:
+
+1. **Auditar el catálogo** — ¿qué falta? Candidatos:
+   - `<Timeline items={[...]} />` para casos de éxito ordenados temporalmente.
+   - `<ComparisonTable headers={[]} rows={[[]]} />` para comparativas.
+   - `<TLDR>...</TLDR>` resumen ejecutivo arriba del post.
+   - `<Steps>...</Steps>` para procesos numerados con visual.
+   - `<Highlight>...</Highlight>` para frases clave inline (tipo marcador).
+
+2. **Documentar el catálogo en formato consumible por LLM** — generar un `docs/mdx-catalogue.md` con:
+   - Cada componente, su signatura JSX exacta, ejemplo mínimo y ejemplo de uso real.
+   - Reglas de cuándo usar uno vs. otro (Callout vs. PullQuote, etc.).
+   - Anti-patrones (nunca dos PullQuote seguidas, etc.).
+
+3. **Exponer el catálogo vía MCP**: nuevo tool `posts_mdx_catalogue` que devuelve el documento. Claude.ai lo consulta antes de generar contenido. O bien, incluir un resumen del catálogo en `instructions` del `initialize` MCP (limitado por longitud).
+
+4. **Validación post-create**: extender `posts_validate` para detectar prosa "plana" — heurísticas tipo "post de >1000 palabras sin un solo componente custom = warning" o "no hay `<Lead>` en los primeros 200 chars".
+
+**Severidad:** media. Bloquea calidad editorial pero no operativa. Aplicar tras smoke real y feedback del flow end-to-end.
+
+---
+
+### TASK — Prompt de sistema para Claude.ai web que opere el MCP correctamente
+
+**Contexto:** durante esta sesión Claude.ai ha cometido errores operativos: posts_rebuild gratuitos antes de las instrucciones nuevas, posts_delete accidentales (cerrado por BUG-12 con `confirm:true`), no usar `posts_update_body` como vía preferida tras subir media, etc. El conector MCP no transmite suficiente "playbook" al LLM.
+
+**Plan**:
+
+1. **Definir el playbook del editor de blog** (operativo, no de marketing):
+   - Antes de crear: `posts_search` para verificar que el slug no existe (evitar 409).
+   - Para añadir media: `posts_request_upload` → URL al usuario → esperar confirmación → `posts_list_media` → escribir markers con nombres reales.
+   - Para actualizar texto sin tocar media: `posts_update_body` (NO delete + create).
+   - Para borrar: SIEMPRE confirmar con el usuario antes y usar `confirm:true` + decisión explícita sobre `cleanupMedia`.
+   - Después de `posts_update_body`: opcionalmente `posts_rebuild` UNA vez para refrescar SEO. Tras `posts_create` / `posts_delete`, NO (ya rebuildean solos).
+   - Usar `posts_validate` antes de publicar.
+
+2. **Definir el playbook editorial** (calidad de contenido):
+   - Empezar por `<Lead>` enganchando.
+   - Usar `<PullQuote>` para citas reales del cliente.
+   - Usar `<Stat>` para resultados cuantificables.
+   - Usar `<Callout>` para advertencias o información secundaria.
+   - Markers `[image:X]` para fotos, `[video:X]` para vídeos demo.
+   - Frontmatter `cover: <slug-key>` apunta a la imagen hero (slug-key, no URL).
+
+3. **Implementación**: el campo `instructions` de la respuesta `initialize` MCP (ya tocado en commit `df290f5` para REBUILD) puede crecer para incluir el playbook completo. Limitación: longitud — Claude.ai puede truncarlo. Alternativa: nuevo tool `blog_playbook` que el LLM llama al inicio de la conversación.
+
+4. **Iteración basada en uso real**: instrumentar el flow para detectar patrones de error (ej: `posts_create` que recibe 409 seguido de `posts_delete + posts_create` sería un anti-patrón a documentar). El audit log de deletes ya está; añadir uno equivalente para creates/updates.
+
+**Severidad:** media. La calidad operativa del LLM influye directamente en la UX del usuario humano. Aplicar tras catálogo MDX (orden lógico: el playbook referencia el catálogo).
+
+---
+
 ### BUG-9 — `__tests__/api/answers.test.ts` mockea `@/.contentlayer/generated` que ya no se usa
 
 **Síntoma:** el test fallaba 404 cuando se borraban los `.mdx` de `content/` — su mock está obsoleto.

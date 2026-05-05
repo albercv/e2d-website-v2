@@ -114,32 +114,131 @@ function CodeBlockComponent({ children, language }: { children: string; language
   )
 }
 
+// Lead — primer párrafo destacado, ideal después del título
+function LeadComponent({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xl leading-relaxed text-foreground/85 font-light tracking-tight mb-8 first:mt-0 not-prose">
+      {children}
+    </p>
+  )
+}
+
+// Pull quote — cita destacada estilo editorial
+function PullQuoteComponent({ children, author }: { children: React.ReactNode; author?: string }) {
+  return (
+    <figure className="my-12 border-l-4 border-[#05b4ba] pl-6 py-2 not-prose">
+      <blockquote className="text-2xl leading-snug font-light text-foreground italic">
+        &ldquo;{children}&rdquo;
+      </blockquote>
+      {author && (
+        <figcaption className="mt-3 text-sm text-muted-foreground not-italic">— {author}</figcaption>
+      )}
+    </figure>
+  )
+}
+
+// Figure — imagen + caption, para usar dentro del flujo MDX
+function FigureComponent({
+  src,
+  alt,
+  caption,
+}: {
+  src: string
+  alt: string
+  caption?: string
+}) {
+  return (
+    <figure className="my-10 not-prose">
+      <img
+        src={src}
+        alt={alt}
+        className="w-full rounded-xl ring-1 ring-border shadow-xl shadow-black/30"
+      />
+      {caption && (
+        <figcaption className="mt-3 text-center text-sm text-muted-foreground italic">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+// Stat — número grande con etiqueta. Ideal para resultados cuantificables
+function StatComponent({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="my-4 inline-flex flex-col items-start rounded-lg border border-border bg-muted/30 px-6 py-4 not-prose">
+      <span className="text-3xl font-bold text-[#05b4ba] leading-none">{value}</span>
+      <span className="mt-1 text-sm text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
 export const MDXComponents: MDXComponentsType = {
   // Custom components
   ProsCons: ProsConsComponent,
   Callout: CalloutComponent,
   CTAInline: CTAInlineComponent,
   CodeBlock: CodeBlockComponent,
+  Lead: LeadComponent,
+  PullQuote: PullQuoteComponent,
+  Figure: FigureComponent,
+  Stat: StatComponent,
   MediaMissing,
 
-  // Override default elements
-  h1: ({ children }) => <h1 className="text-3xl font-bold text-foreground mt-8 mb-4">{children}</h1>,
-  h2: ({ children }) => <h2 className="text-2xl font-semibold text-foreground mt-8 mb-4">{children}</h2>,
-  h3: ({ children }) => <h3 className="text-xl font-semibold text-foreground mt-6 mb-3">{children}</h3>,
-  p: ({ children }) => <p className="text-muted-foreground mb-4 leading-relaxed">{children}</p>,
-  ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2 text-muted-foreground">{children}</ul>,
-  ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2 text-muted-foreground">{children}</ol>,
-  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  // Override default elements — los estilos base los maneja el wrapper `prose`
+  // del blog-post.tsx (Tailwind typography). Aquí solo afinamos lo que prose
+  // no acaba de cubrir bien o sobreescribimos con paleta brand.
+  h1: ({ children }) => (
+    <h1 className="text-3xl font-bold text-foreground mt-10 mb-4 first:mt-0">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-2xl font-semibold text-foreground mt-10 mb-4 first:mt-0">{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-xl font-semibold text-foreground mt-7 mb-3 first:mt-0">{children}</h3>
+  ),
+  p: ({ children }) => (
+    <p className="text-foreground/90 mb-5 leading-[1.75] hyphens-auto" style={{ textAlign: "justify" }}>
+      {children}
+    </p>
+  ),
+  ul: ({ children }) => (
+    <ul className="list-disc list-outside pl-6 mb-5 space-y-2 text-foreground/90 marker:text-[#05b4ba]">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="list-decimal list-outside pl-6 mb-5 space-y-2 text-foreground/90 marker:text-[#05b4ba] marker:font-semibold">
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => <li className="leading-[1.75] pl-1">{children}</li>,
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-[#05b4ba] pl-4 my-6 italic text-muted-foreground">{children}</blockquote>
+    <blockquote className="my-7 border-l-4 border-[#05b4ba] bg-muted/30 pl-5 py-3 pr-4 rounded-r italic text-foreground/85">
+      {children}
+    </blockquote>
   ),
   code: ({ children }) => (
-    <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-foreground">{children}</code>
+    <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border/50">
+      {children}
+    </code>
   ),
-  pre: ({ children }) => <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-6">{children}</pre>,
+  pre: ({ children }) => (
+    <pre className="bg-muted/50 border border-border p-4 rounded-lg overflow-x-auto my-6 text-sm">
+      {children}
+    </pre>
+  ),
+  hr: () => <hr className="my-10 border-border/50" />,
   a: ({ href, children }) => (
-    <a href={href} className="text-[#05b4ba] hover:text-[#05b4ba]/80 underline">
+    <a
+      href={href}
+      className="text-[#05b4ba] hover:text-[#05b4ba]/80 underline-offset-4 decoration-[#05b4ba]/30 hover:decoration-[#05b4ba] underline"
+      target={href?.startsWith("http") ? "_blank" : undefined}
+      rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+    >
       {children}
     </a>
   ),
+  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+  em: ({ children }) => <em className="italic text-foreground/95">{children}</em>,
 }
