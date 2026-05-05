@@ -1,5 +1,7 @@
 # Subida de fotos y vídeos a posts del blog desde el chat de Claude
 
+> ⚠️ **OBSOLETA** — reemplazada por [`2026-05-05-media-uploads-with-markers-design.md`](./2026-05-05-media-uploads-with-markers-design.md). El endpoint de upload ya no escribe MDX y la colocación inline pasa a ser una convención de markers compuesta por el LLM. Esta spec se conserva como histórico del primer diseño aprobado el 2026-05-04.
+
 **Fecha**: 2026-05-04
 **Estado**: aprobado (brainstorming)
 **Alcance**: nuevo tool MCP `posts_request_upload`, página `/admin/media-upload`,
