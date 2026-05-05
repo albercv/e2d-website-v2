@@ -2,6 +2,28 @@
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
 
+### BUG-6 — `scripts/sync-static-files.js` copia los `_next/static` al destino equivocado
+
+**Síntoma:** tras `npm run build && pm2 start ecosystem.config.js`, todas las URLs `/_next/static/css/<hash>.css` y `/_next/static/chunks/<hash>.js` devuelven 404. La página HTML carga (200 OK) pero sin estilos ni JS — sitio "roto" visualmente. Reproducible 2026-05-05 20:06 UTC tras una recuperación limpia desde 502.
+
+**Causa raíz:** el script copia `.next/static/` → `.next/standalone/public/_next/static/`. Pero Next.js standalone server busca los assets de `/_next/...` en `<distDir>/static/` que con cwd post-`process.chdir(__dirname)` resuelve a `.next/standalone/.next/static/`. El path `public/_next/...` está reservado por Next.js como ruta interna y NO se sirve desde el directorio público — el runtime intercepta `/_next/...` antes de pasar al static handler de public/.
+
+**Workaround aplicado el 2026-05-05 20:07 UTC:**
+```bash
+mkdir -p .next/standalone/.next/static
+cp -r .next/standalone/public/_next/static/* .next/standalone/.next/static/
+pm2 restart e2d
+```
+Tras el restart todo verde (CSS/JS sirven 200).
+
+**Fix definitivo (en código):** modificar `scripts/sync-static-files.js` para que `targetDir` apunte a `.next/standalone/.next/static/` en vez de `.next/standalone/public/_next/static/`. La copia a `public/_next/static/` puede dejarse como duplicado (algunos despliegues la usan como fallback) pero el dir realmente cargado es el del distDir.
+
+**Por qué no se detectó antes:** el sitio venía funcionando, así que en builds previos el sync iba al sitio correcto (¿simbólico previo? ¿otra versión del script?). Habría que revisar el `git log scripts/sync-static-files.js` para localizar cuándo se rompió.
+
+**Severidad:** alta. CADA `npm run build && pm2 restart` deja el sitio sin CSS hasta que se aplica el workaround.
+
+---
+
 ### BUG-5 — `posts_validate` no comprueba existencia física de los binarios
 
 **Síntoma reportado por el usuario el 2026-05-05:** `posts_validate` devuelve `{ ok: true, missingMarkers: [], unusedMedia: [], coverOk: true }` para un post cuyos `[video:testimonio]` y `cover: hero` referencian binarios que NO existen en disco (caso real: estaban en `.next/standalone/public/uploads/` y se borraron en un build, pero `_meta.json` se preservó). La tool **oculta el bug principal** (BUG-3) al dar luz verde.
