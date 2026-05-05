@@ -99,7 +99,7 @@ describe("lib/mcp/rpc-handler", () => {
   })
 
   describe("handleRpcCall - tools/list", () => {
-    it("devuelve los tools (read + write + rebuild + request_upload + update_body + list_media)", async () => {
+    it("devuelve los tools (read + write + rebuild + request_upload + update_body + list_media + validate)", async () => {
       const res = await mod.handleRpcCall({ jsonrpc: "2.0", id: 2, method: "tools/list" })
       const result = (res as any).result
       expect(result.tools.map((t: any) => t.name).sort()).toEqual([
@@ -111,6 +111,7 @@ describe("lib/mcp/rpc-handler", () => {
         "posts_request_upload",
         "posts_search",
         "posts_update_body",
+        "posts_validate",
       ])
     })
   })

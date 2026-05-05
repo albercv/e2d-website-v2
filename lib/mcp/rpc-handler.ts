@@ -227,6 +227,20 @@ export function toolsList() {
           required: ["slug", "locale"],
         },
       },
+      {
+        name: "posts_validate",
+        description:
+          "Comprueba que todos los markers `[image:X]`/`[video:X]` y el `cover` " +
+          "del post existan en _meta.json. Sin side effects. Útil antes de `posts_rebuild`.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+          },
+          required: ["slug", "locale"],
+        },
+      },
     ],
   }
 }
@@ -512,6 +526,15 @@ export async function handleRpcCall(
       return successResponse(id, {
         content: [{ type: "text", text: JSON.stringify({ translationKey: key, files }) }],
       })
+    }
+
+    if (toolName === "posts_validate") {
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      if (!slug.trim() || !locale) return errorResponse(id, -32602, "Invalid params")
+      const { validatePost } = await import("@/lib/blog/posts-validate")
+      const result = await validatePost(slug, locale)
+      return successResponse(id, { content: [{ type: "text", text: JSON.stringify(result) }] })
     }
 
     if (toolName === "posts_rebuild") {
