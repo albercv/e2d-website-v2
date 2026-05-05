@@ -1,5 +1,7 @@
 # Media uploads desde el chat de Claude — Implementation Plan
 
+> ⚠️ **OBSOLETO** — reemplazado por [`2026-05-05-media-uploads-with-markers.md`](./2026-05-05-media-uploads-with-markers.md). Este plan implementa la spec del 2026-05-04 (append-to-end), que también está obsoleta. El plan vigente sigue la spec marker-based del 2026-05-05.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Que un usuario pueda pedirle a Claude "sube fotos al post X", recibir una URL clicable, y subir múltiples imágenes/vídeos (hasta 1 GB cada uno) desde un formulario web autenticado por JWT, con auto-inserción de las referencias en el MDX de todas las traducciones del post.
