@@ -160,6 +160,11 @@ export async function getCompiledPost(
   const all = await listPostsFromDisk()
   const post = all.find((p) => p.slug === slug && p.locale === locale && p.published)
   if (!post) return null
+  const { readMeta } = await import("./media-meta")
+  const { expandMarkers, resolveCover } = await import("./media-markers")
+  const meta = await readMeta(post.translationKey)
+  const expandedBody = expandMarkers(post.body.raw, meta, post.translationKey)
+  const cover = resolveCover(post.cover, meta, post.translationKey)
   // Lazy import: next-mdx-remote/serialize es ESM puro y Jest peta al cargarlo
   // en tests que no compilan MDX. Importar dentro de la función mantiene el
   // módulo cargable bajo CommonJS y solo paga el coste cuando es necesario.
@@ -168,9 +173,13 @@ export async function getCompiledPost(
   // pros={[...]} cons={[...]} />). El default `blockJS: true` está pensado
   // para MDX de origen no confiable; aquí el contenido es nuestro y vive
   // en content/ del repo.
-  const compiled = await serialize(post.body.raw, {
+  const compiled = await serialize(expandedBody, {
     parseFrontmatter: false,
     blockJS: false,
   })
-  return { ...post, compiled }
+  return {
+    ...post,
+    cover: cover.ok ? cover.url : undefined,
+    compiled,
+  }
 }

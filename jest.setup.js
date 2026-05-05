@@ -1,5 +1,15 @@
 import '@testing-library/jest-dom'
 
+// next-mdx-remote/serialize y sus deps (@mdx-js/*) son ESM puro. Bajo Jest CJS
+// el import explota con "Unexpected token 'export'". Devolvemos el input tal cual
+// como compiledSource: los tests de getCompiledPost validan que expandMarkers se
+// ejecutó antes de serialize (es decir, que los marcadores ya están resueltos),
+// no que el MDX compile a JS. Si algún test futuro necesita el bundle real,
+// puede hacer jest.unmock('next-mdx-remote/serialize') localmente.
+jest.mock('next-mdx-remote/serialize', () => ({
+  serialize: (source) => Promise.resolve({ compiledSource: source, frontmatter: {}, scope: {} }),
+}))
+
 jest.mock('next-intl', () => ({
   useLocale: () => 'es',
   useTranslations: () => (key) => key,
