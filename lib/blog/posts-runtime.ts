@@ -29,6 +29,7 @@ export interface RuntimePost {
   date: string
   published: boolean
   cover?: string
+  translationKey: string
   url: string
   body: { raw: string }
   wordCount: number
@@ -110,6 +111,10 @@ function parseFile(filePath: string, contentDir: string, raw: string): RuntimePo
     date,
     published: fm.published !== false,
     cover: typeof fm.cover === "string" ? fm.cover : undefined,
+    translationKey:
+      typeof fm.translationKey === "string" && fm.translationKey.trim().length > 0
+        ? fm.translationKey
+        : slug,
     url: `/${locale}/blog/${slug}`,
     body: { raw: body },
     wordCount,
