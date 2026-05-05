@@ -149,6 +149,25 @@ export function clearPostsRuntimeCache(): void {
   cache.clear()
 }
 
+// Reemplaza el `cover` slug-key (lo que escribe la LLM en frontmatter) por la
+// URL pública resuelta (`/uploads/<key>/<name>.<ext>`). Si el cover no existe
+// en _meta.json, devuelve undefined. Centraliza la resolución para BlogCard,
+// generateMetadata (OG/Twitter) y cualquier otro consumidor público que muestre
+// la portada — sin esto cada componente reimplementa el path resolver con su
+// propio sesgo y se pasa por alto en componentes nuevos (BUG histórico).
+export async function resolvePostCovers(posts: RuntimePost[]): Promise<RuntimePost[]> {
+  const { readMeta } = await import("./media-meta")
+  const { resolveCover } = await import("./media-markers")
+  return Promise.all(
+    posts.map(async (post) => {
+      if (!post.cover) return post
+      const meta = await readMeta(post.translationKey)
+      const cover = resolveCover(post.cover, meta, post.translationKey)
+      return { ...post, cover: cover.ok ? cover.url : undefined }
+    })
+  )
+}
+
 export interface CompiledPost extends RuntimePost {
   compiled: MDXRemoteSerializeResult
 }
