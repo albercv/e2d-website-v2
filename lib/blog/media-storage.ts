@@ -114,6 +114,14 @@ export async function saveMediaFile(input: SaveMediaInput): Promise<SaveMediaRes
       cb()
     },
   })
-  await pipeline(input.stream, counter, fs.createWriteStream(dest))
+  try {
+    await pipeline(input.stream, counter, fs.createWriteStream(dest))
+  } catch (err) {
+    await fsp.rm(dest, { force: true }).catch(() => {})
+    throw new MediaStorageError(
+      "io",
+      `failed to write ${input.name}.${ext}: ${(err as Error).message}`
+    )
+  }
   return { name: input.name, ext, kind, size }
 }

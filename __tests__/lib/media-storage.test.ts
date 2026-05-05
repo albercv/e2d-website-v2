@@ -93,4 +93,21 @@ describe("media-storage", () => {
     expect(extForMime("image/jpeg")).toBe("jpg")
     expect(extForMime("video/quicktime")).toBe("mov")
   })
+
+  it("removes the partial file when the stream errors mid-pipeline", async () => {
+    const fail = new Readable({
+      read() {
+        this.emit("error", new Error("boom"))
+      },
+    })
+    await expect(
+      saveMediaFile({
+        translationKey: "ferdy",
+        name: "broken",
+        mime: "image/jpeg",
+        stream: fail,
+      })
+    ).rejects.toBeInstanceOf(MediaStorageError)
+    expect(fs.existsSync(path.join(tmp, "ferdy", "broken.jpg"))).toBe(false)
+  })
 })
