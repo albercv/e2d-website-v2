@@ -213,6 +213,20 @@ export function toolsList() {
           required: ["slug", "locale", "content"],
         },
       },
+      {
+        name: "posts_list_media",
+        description:
+          "Lista la media (imágenes/vídeos) ya subida a un post. Útil antes de escribir " +
+          "markers en el body, para confirmar qué nombres están disponibles.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+          },
+          required: ["slug", "locale"],
+        },
+      },
     ],
   }
 }
@@ -474,6 +488,30 @@ export async function handleRpcCall(
         }
         return errorResponse(id, -32603, "Internal error", { message: String(err) })
       }
+    }
+
+    if (toolName === "posts_list_media") {
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      if (!slug.trim() || !locale) {
+        return errorResponse(id, -32602, "Invalid params")
+      }
+      const { getTranslationKeyForSlug } = await import("@/lib/blog/translation-key")
+      const key = await getTranslationKeyForSlug(slug, locale)
+      if (!key) return errorResponse(id, -32004, "Not found")
+      const { readMeta } = await import("@/lib/blog/media-meta")
+      const meta = await readMeta(key)
+      const files = Object.entries(meta.files).map(([name, e]) => ({
+        name,
+        kind: e.kind,
+        ext: e.ext,
+        alt: e.alt,
+        caption: e.caption,
+        url: `/uploads/${key}/${name}.${e.ext}`,
+      }))
+      return successResponse(id, {
+        content: [{ type: "text", text: JSON.stringify({ translationKey: key, files }) }],
+      })
     }
 
     if (toolName === "posts_rebuild") {

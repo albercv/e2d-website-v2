@@ -121,6 +121,7 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
         "posts_create",
         "posts_delete",
         "posts_get",
+        "posts_list_media",
         "posts_rebuild",
         "posts_request_upload",
         "posts_search",

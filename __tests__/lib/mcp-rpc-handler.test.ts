@@ -99,13 +99,14 @@ describe("lib/mcp/rpc-handler", () => {
   })
 
   describe("handleRpcCall - tools/list", () => {
-    it("devuelve los tools (read + write + rebuild + request_upload + update_body)", async () => {
+    it("devuelve los tools (read + write + rebuild + request_upload + update_body + list_media)", async () => {
       const res = await mod.handleRpcCall({ jsonrpc: "2.0", id: 2, method: "tools/list" })
       const result = (res as any).result
       expect(result.tools.map((t: any) => t.name).sort()).toEqual([
         "posts_create",
         "posts_delete",
         "posts_get",
+        "posts_list_media",
         "posts_rebuild",
         "posts_request_upload",
         "posts_search",
@@ -405,6 +406,90 @@ Body
         { claims: { sub: "u", scope: "posts:write" } as any }
       )) as any
       expect(res.error).toBeDefined()
+    })
+  })
+
+  describe("rpc-handler — posts_list_media", () => {
+    let listTmp: string
+    const fsSync = require("fs") as typeof import("fs")
+    const previousContentRoot = process.env.CONTENT_ROOT
+    const previousMediaRoot = process.env.MEDIA_UPLOADS_ROOT
+    const previousJwtSecret = process.env.JWT_SECRET
+
+    beforeEach(() => {
+      listTmp = fsSync.mkdtempSync(path.join(os.tmpdir(), "rpc-list-media-"))
+      fsSync.mkdirSync(path.join(listTmp, "content", "posts"), { recursive: true })
+      fsSync.mkdirSync(path.join(listTmp, "uploads"), { recursive: true })
+      process.env.CONTENT_ROOT = listTmp
+      process.env.MEDIA_UPLOADS_ROOT = path.join(listTmp, "uploads")
+      process.env.JWT_SECRET = "test-secret-32-chars-minimum-1234567890"
+      fsSync.writeFileSync(
+        path.join(listTmp, "content", "posts", "ferdy.mdx"),
+        `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: es
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+    })
+
+    afterEach(() => {
+      fsSync.rmSync(listTmp, { recursive: true, force: true })
+      if (previousContentRoot === undefined) delete process.env.CONTENT_ROOT
+      else process.env.CONTENT_ROOT = previousContentRoot
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_UPLOADS_ROOT
+      else process.env.MEDIA_UPLOADS_ROOT = previousMediaRoot
+      if (previousJwtSecret === undefined) delete process.env.JWT_SECRET
+      else process.env.JWT_SECRET = previousJwtSecret
+      runtimeMod.clearPostsRuntimeCache()
+    })
+
+    it("returns empty list when _meta.json is absent", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "posts_list_media", arguments: { slug: "ferdy", locale: "es" } },
+        },
+        { claims: { sub: "u", scope: "posts:read" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.files).toEqual([])
+    })
+
+    it("returns the existing media list", async () => {
+      // Write a _meta.json with one file for translationKey ferdy-2026.
+      const keyDir = path.join(listTmp, "uploads", "ferdy-2026")
+      fsSync.mkdirSync(keyDir, { recursive: true })
+      fsSync.writeFileSync(
+        path.join(keyDir, "_meta.json"),
+        JSON.stringify({
+          version: 1,
+          files: {
+            hero: { ext: "jpg", kind: "image", alt: "Hero shot", caption: "" },
+          },
+        })
+      )
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "posts_list_media", arguments: { slug: "ferdy", locale: "es" } },
+        },
+        { claims: { sub: "u", scope: "posts:read" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.files.length).toBeGreaterThan(0)
     })
   })
 })
