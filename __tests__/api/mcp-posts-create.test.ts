@@ -42,9 +42,10 @@ jest.mock('../../lib/mcp-rate-limiter', () => ({
 let createRoute: any
 beforeAll(() => {
   jest.resetModules()
-  // Inject mock for contentlayer AFTER resetModules so it's used by the route require
-  jest.doMock('@/.contentlayer/generated', () => ({
-    allPosts: mockAllPosts,
+  // Mock the runtime reader (replaces the old contentlayer mock).
+  jest.doMock('@/lib/blog/posts-runtime', () => ({
+    listPostsFromDisk: jest.fn(async () => mockAllPosts),
+    clearPostsRuntimeCache: jest.fn(),
   }))
   createRoute = require('../../app/api/mcp/tools/posts/create/route')
 })

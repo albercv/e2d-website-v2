@@ -11,8 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { allPosts } from '@/.contentlayer/generated'
-import type { Post } from '@/.contentlayer/generated'
+import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
@@ -93,8 +92,9 @@ function extractSnippet(content: string, query: string, maxLength = 200): string
   return best.trim()
 }
 
-function searchPosts(query: string, locale: 'es'|'en'|'it', limit: number, includeContent: boolean): SearchResult[] {
+async function searchPosts(query: string, locale: 'es'|'en'|'it', limit: number, includeContent: boolean): Promise<SearchResult[]> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://evolve2digital.com'
+  const allPosts = await listPostsFromDisk()
   const posts = allPosts.filter(p => p.locale === locale && p.published !== false)
   const scored = posts
     .map(p => ({ p, score: calculateRelevanceScore(query, p as Post) }))
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { query, locale, limit, includeContent } = validation.data!
-    const results = searchPosts(query, locale, limit, includeContent)
+    const results = await searchPosts(query, locale, limit, includeContent)
 
     const payload = {
       tool: TOOL_NAME,

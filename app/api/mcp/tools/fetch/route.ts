@@ -11,8 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { allPosts } from '@/.contentlayer/generated'
-import type { Post } from '@/.contentlayer/generated'
+import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { respondAsMcpOrJson, respondErrorAsMcpOrJson } from '@/lib/mcp-format'
@@ -54,7 +53,8 @@ function getPostBodyRaw(post: Post): string | undefined {
   return typeof candidate === 'string' ? candidate : undefined
 }
 
-function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: 'es'|'en'|'it' }): Post | null {
+async function findPost({ title, slug, locale }: { title?: string; slug?: string; locale: 'es'|'en'|'it' }): Promise<Post | null> {
+  const allPosts = await listPostsFromDisk()
   const posts = allPosts.filter(p => p.locale === locale && p.published !== false)
   if (slug) {
     const match = posts.find(p => p.slug.toLowerCase() === slug!.toLowerCase())
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { slug, locale, includeContent } = validation.data!
-    const post = findPost({ slug, locale })
+    const post = await findPost({ slug, locale })
 
     if (!post) {
       mcpLogger.logToolInvocation(TOOL_NAME, '/api/mcp/tools/fetch', 'POST', false, Date.now() - start, 404, ua, slug, 'Post not found')

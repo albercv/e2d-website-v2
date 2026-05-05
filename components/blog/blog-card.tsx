@@ -1,4 +1,4 @@
-import type { Post } from "@/.contentlayer/generated"
+import type { RuntimePost as Post } from "@/lib/blog/posts-runtime"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock } from "lucide-react"

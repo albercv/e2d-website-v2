@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { allPosts } from '@/.contentlayer/generated'
-import type { Post } from '@/.contentlayer/generated'
+import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
@@ -111,6 +110,7 @@ export async function POST(request: NextRequest) {
     return respondErrorAsMcpOrJson(request, 'locale is required and must be one of es,en,it', 400, 'unsupported_locale', { supported: ['es','en','it'] }, TOOL_NAME)
   }
 
+  const allPosts = await listPostsFromDisk()
   const target = allPosts.find((p: Post) => p.slug.toLowerCase() === slug!.toLowerCase())
   if (!target) {
     return respondErrorAsMcpOrJson(request, 'Post not found', 404, 'not_found', { slug, locale }, TOOL_NAME)

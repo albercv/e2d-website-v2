@@ -224,7 +224,7 @@ function validateParams(params: { query: string | null, locale: string, limit: s
  * Genera sugerencias cuando no hay resultados
  */
 async function generateSuggestions(locale: string): Promise<string[]> {
-  const stats = aiAnswersService.getServiceStats()
+  const stats = await aiAnswersService.getServiceStats()
   
   let suggestions: string[]
   switch (locale) {

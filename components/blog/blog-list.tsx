@@ -1,6 +1,6 @@
 "use client"
 
-import type { Post } from "@/.contentlayer/generated"
+import type { RuntimePost as Post } from "@/lib/blog/posts-runtime"
 import { motion } from "framer-motion"
 import { BlogCard } from "./blog-card"
 import { useMemo, useState } from "react"

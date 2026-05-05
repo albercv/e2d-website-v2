@@ -9,8 +9,7 @@
  * @version 1.0.0
  */
 
-import { allPosts } from "@/.contentlayer/generated"
-import type { Post } from "@/.contentlayer/generated"
+import { listPostsFromDisk, type RuntimePost as Post } from "@/lib/blog/posts-runtime"
 
 /**
  * Estructura de respuesta para consultas de IA
@@ -93,7 +92,7 @@ export class AIAnswersService {
     }
 
     // Filtrar posts disponibles
-    const availablePosts = this.getAvailablePosts(locale, includeUnpublished)
+    const availablePosts = await this.getAvailablePosts(locale, includeUnpublished)
     
     if (availablePosts.length === 0) {
       return null
@@ -116,14 +115,15 @@ export class AIAnswersService {
   /**
    * Obtiene posts disponibles según criterios
    */
-  private getAvailablePosts(locale: string, includeUnpublished: boolean): Post[] {
+  private async getAvailablePosts(locale: string, includeUnpublished: boolean): Promise<Post[]> {
+    const allPosts = await listPostsFromDisk()
     return allPosts.filter(post => {
       // Filtrar por idioma
       if (post.locale !== locale) return false
-      
+
       // Filtrar por estado de publicación
       if (!includeUnpublished && !post.published) return false
-      
+
       return true
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
@@ -152,13 +152,13 @@ export class AIAnswersService {
       }
 
       // Búsqueda en descripción (peso medio)
-      const descScore = this.calculateTextScore(normalizedQuery, queryWords, post.description)
+      const descScore = this.calculateTextScore(normalizedQuery, queryWords, post.description || "")
       if (descScore > 0) {
         scores.push({
           post,
           score: descScore * 2, // Peso medio para descripciones
           matchType: 'description',
-          matchedText: post.description
+          matchedText: post.description || ""
         })
       }
 
@@ -289,7 +289,7 @@ export class AIAnswersService {
         answer = `Según el artículo "${post.title}", ${this.extractRelevantSnippet(post.body.raw, query.split(/\s+/), 150)}`
         break
       case 'description':
-        answer = post.description
+        answer = post.description || ""
         break
       case 'tags':
         answer = `Este tema está relacionado con ${post.tags?.join(', ')}. ${this.extractRelevantSnippet(post.body.raw, query.split(/\s+/), 120)}`
@@ -314,7 +314,7 @@ export class AIAnswersService {
       readingTime: post.readingTime,
       metadata: {
         contentType: "blog_post",
-        author: post.author,
+        author: post.author || "Alberto Carrasco",
         wordCount: post.wordCount,
         publishedDate: post.date
       }
@@ -324,16 +324,17 @@ export class AIAnswersService {
   /**
    * Obtiene estadísticas del servicio
    */
-  getServiceStats() {
+  async getServiceStats() {
+    const allPosts = await listPostsFromDisk()
     const publishedPosts = allPosts.filter(post => post.published)
     const totalWords = publishedPosts.reduce((sum, post) => sum + post.wordCount, 0)
-    
+
     return {
       totalPosts: allPosts.length,
       publishedPosts: publishedPosts.length,
       languages: [...new Set(allPosts.map(post => post.locale))],
       totalWords,
-      lastUpdate: publishedPosts.length > 0 
+      lastUpdate: publishedPosts.length > 0
         ? Math.max(...publishedPosts.map(post => new Date(post.date).getTime()))
         : null,
       availableTags: [...new Set(allPosts.flatMap(post => post.tags || []))]

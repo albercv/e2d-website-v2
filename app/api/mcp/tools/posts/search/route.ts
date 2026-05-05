@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import type { Post } from '@/.contentlayer/generated'
+import type { RuntimePost as Post } from '@/lib/blog/posts-runtime'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'

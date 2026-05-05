@@ -1,9 +1,11 @@
-import { allPosts } from "@/.contentlayer/generated"
+import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
 import { BlogList } from "@/components/blog/blog-list"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
+
+export const dynamic = "force-dynamic"
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>
@@ -74,7 +76,8 @@ export default async function BlogPage({ params }: BlogPageProps) {
     notFound()
   }
 
-  const posts = allPosts
+  const all = await listPostsFromDisk()
+  const posts = all
     .filter((post) => post.locale === locale && post.published)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 

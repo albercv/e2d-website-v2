@@ -10,6 +10,9 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // next-mdx-remote es ESM puro: hay que transpilarlo para que funcione en
+  // server components (CJS) y en build standalone.
+  transpilePackages: ['next-mdx-remote'],
   eslint: {
     ignoreDuringBuilds: true,
   },
