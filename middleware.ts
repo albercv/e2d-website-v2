@@ -5,7 +5,23 @@ import { analyzeRequest, defaultSecurityConfig, cleanupOldData } from "./lib/ai-
 
 const COOKIE_NAME = "admin_session"
 
-const PUBLIC_PATHS = ["/admin/login", "/api/admin/login", "/api/admin/logout", "/api/admin/rebuild", "/es/admin/login", "/en/admin/login", "/it/admin/login"]
+const PUBLIC_PATHS = [
+  "/admin/login",
+  "/api/admin/login",
+  "/api/admin/logout",
+  "/api/admin/rebuild",
+  "/es/admin/login",
+  "/en/admin/login",
+  "/it/admin/login",
+  // Media upload flow: la form se accede con un JWT en query string emitido
+  // por posts_request_upload del MCP. La auth real ocurre en cada handler
+  // (verifyUploadToken). NO requieren cookie admin_session.
+  "/admin/media-upload",
+  "/api/admin/media/token-info",
+  "/api/admin/media/upload",
+  "/api/admin/media/upload/commit",
+]
+
 
 // Rate limiting para crawlers IA (requests por minuto)
 const CRAWLER_RATE_LIMITS = {
