@@ -2,6 +2,35 @@
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
 
+### BUG-7 — Posts (originales y dinámicos) viviendo en paths incompatibles con el runtime reader
+
+**Síntoma reportado por el usuario el 2026-05-05 ~20:10 UTC:** "no se ve ninguna foto en ningún post y ha desaparecido el post que habíamos creado, ¿cada vez que hacemos build se borran los posts nuevos?"
+
+**Diagnóstico — dos problemas anidados:**
+
+1. **Los 12 posts originales del proyecto vivían en `content/*.mdx`**, no en `content/posts/`. La migración contentlayer→runtime cambió la fuente de verdad del reader a `content/posts/`, pero nadie movió los `.mdx` de su sitio anterior. Resultado: el blog list por la ruta runtime mostraba 0 posts (el sitio funcionaba aún por el path contentlayer en build-time).
+
+2. **`getContentRoot()` devuelve `process.cwd()`** = `.next/standalone/` (efecto del `process.chdir(__dirname)` del server.js). Así que `posts-runtime` lee de `.next/standalone/content/posts/`. Cada `next build` regenera `.next/standalone/` desde cero — borrando cualquier post creado dinámicamente vía `posts_create` del MCP. El de Ferdy creado por el usuario fue víctima exactamente de esto: el último build de recovery lo eliminó.
+
+**Acciones aplicadas el 2026-05-05 20:14 UTC:**
+- Movidos los 12 `.mdx` originales de `content/` a `content/posts/` para que el reader runtime los vea.
+- Recreado `de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy.mdx` desde el contenido conservado en el contexto de la sesión, con `cover: hero` y `translationKey` fijado al slug.
+- `ecosystem.config.js` añade `CONTENT_ROOT: '/root/e2dProject/e2d-website-v2'` al `env_production`. Así el reader lee del project root, no del standalone, y los `.mdx` sobreviven a builds.
+- `pm2 delete e2d && pm2 start ecosystem.config.js --env production` para que la nueva env entre en vigor (PM2 cachea env_production al primer registro; un simple restart no la actualiza).
+
+**Verificación end-to-end superada:**
+- `GET /es/blog` lista los 5 posts en español (los 4 originales + Ferdy).
+- `GET /es/blog/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy` carga 200.
+- Cover sirve `/uploads/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy/hero.png` 200.
+
+**Lo que NO está resuelto y queda como follow-up:**
+- `posts_create` del MCP escribe a `<getContentRoot()>/content/posts/<slug>.mdx`. Con `CONTENT_ROOT` ya pinned al project root, los nuevos posts SÍ persisten entre builds. Confirmar con un smoke real tras el próximo `posts_create`.
+- El de Ferdy original tenía un commit con `cover: ferdy_hero` (commit `df290f5` lo intentó, pero `content/posts/` está gitignored). La recreación usa `cover: hero` porque es el nombre real subido a `_meta.json`. Si el usuario tenía notas o cambios extra en el body, se han perdido — el contenido recreado proviene del system-reminder que capturamos en sesión.
+
+**Severidad:** crítica — sin esto, cualquier build borra todo post creado por el LLM. Mismo patrón que BUG-3 (cwd inestable + dirs efímeros del standalone).
+
+---
+
 ### BUG-6 — `scripts/sync-static-files.js` copia los `_next/static` al destino equivocado
 
 **Síntoma:** tras `npm run build && pm2 start ecosystem.config.js`, todas las URLs `/_next/static/css/<hash>.css` y `/_next/static/chunks/<hash>.js` devuelven 404. La página HTML carga (200 OK) pero sin estilos ni JS — sitio "roto" visualmente. Reproducible 2026-05-05 20:06 UTC tras una recuperación limpia desde 502.
