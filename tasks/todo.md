@@ -1,6 +1,64 @@
 # Tarea Activa
 
+## Bugs cerrados (2026-05-05)
+
+- **BUG-1** — cover selector en form. Cerrado en commit `d15dc4c`. `_meta.json` gana campo opcional top-level `cover`; form añade radio "Use as cover" por fila image; `posts_list_media` y `posts_request_upload` exponen el cover actual al LLM.
+- **BUG-2** — nginx upload limits (10M → 1100M + proxy_request_buffering off). Cerrado vía edits de `/etc/nginx/sites-available/evolve2digital` + reload.
+- **BUG-3** — uploads invisibles tras build. Cerrado vía `MEDIA_UPLOADS_ROOT` pinned en `ecosystem.config.js` + nginx alias `location /uploads/` + `pm2 delete && pm2 start`.
+- **BUG-4** — cerrar migración contentlayer→runtime para sitemap/RSS. Cerrado en commit `355f2cf`. `lib/sitemap-generator.ts` ahora consume `listPostsFromDisk()`, nuevo `app/feed/[locale]/route.ts` dinámico, eliminados los XML estáticos en `public/`.
+- **BUG-5** — `posts_validate` no comprobaba existencia física. Cerrado en commit `538e4a6`. `ValidationResult` gana `missingBinaries`, `ok` ahora false si falta cualquier binario referenciado.
+- **BUG-7** — posts en path incompatible con runtime reader. Cerrado vía `CONTENT_ROOT=/root/e2dProject/e2d-website-v2` en `ecosystem.config.js` + restauración de los 12 originales en `content/` (walkMdx recursivo los recoge desde ahí + `content/posts/`).
+- **BUG-8** — `resolvePostCovers` rompía URLs absolutas legacy. Cerrado en commit `33a1def`. Passthrough en regex `/^(https?:)?\/\//` y prefijo `/`.
+
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
+
+### BUG-9 — `__tests__/api/answers.test.ts` mockea `@/.contentlayer/generated` que ya no se usa
+
+**Síntoma:** el test fallaba 404 cuando se borraban los `.mdx` de `content/` — su mock está obsoleto.
+
+**Causa:** el test fue escrito para la era contentlayer cuando `lib/ai-answers-service.ts` importaba `allPosts` de `@/.contentlayer/generated`. Tras la migración runtime el servicio importa `listPostsFromDisk` de `@/lib/blog/posts-runtime`, así que el mock no surte efecto y el test ejecuta el reader real contra `process.cwd()/content/`. Con los originales presentes pasa; con `content/` vacío devuelve [] y la query "desarrollo web" da 404.
+
+**Fix:** sustituir el mock por un setup tmpdir con `CONTENT_ROOT` y fixtures escritas a disco (mirror del patrón en `__tests__/lib/posts-runtime-resolve-covers.test.ts`). Tres tests más, escenario aislado, no depende del repo state.
+
+**Severidad:** baja. Hoy pasa porque los originales están en `content/`. Falla solo si el dir queda vacío. Hay valor en arreglarlo igualmente para que el test no dependa del repo state.
+
+---
+
+### BUG-8 — `resolvePostCovers` rompe los covers absolutos (URLs http) de los posts legacy
+
+**Síntoma reportado el 2026-05-05 ~20:30 UTC:** Tras BUG-7 los posts originales aparecen en el listado pero **sin imagen de portada**. Solo el de Ferdy se ve.
+
+**Diagnóstico:** los 12 posts legacy tienen `cover: "https://images.unsplash.com/..."` (URL absoluta de Unsplash). El nuevo `resolvePostCovers` (commit `700a3c9`) trata TODOS los `cover` como slug-keys de la nueva convención, los pasa por `resolveCover(post.cover, meta, key)` que busca `meta.files["https://..."]` — no existe — y devuelve `undefined`. BlogCard recibe `cover: undefined` y omite el `<Image>`.
+
+**Fix:** en `resolvePostCovers`, si `post.cover` arranca con `http://`, `https://` o `/`, **passthrough** sin tocar. Solo aplica resolución a slug-keys (lowercase, ASCII, `_-`). El bug es de un par de líneas:
+
+```ts
+export async function resolvePostCovers(posts: RuntimePost[]): Promise<RuntimePost[]> {
+  const { readMeta } = await import("./media-meta")
+  const { resolveCover } = await import("./media-markers")
+  return Promise.all(
+    posts.map(async (post) => {
+      if (!post.cover) return post
+      // Legacy: URL absoluta o path absoluto (precede a la convención de markers).
+      // Pasamos sin transformar; el componente ya sabe servirlo.
+      if (/^(https?:)?\/\//.test(post.cover) || post.cover.startsWith("/")) return post
+      const meta = await readMeta(post.translationKey)
+      const cover = resolveCover(post.cover, meta, post.translationKey)
+      return { ...post, cover: cover.ok ? cover.url : undefined }
+    })
+  )
+}
+```
+
+**Tests a añadir:**
+- Cover absoluto `https://...` → devuelto tal cual.
+- Cover absoluto `/path/local.png` → devuelto tal cual.
+- Cover slug-key `hero` con meta → URL resuelta (ya cubierto).
+- Cover slug-key `nope` sin meta → `undefined` (ya cubierto).
+
+**Severidad:** alta — todos los posts no creados por MCP carecen de imagen en el grid del blog hasta el fix.
+
+---
 
 ### BUG-7 — Posts (originales y dinámicos) viviendo en paths incompatibles con el runtime reader
 
