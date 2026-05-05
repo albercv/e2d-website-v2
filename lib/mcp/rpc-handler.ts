@@ -183,6 +183,20 @@ export function toolsList() {
           properties: {},
         },
       },
+      {
+        name: "posts_request_upload",
+        description:
+          "Pide una URL de subida de fotos/vídeos para un post. Devuelve también la lista " +
+          "de media ya subida a ese post (mismo translationKey en es/en/it).",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+          },
+          required: ["slug", "locale"],
+        },
+      },
     ],
   }
 }
@@ -203,6 +217,14 @@ export async function handleRpcCall(
       protocolVersion: PROTOCOL_VERSION,
       serverInfo: SERVER_INFO,
       capabilities: { tools: {} },
+      instructions:
+        "Blog del sitio Evolve2Digital. Soporta media inline vía markers en MDX: " +
+        "`[image:nombre]` y `[video:nombre]` en el body, y `cover: nombre` en frontmatter. " +
+        "Los nombres son slug-keys (lowercase, ASCII, `_` separador) que apuntan a ficheros " +
+        "ya subidos. Para listar lo disponible llama a `posts_list_media`. Para subir nueva " +
+        "media llama primero a `posts_request_upload`, que devuelve una URL para que el " +
+        "usuario complete la subida vía form. Después usa `posts_create` o `posts_update_body` " +
+        "con los markers ya escritos. `posts_validate` hace pre-flight de markers rotos.",
     })
   }
 
@@ -372,6 +394,46 @@ export async function handleRpcCall(
         }
         return errorResponse(id, -32603, "Internal error", { message: String(err) })
       }
+    }
+
+    if (toolName === "posts_request_upload") {
+      const scopeErr = requireScope(ctx, "posts:write", id)
+      if (scopeErr) return scopeErr
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      if (!slug.trim() || !locale) {
+        return errorResponse(id, -32602, "Invalid params")
+      }
+      const { getTranslationKeyForSlug } = await import("@/lib/blog/translation-key")
+      const key = await getTranslationKeyForSlug(slug, locale)
+      if (!key) return errorResponse(id, -32004, "Not found")
+      const { signUploadToken } = await import("@/lib/oauth-jwt")
+      const ttl = 900
+      const token = signUploadToken({ translationKey: key }, ttl)
+      const base = process.env.NEXT_PUBLIC_BASE_URL || "https://evolve2digital.com"
+      const { readMeta } = await import("@/lib/blog/media-meta")
+      const meta = await readMeta(key)
+      const existingMedia = Object.entries(meta.files).map(([name, e]) => ({
+        name,
+        kind: e.kind,
+        ext: e.ext,
+        alt: e.alt,
+        caption: e.caption,
+        url: `/uploads/${key}/${name}.${e.ext}`,
+      }))
+      return successResponse(id, {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              uploadUrl: `${base}/admin/media-upload?token=${encodeURIComponent(token)}`,
+              expiresAt: Math.floor(Date.now() / 1000) + ttl,
+              translationKey: key,
+              existingMedia,
+            }),
+          },
+        ],
+      })
     }
 
     if (toolName === "posts_rebuild") {

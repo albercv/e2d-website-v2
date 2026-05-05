@@ -110,7 +110,7 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
       })
     })
 
-    it("tools/list expone los 5 tools", async () => {
+    it("tools/list expone los tools", async () => {
       const req = rpcRequest(
         { jsonrpc: "2.0", id: 2, method: "tools/list" },
         { Authorization: `Bearer ${makeBearer()}` }
@@ -122,6 +122,7 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
         "posts_delete",
         "posts_get",
         "posts_rebuild",
+        "posts_request_upload",
         "posts_search",
       ])
     })

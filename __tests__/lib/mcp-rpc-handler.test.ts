@@ -99,7 +99,7 @@ describe("lib/mcp/rpc-handler", () => {
   })
 
   describe("handleRpcCall - tools/list", () => {
-    it("devuelve los 5 tools (read + write + rebuild)", async () => {
+    it("devuelve los tools (read + write + rebuild + request_upload)", async () => {
       const res = await mod.handleRpcCall({ jsonrpc: "2.0", id: 2, method: "tools/list" })
       const result = (res as any).result
       expect(result.tools.map((t: any) => t.name).sort()).toEqual([
@@ -107,6 +107,7 @@ describe("lib/mcp/rpc-handler", () => {
         "posts_delete",
         "posts_get",
         "posts_rebuild",
+        "posts_request_upload",
         "posts_search",
       ])
     })
@@ -295,6 +296,114 @@ describe("lib/mcp/rpc-handler", () => {
         params: { name: "no.existe", arguments: {} },
       })
       expect((res as any).error).toMatchObject({ code: -32601 })
+    })
+  })
+
+  describe("rpc-handler — initialize.instructions", () => {
+    it("includes instructions describing the marker convention", async () => {
+      const res = (await mod.handleRpcCall({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+      })) as any
+      expect(res.result.instructions).toMatch(/\[image:/)
+      expect(res.result.instructions).toMatch(/\[video:/)
+      expect(res.result.instructions).toMatch(/cover/)
+    })
+  })
+
+  describe("rpc-handler — posts_request_upload", () => {
+    let uploadTmp: string
+    const fsSync = require("fs") as typeof import("fs")
+    const previousContentRoot = process.env.CONTENT_ROOT
+    const previousMediaRoot = process.env.MEDIA_UPLOADS_ROOT
+    const previousJwtSecret = process.env.JWT_SECRET
+
+    beforeEach(() => {
+      uploadTmp = fsSync.mkdtempSync(path.join(os.tmpdir(), "rpc-upload-"))
+      fsSync.mkdirSync(path.join(uploadTmp, "content", "posts"), { recursive: true })
+      fsSync.mkdirSync(path.join(uploadTmp, "uploads"), { recursive: true })
+      process.env.CONTENT_ROOT = uploadTmp
+      process.env.MEDIA_UPLOADS_ROOT = path.join(uploadTmp, "uploads")
+      process.env.JWT_SECRET = "test-secret-32-chars-minimum-1234567890"
+      fsSync.writeFileSync(
+        path.join(uploadTmp, "content", "posts", "ferdy.mdx"),
+        `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: es
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+    })
+
+    afterEach(() => {
+      fsSync.rmSync(uploadTmp, { recursive: true, force: true })
+      if (previousContentRoot === undefined) delete process.env.CONTENT_ROOT
+      else process.env.CONTENT_ROOT = previousContentRoot
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_UPLOADS_ROOT
+      else process.env.MEDIA_UPLOADS_ROOT = previousMediaRoot
+      if (previousJwtSecret === undefined) delete process.env.JWT_SECRET
+      else process.env.JWT_SECRET = previousJwtSecret
+      runtimeMod.clearPostsRuntimeCache()
+    })
+
+    it("returns 401-equivalent error without posts:write scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_request_upload",
+            arguments: { slug: "ferdy", locale: "es" },
+          },
+        },
+        { claims: null }
+      )) as any
+      expect(res.error).toBeDefined()
+    })
+
+    it("returns uploadUrl + translationKey for an existing post (with scope)", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_request_upload",
+            arguments: { slug: "ferdy", locale: "es" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.uploadUrl).toMatch(/\/admin\/media-upload\?token=/)
+      expect(text.translationKey).toBe("ferdy-2026")
+      expect(Array.isArray(text.existingMedia)).toBe(true)
+    })
+
+    it("returns not-found error for a missing slug", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_request_upload",
+            arguments: { slug: "ghost", locale: "es" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
     })
   })
 })

@@ -97,7 +97,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
     })
   })
 
-  it("tools/list expone los 5 tools del handler", async () => {
+  it("tools/list expone los tools del handler", async () => {
     const req = new NextRequest("http://localhost:3000/mcp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -111,6 +111,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
       "posts_delete",
       "posts_get",
       "posts_rebuild",
+      "posts_request_upload",
       "posts_search",
     ])
   })
