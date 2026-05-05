@@ -2,6 +2,26 @@
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
 
+### BUG-5 — `posts_validate` no comprueba existencia física de los binarios
+
+**Síntoma reportado por el usuario el 2026-05-05:** `posts_validate` devuelve `{ ok: true, missingMarkers: [], unusedMedia: [], coverOk: true }` para un post cuyos `[video:testimonio]` y `cover: hero` referencian binarios que NO existen en disco (caso real: estaban en `.next/standalone/public/uploads/` y se borraron en un build, pero `_meta.json` se preservó). La tool **oculta el bug principal** (BUG-3) al dar luz verde.
+
+**Causa:** `lib/blog/posts-validate.ts:validatePost` solo comprueba consistencia entre los markers del body y `_meta.json`. No verifica que `<MEDIA_UPLOADS_ROOT>/<key>/<name>.<ext>` exista realmente.
+
+**Fix propuesto:** en `validatePost`, después de validar la coherencia metadata-markers, hacer un loop por `meta.files` y comprobar `fs.existsSync()` de cada binario. Añadir al ValidationResult un nuevo campo:
+```ts
+missingBinaries: Array<{ name: string; expectedPath: string }>
+```
+Y considerar `ok: false` si `missingBinaries.length > 0`.
+
+**Tests a añadir:**
+- post con `_meta.json` correcto pero binarios borrados → `ok: false`, `missingBinaries` lo reporta.
+- post con `_meta.json` correcto + binarios presentes → `ok: true`, `missingBinaries: []`.
+
+**Severidad:** media. No bloquea el flujo (BUG-3 lo bloquea más fuerte) pero rompe el contrato implícito de "validate antes de publicar". Aplicar tras cerrar BUG-3.
+
+---
+
 ### BUG-4 — Cerrar la migración contentlayer→runtime y dejar `posts_rebuild` sin uso operativo
 
 **Objetivo:** que el flujo diario (crear/editar/borrar posts + subir media) NO necesite rebuild. Los rebuilds quedarían reservados para SEO nocturno automático (cron) o cambios de código MCP (deploy humano).
@@ -70,42 +90,69 @@
 
 **Síntoma:** logs nginx muestran `POST /api/admin/media/upload → 200` y `POST /api/admin/media/upload/commit → 200` el 2026-05-05 12:38 y 12:44, pero ningún fichero aparece en `/root/e2dProject/e2d-website-v2/public/uploads/` y la URL `/uploads/<key>/<name>.<ext>` da 404.
 
-**Causa raíz (dos problemas encadenados):**
+**Causa raíz (TRES problemas encadenados — confirmado 2026-05-05 19:10 UTC con `/proc/<pid>/cwd` y `/proc/<pid>/environ`):**
 
-1. **El standalone server NO sirve el `public/` del repo.** PM2 ejecuta `node .next/standalone/server.js`. Ese server solo sirve estáticos desde `.next/standalone/public/`, NO desde `/root/e2dProject/e2d-website-v2/public/`. Aunque hoy `process.cwd()` apunta al root del proyecto, `scripts/sync-static-files.js` copia `public/` → `.next/standalone/public/` solo en build-time. Cualquier upload posterior a un build queda fuera del path servido.
+1. **Smoking gun: `.next/standalone/server.js:6` ejecuta `process.chdir(__dirname)`.** PM2 declara `cwd: /root/e2dProject/e2d-website-v2` en `ecosystem.config.js` y arranca el server con ese cwd, **pero el server lo cambia inmediatamente** a `/root/e2dProject/e2d-website-v2/.next/standalone/`. Confirmado en runtime: `/proc/2773723/cwd → /root/e2dProject/e2d-website-v2/.next/standalone`. Resultado: el fallback `path.join(process.cwd(), "public", "uploads")` resuelve a `/root/e2dProject/e2d-website-v2/.next/standalone/public/uploads/` — ahí están los uploads del usuario AHORA mismo (11MB confirmados: hero.png 4.5MB + testimonio.mp4 5.6MB + _meta.json).
 
-2. **Cada `next build` purga `.next/standalone/`.** La evidencia: el `mtime` del `public/` fuente es `May 4 21:10` — anterior al primer upload (12:38), prueba de que el write nunca tocó el `public/` fuente. Probablemente el `process.cwd()` del PM2 al momento del upload era `.next/standalone/` (PM2 cachea cwd del primer spawn y `pm2 restart` sin `--update-env` no lo refresca; el log 12:51 muestra explícitamente el aviso `Use --update-env to update environment variables`). Los binarios aterrizaron en `.next/standalone/public/uploads/<key>/`. El `npm run build` lanzado por el `posts_rebuild` 13 minutos después limpió `.next/standalone/` y los borró. Desde entonces ha habido 60+ rebuilds más.
+2. **`.env` no llega al proceso.** `ecosystem.config.js:env_production` solo declara `NODE_ENV`, `PORT`, `HOSTNAME`. Node standalone NO lee `.env` automáticamente (solo Next dev/build). Resultado: aunque el `.env` tenga `MEDIA_UPLOADS_ROOT=/var/lib/e2d-uploads`, `process.env.MEDIA_UPLOADS_ROOT` en el handler es `undefined` → fallback al path volátil. Confirmado: `cat /proc/2773723/environ | grep MEDIA` devuelve vacío.
+
+3. **El standalone server NO sirve el `public/` del repo.** Sirve estáticos solo desde `.next/standalone/public/`. Cualquier upload aterrizado fuera de ese árbol no es servible vía `/uploads/...` aunque el binario exista.
+
+**Consecuencia operativa:** los uploads aterrizan en `.next/standalone/public/uploads/` (efímero — cada `next build` lo borra), `posts_list_media` los enumera leyendo `_meta.json` desde el mismo path efímero, pero la URL pública `/uploads/.../*.png` da 404 porque... espera, en realidad el standalone sí los sirve (están bajo `.next/standalone/public/`). El 404 reportado por el usuario debe venir de un build intermedio que purgó el dir. Tras el rescate del 19:13, los ficheros quedan a salvo en `/var/lib/e2d-uploads/<translationKey>/` pero **siguen sin servirse vía `/uploads/...`** porque Next mira en `.next/standalone/public/uploads/`. De ahí la necesidad del nginx alias.
 
 **Por qué el route devuelve 200:** `saveMediaFile` ejecuta `pipeline(stream, transform, createWriteStream(path))` y el path resuelve, mkdir-p funciona, write succeed. Devuelve éxito honestamente. El bug no está en el route handler; está en que el path resuelto es volátil.
 
-**Plan de fix (3 cambios encadenados, ~1h con tests):**
+**Estado actual (2026-05-05 19:13 UTC) — pasos que YA están aplicados:**
+- ✓ `/var/lib/e2d-uploads/` creado.
+- ✓ `.env` tiene `MEDIA_UPLOADS_ROOT=/var/lib/e2d-uploads` (pero NO llega al proceso).
+- ✓ nginx tiene `client_max_body_size 1100M` y `proxy_request_buffering off` (BUG-2 cerrado).
+- ✓ Uploads del usuario rescatados a `/var/lib/e2d-uploads/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy/` (hero.png + testimonio.mp4 + _meta.json — 11MB). Salvos del próximo build.
+- ✓ `ecosystem.config.js:env_production` añade `MEDIA_UPLOADS_ROOT: '/var/lib/e2d-uploads'` (commit pendiente — el fichero está en `.gitignore`).
 
-1. **Crear directorio persistente fuera de `.next/`:**
+**Plan de fix — pasos que FALTAN (acciones humanas):**
+
+1. **Aplicar el cambio de `ecosystem.config.js` en runtime:**
    ```bash
-   sudo mkdir -p /var/lib/e2d-uploads
-   sudo chown $(whoami):$(whoami) /var/lib/e2d-uploads
+   pm2 restart e2d --update-env
    ```
-   (O un path equivalente fuera del repo. NO usar `public/` del repo — es vulnerable a sync-static-files.)
+   El flag `--update-env` re-lee la sección `env_production`. Verifica con:
+   ```bash
+   cat /proc/$(pm2 pid e2d)/environ | tr '\0' '\n' | grep MEDIA_UPLOADS_ROOT
+   # Debe mostrar: MEDIA_UPLOADS_ROOT=/var/lib/e2d-uploads
+   ```
 
-2. **Pin `MEDIA_UPLOADS_ROOT` en `.env`:**
+2. **Añadir el `location /uploads/` alias en nginx** — sin esto, Next sigue sirviendo `/uploads/...` desde `.next/standalone/public/uploads/` (vacío tras un build) y el alias NO se aplica:
+   ```nginx
+   # Dentro del server { listen 443 ssl; ... }, ANTES del location /
+   location /uploads/ {
+     alias /var/lib/e2d-uploads/;
+     try_files $uri =404;
+     expires 30d;
+     add_header Cache-Control "public, immutable";
+   }
    ```
-   MEDIA_UPLOADS_ROOT=/var/lib/e2d-uploads
+   Luego:
+   ```bash
+   sudo nginx -t && sudo systemctl reload nginx
    ```
-   Esto fija el path absoluto y aísla del cwd. Tras esto, `pm2 restart e2d --update-env` para que PM2 cargue la variable.
 
-3. **Servir los uploads sin pasar por el `public/` del standalone.** Tres opciones, en orden de preferencia:
-   - **(a) nginx alias (cleanest):** añadir al server block:
-     ```nginx
-     location /uploads/ {
-       alias /var/lib/e2d-uploads/;
-       try_files $uri =404;
-       expires 30d;
-       add_header Cache-Control "public, immutable";
-     }
-     ```
-     Bypass total de Next.js para estáticos. Más rápido, sin riesgo. **Recomendada.**
-   - **(b) Symlink en post-build:** modificar `scripts/sync-static-files.js` para que tras copiar `public/` haga `ln -sfn /var/lib/e2d-uploads .next/standalone/public/uploads`. Requiere que el sync corra en cada build (ya lo hace).
-   - **(c) Route dinámica de Next:** crear `app/uploads/[key]/[name]/route.ts` que stream-ee el fichero desde `MEDIA_UPLOADS_ROOT`. Funciona pero peor performance que (a) y mete a Node en el camino crítico de servir media.
+3. **Verificación end-to-end (sin redeploy de código):**
+   ```bash
+   # El cover de Ferdy debería servirse ya
+   curl -sI https://evolve2digital.com/uploads/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy/hero.png | head -3
+   # Esperado: 200 OK + Content-Type: image/png
+
+   # Recargar el post en el navegador — el cover y el [video:testimonio] aparecen.
+   ```
+
+4. **(Futuro upload de prueba para confirmar persistencia)**: subir un fichero pequeño vía la form, comprobar que aterriza en `/var/lib/e2d-uploads/` (no en `.next/standalone/`):
+   ```bash
+   ls -la /var/lib/e2d-uploads/<translationKey>/
+   ```
+
+**Alternativas evaluadas (descartadas):**
+- **Symlink en post-build:** `ln -sfn /var/lib/e2d-uploads .next/standalone/public/uploads` en `scripts/sync-static-files.js`. Funciona pero acopla persistencia con build-pipeline; menos limpio que el alias.
+- **Route dinámica `app/uploads/[key]/[name]/route.ts`** que stream-ee desde `MEDIA_UPLOADS_ROOT`. Peor performance, mete a Node en camino crítico de servir media estática.
 
 **Experimento de confirmación (si quieres certeza 100% antes del fix):**
 ```bash
