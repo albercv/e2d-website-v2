@@ -11,6 +11,36 @@
 - **BUG-8** — `resolvePostCovers` rompía URLs absolutas legacy. Cerrado en commit `33a1def`. Passthrough en regex `/^(https?:)?\/\//` y prefijo `/`.
 - **BUG-6** — `sync-static-files.js` copiaba `_next/static` a `public/_next/static/` (intercepted por runtime → 404). Cerrado: `targetDir` ahora apunta a `.next/standalone/.next/static/` (el `distDir/static` que sirve el standalone). Workaround manual ya no necesario; entrada de memoria del proyecto eliminada.
 - **BUG-10** — Logout admin redirigía a `https://localhost:3003/es` porque `req.url` no incluye host real (PM2 detrás de nginx con `trustHostHeader=false`). Cerrado: nuevo helper `getPublicBaseUrl(req)` con prioridad `NEXT_PUBLIC_BASE_URL` > headers proxy `X-Forwarded-Host/Proto` > `req.url`. Verificado: redirect ahora apunta a `https://evolve2digital.com/es`.
+- **BUG-14** — `posts_create` reporta éxito pero `posts_get` devuelve 404. Cerrado en commit pendiente.
+  - **Síntoma**: tras BUG-13 (BLOG_POSTS_DIR + symlink), `posts_create` escribe correctamente a `/var/lib/e2d-content/posts/<slug>.mdx`, devuelve `{created: true}`, pero `posts_get` y `posts_search` no encuentran el post. Reproducible 100% en MCP live.
+  - **Root cause**: `walkMdx` en `lib/blog/posts-runtime.ts` solo recursaba si `Dirent.isDirectory() === true`. Para un symlink a directorio, Node devuelve `isDirectory() = false` y `isSymbolicLink() = true`. El subárbol bajo `content/posts -> /var/lib/e2d-content/posts` quedaba invisible para `listPostsFromDisk()`. Contentlayer (build-time, scanner propio) sí seguía el symlink, así que blog estático funcionaba — pero el runtime MCP no veía nada.
+  - **Fix**: `walkMdx` añade rama `else if (entry.isSymbolicLink())` que hace `fs.stat(full)` (resuelve el symlink) y recursa si es directorio o lo añade si es `.mdx`. Tests de regresión en `__tests__/lib/posts-runtime.test.ts` ("recurses into a symlinked subdir of content/").
+  - **Verificación**: canary `.mdx` con `published: true` en `/var/lib/e2d-content/posts/` → `curl /feed/es` (route dinámico que usa `listPostsFromDisk` en cada request) → canary aparece en el output. Pre-fix devolvía 4 posts, post-fix 5.
+  - **Lección**: `Dirent.isDirectory()` NO sigue symlinks. Cualquier `walk*` que use `withFileTypes: true` debe añadir explícitamente la rama symlink → `fs.stat` + recurso. Aplicable a `lib/blog/media-meta.ts` y futuros walkers que vayan a interactuar con paths externos.
+
+- **BUG-15 (open, follow-up)** — Algo borra ficheros bajo `/var/lib/e2d-content/posts/` sin pasar por audit log
+  - **Síntoma**: durante la sesión 2026-05-05 23:14-23:22 vi al menos dos canary `.mdx` desaparecer entre operaciones, sin entrada en `logs/posts-audit.log` (audit añadido en BUG-11). El último delete registrado es de 21:48. La hipótesis principal era `next build` destructivo, pero un experimento controlado (canary + cada fase del build secuencialmente) NO reprodujo el delete. Una segunda hipótesis (concurrent builds: AUTO_REBUILD vía MCP write + `npm run build` manual al mismo tiempo) tampoco se confirmó.
+  - **Lo que sí sabemos**: sucedió tras la migración a BLOG_POSTS_DIR + symlink. No es el `posts_delete` MCP (audit log lo registraría). No son los scripts del build pipeline (probados en aislamiento).
+  - **Pendiente para diagnosticar**:
+    1. `auditctl -w /var/lib/e2d-content/posts -p w -k blog-posts-watch` y revisar `ausearch -k blog-posts-watch` cuando vuelva a desaparecer un post.
+    2. Añadir un watchdog (`fs.watch`) sobre el dir que loggee cada `unlink`/`rm` con la stack trace del PM2.
+    3. Auditar también `posts_create` (no solo delete) para detectar overwrites accidentales con `O_TRUNC` que un test pueda leer como "borrado".
+  - **Severidad**: alta hasta tener forense. Mientras: el backup periódico del dir (`/var/lib/e2d-content/posts/`) deja de ser opcional — sin él, el siguiente delete misterioso es irrecuperable.
+
+- **BUG-13** — Posts desaparecidos tras build (segunda iteración). Cerrado en commit pendiente.
+  - **Síntoma**: el usuario reporta "el post de ferdy desaparece cada vez que hacemos build". El audit log (forense de BUG-11) registra UN solo `posts_delete` esta noche (21:48:22). El post se evapora en el siguiente build.
+  - **Root cause 1 — duplicación de paths con bug de cwd**: `app/api/mcp/tools/posts/create/route.ts:145` usaba `path.resolve(process.cwd(), 'content', 'posts')`. Bajo PM2 standalone `process.cwd()` = `.next/standalone/`, así que la ruta REST escribía en `.next/standalone/content/posts/<slug>.mdx`, dir que `next build` regenera en cada rebuild → posts borrados. La ruta MCP JSON-RPC (`lib/blog/posts-write.ts`) usaba `getContentRoot()` (CONTENT_ROOT) y funcionaba bien. Bug latente desde BUG-7 (donde se introdujo CONTENT_ROOT solo en el lib, no en el route handler).
+  - **Root cause 2 — content/posts en árbol gitignored**: incluso con CONTENT_ROOT corregido, `content/posts/` vive dentro del repo gitignored. Vulnerable a `git clean -fdx`, deploy desde otra máquina, snapshot, o cualquier reset agresivo. Sin git history y sin backup, cualquier delete (intencional o servicial del LLM tipo BUG-12) es irrecuperable.
+  - **Fix**:
+    - Nueva env var `BLOG_POSTS_DIR=/var/lib/e2d-content/posts` en `.env` (raíz + `.next/standalone/.env`). Helper `getPostsDir()` exportado desde `lib/blog/posts-write.ts` con fallback a `${CONTENT_ROOT}/content/posts` (mantiene tests/dev sin tocar).
+    - `app/api/mcp/tools/posts/create/route.ts:145` ahora importa y usa `getPostsDir()` — los dos endpoints aterrizan en el mismo dir físico.
+    - `content/posts/` reemplazado por symlink → `/var/lib/e2d-content/posts` para que Contentlayer (build-time) y `posts-runtime` (fs walk) lo vean como subdir de `./content` sin tocar su config.
+    - `jest.setup.js`: `delete process.env.BLOG_POSTS_DIR` para que tests con CONTENT_ROOT en tmpDir no se vean atrapados por la env de producción.
+    - Test de regresión `posts-write.test.ts`: "escribe a BLOG_POSTS_DIR cuando está seteado, ignorando CONTENT_ROOT".
+  - **Verificación**: canary post escrito a `/var/lib/e2d-content/posts/canary-persistence-*.mdx` → `npm run build` → "Generated 13 documents in .contentlayer" (12 legacy + 1 canary, antes era 12) → fichero sigue en disco tras el build → contentlayer cache contiene `posts__canary-...mdx.json`. Suite jest 314/314 verde.
+  - **Tarea pendiente** (no bloqueante): backup periódico (cron + rsync) de `/var/lib/e2d-content/posts/` a otro path/host. Sin él, un delete sigue siendo irrecuperable; con él, recuperable hasta el último snapshot.
+  - **Lección**: cualquier path de escritura debe pasar por un helper `getXxxDir()` que centralice la resolución. La duplicación entre lib y route handler ocultó este bug durante meses (BUG-7 fue parche parcial). Aplicar misma regla a `MEDIA_UPLOADS_ROOT` y futuros stores.
+
 - **BUG-11** — `npm run build` sin lock: builds solapados rompían el sitio. Cerrado:
   - `app/api/admin/rebuild/route.ts` lee `.build.lock` antes de spawn-ear; si existe (con TTL 30 min de stale-recovery), devuelve 409 Conflict con `{ inProgress, lock, ageSeconds }`. Crea el lock con `{ jobId, startedAt, buildCommand }`.
   - `scripts/rebuild-and-restart.js` borra el lock al final (success o error) + handlers SIGTERM/SIGINT que también lo liberan.

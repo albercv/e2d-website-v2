@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
+import { getPostsDir } from '@/lib/blog/posts-write'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
@@ -142,7 +143,12 @@ export async function POST(request: NextRequest) {
 
   const mdx = frontmatterLines.join('\n') + '\n\n' + content.trim() + '\n'
 
-  const postsDir = path.resolve(process.cwd(), 'content', 'posts')
+  // Bug histórico (obs 770/771): aquí se usaba `process.cwd()` que bajo PM2
+  // standalone resuelve a `.next/standalone/`, así que los `.mdx` aterrizaban
+  // en un dir que `next build` regenera y los borraba en cada rebuild. Ahora
+  // delegamos en `getPostsDir()` (BLOG_POSTS_DIR / CONTENT_ROOT) — mismo dir
+  // físico persistente que usa el JSON-RPC `posts_create`.
+  const postsDir = getPostsDir()
   const filePath = path.resolve(postsDir, `${slug}.mdx`)
 
   try {

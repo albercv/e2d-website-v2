@@ -20,6 +20,21 @@ function getContentRoot(): string {
   return process.env.CONTENT_ROOT || process.cwd()
 }
 
+/**
+ * Directorio físico donde aterrizan los `.mdx` de blog. Se aísla del repo para
+ * que `next build` (que regenera `.next/standalone/`) no arrastre los posts y
+ * para resistir a `git clean -fdx`. Si `BLOG_POSTS_DIR` no está seteado, cae
+ * al path legacy `${CONTENT_ROOT}/content/posts` (dev/tests). En producción,
+ * apuntar a un dir persistente fuera del proyecto y dejar `content/posts`
+ * como symlink hacia ese dir para que Contentlayer y posts-runtime lo vean.
+ */
+export function getPostsDir(): string {
+  return (
+    process.env.BLOG_POSTS_DIR ||
+    path.resolve(getContentRoot(), "content", "posts")
+  )
+}
+
 export type Locale = "es" | "en" | "it"
 const SUPPORTED_LOCALES: readonly Locale[] = ["es", "en", "it"] as const
 
@@ -123,7 +138,7 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
   ]
   const mdx = frontmatterLines.join("\n") + "\n\n" + content + "\n"
 
-  const postsDir = path.resolve(getContentRoot(), "content", "posts")
+  const postsDir = getPostsDir()
   const filePath = path.resolve(postsDir, `${slug}.mdx`)
 
   try {

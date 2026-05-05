@@ -66,6 +66,22 @@ async function walkMdx(root: string): Promise<string[]> {
       out.push(...(await walkMdx(full)))
     } else if (entry.isFile() && entry.name.endsWith(".mdx")) {
       out.push(full)
+    } else if (entry.isSymbolicLink()) {
+      // Caso BLOG_POSTS_DIR: `content/posts` es symlink a un dir persistente
+      // fuera del proyecto. `Dirent.isDirectory()` devuelve false para symlinks
+      // (no resuelve), así que sin esta rama el subárbol queda invisible para
+      // posts-runtime y `posts_get`/`posts_search` devuelven 404 aunque el
+      // .mdx esté en disco. `fs.stat` resuelve el symlink y nos dice qué es.
+      try {
+        const s = await fs.stat(full)
+        if (s.isDirectory()) {
+          out.push(...(await walkMdx(full)))
+        } else if (s.isFile() && full.endsWith(".mdx")) {
+          out.push(full)
+        }
+      } catch {
+        // Symlink roto: lo ignoramos sin propagar.
+      }
     }
   }
   return out

@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom'
 
+// Tests crean tmpDirs y setean CONTENT_ROOT a ese tmp. Si BLOG_POSTS_DIR está
+// definido (vía .env de producción) atrapa los writes y rompe la isolación.
+// Lo borramos de raíz; tests que necesiten exercitar BLOG_POSTS_DIR pueden
+// setearlo en un beforeEach local.
+delete process.env.BLOG_POSTS_DIR
+
 // next-mdx-remote/serialize y sus deps (@mdx-js/*) son ESM puro. Bajo Jest CJS
 // el import explota con "Unexpected token 'export'". Devolvemos el input tal cual
 // como compiledSource: los tests de getCompiledPost validan que expandMarkers se
