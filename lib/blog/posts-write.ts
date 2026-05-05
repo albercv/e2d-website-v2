@@ -181,6 +181,19 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
 
   const filePath = path.resolve(getContentRoot(), "content", target._raw.sourceFilePath)
 
+  // Audit log: forense para entender quién borra posts. Contexto histórico —
+  // tras BUG-7/BUG-11 hubo desapariciones recurrentes de posts que NO eran
+  // causadas por el build (verified empíricamente con canary). El log nos
+  // dirá quién llamó a deletePost y desde dónde la próxima vez.
+  try {
+    const auditDir = path.join(getContentRoot(), "logs")
+    await fs.mkdir(auditDir, { recursive: true })
+    const entry = `${new Date().toISOString()}\tDELETE\t${slug}\t${locale}\ttranslationKey=${target.translationKey}\tcwd=${process.cwd()}\tpid=${process.pid}\n`
+    await fs.appendFile(path.join(auditDir, "posts-audit.log"), entry, "utf-8")
+  } catch {
+    /* no bloquear el delete por un fallo de logging */
+  }
+
   try {
     await fs.unlink(filePath)
   } catch (err) {

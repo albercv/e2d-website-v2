@@ -11,44 +11,13 @@
 - **BUG-8** — `resolvePostCovers` rompía URLs absolutas legacy. Cerrado en commit `33a1def`. Passthrough en regex `/^(https?:)?\/\//` y prefijo `/`.
 - **BUG-6** — `sync-static-files.js` copiaba `_next/static` a `public/_next/static/` (intercepted por runtime → 404). Cerrado: `targetDir` ahora apunta a `.next/standalone/.next/static/` (el `distDir/static` que sirve el standalone). Workaround manual ya no necesario; entrada de memoria del proyecto eliminada.
 - **BUG-10** — Logout admin redirigía a `https://localhost:3003/es` porque `req.url` no incluye host real (PM2 detrás de nginx con `trustHostHeader=false`). Cerrado: nuevo helper `getPublicBaseUrl(req)` con prioridad `NEXT_PUBLIC_BASE_URL` > headers proxy `X-Forwarded-Host/Proto` > `req.url`. Verificado: redirect ahora apunta a `https://evolve2digital.com/es`.
+- **BUG-11** — `npm run build` sin lock: builds solapados rompían el sitio. Cerrado:
+  - `app/api/admin/rebuild/route.ts` lee `.build.lock` antes de spawn-ear; si existe (con TTL 30 min de stale-recovery), devuelve 409 Conflict con `{ inProgress, lock, ageSeconds }`. Crea el lock con `{ jobId, startedAt, buildCommand }`.
+  - `scripts/rebuild-and-restart.js` borra el lock al final (success o error) + handlers SIGTERM/SIGINT que también lo liberan.
+  - El cron `regenerate-seo` NO se solapa con builds porque `npm run seo:regenerate` solo corre `build-ai-indexing-advanced.js` (regenera docs/MCP + report), no `next build`. El solapamiento real venía de `posts_rebuild` MCP rápidos consecutivos del LLM. Cubierto por el lock.
+  - Adicional: `lib/blog/posts-write.ts:deletePost` añade audit log a `logs/posts-audit.log` (timestamp, slug, locale, translationKey, cwd, pid). Forense para próximas desapariciones — verificado empíricamente que un build NO borra `content/posts/` (canary survived a `npm run build` directo Y a `posts_rebuild` MCP completo). El destructor es otro: el audit nos dirá cuál la próxima vez.
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
-
-### BUG-11 — `npm run build` sin lock: builds solapados rompen el sitio
-
-**Síntoma reportado el 2026-05-05 21:00 UTC:** "la build de nuevo está rotísima" — todas las URLs daban 500 con error `Cannot find module '.../pages/_error.js'`. Investigación reveló **4 procesos `next build` simultáneos** corriendo desde las 20:57.
-
-**Causa raíz:** ni `app/api/admin/rebuild/route.ts` (`posts_rebuild`) ni `app/api/cron/regenerate-seo/route.ts` (cron horario) implementan ningún lock o detección de "build en marcha". Si llegan dos invocaciones cercanas, ambas spawnean `npm run build` que comparten `.next/standalone/` y se pisan los outputs intermedios. Combinaciones que disparan el solape:
-- Build manual (humano) + cron de las :00.
-- `posts_rebuild` + cron.
-- Dos `posts_rebuild` rápidos seguidos (LLM ansioso).
-- Cron al :00 mientras un build anterior aún corre.
-
-Cuando dos `next build` escriben en `.next/standalone/.next/server/app/...` a la vez, el resultado es un bundle inconsistente: existen los chunks pero faltan files referenced (e.g., `pages/_error.js` que el runtime busca cuando otra ruta falla). Resultado: 500 en cascada para TODA petición.
-
-**Workaround inmediato (aplicado 21:01 UTC):**
-```bash
-pkill -9 -f "next build"
-pkill -9 -f "npm run build"
-rm -rf .next/standalone .next/static
-npm run build
-pm2 restart e2d
-```
-
-**Fix definitivo:**
-
-1. **Build lock file** (`/tmp/e2d-build.lock`) gestionado por `app/api/admin/rebuild/route.ts`:
-   - Si existe (con un timestamp <30 min), devolver `409 Conflict` con `{ inProgress: true, jobId, startedAt }` — el LLM/cron entiende y se aborta.
-   - Si existe pero >30 min (lock huérfano), borrar y proceder.
-   - Crear el lock antes de spawn, borrar al finalizar (success o fail) con un `try/finally` o handler `exit`.
-2. **Mismo lock en el cron** (`regenerate-seo/route.ts`).
-3. **Rate-limit suave** en `posts_rebuild` MCP tool: rechazar si último rebuild fue hace <2 min.
-
-**Severidad:** crítica — colapsa el sitio cuando dos disparadores coinciden. Hoy ha pasado al menos dos veces (recovery a las 19:57 y a las 20:57). Mientras no esté el lock, hay que vigilar manualmente que no haya builds solapados.
-
-**Severidad colateral:** el cron horario `regenerate-seo` lanza un `next build` completo cada hora aunque no haya cambios — innecesario tras BUG-4 (sitemap/RSS dinámicos). Considerar reducir frecuencia o eliminarlo (si quitas el cron desaparece la mitad de las colisiones de raíz).
-
----
 
 ### BUG-9 — `__tests__/api/answers.test.ts` mockea `@/.contentlayer/generated` que ya no se usa
 
