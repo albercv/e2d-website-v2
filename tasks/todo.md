@@ -1,5 +1,31 @@
 # Tarea Activa
 
+## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
+
+### BUG-1 — La form `/admin/media-upload` no permite marcar una imagen como cover/hero
+- **Síntoma:** el usuario sube imágenes pero no encuentra dónde decir "esta es la portada del post". Tiene que volver al chat de Claude y decirlo a mano (o editar el .mdx manualmente).
+- **Causa:** la spec/plan de F1 solo definió Name/Alt/Caption por fila; no hay un radio/checkbox "Use as cover" ni un selector único en la batch. El campo `cover` vive solo en el frontmatter del post (lo escribe `posts_create` o, hoy, edición manual).
+- **Workaround temporal:** el cover se está añadiendo a mano al frontmatter (`cover: ferdy_hero` en `de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy.mdx`).
+- **Propuestas:**
+  1. Añadir un radio "Cover" exclusivo a `MediaUploadForm.tsx` que se incluye en el body del commit. Extender `/api/admin/media/upload/commit` y `_meta.json` con un campo opcional `cover: <name>` por translationKey, o devolverlo al cliente para que el cliente llame además a un nuevo `posts_set_cover` MCP tool.
+  2. Más simple: tras el commit, mostrar al usuario un bloque copiable estilo `posts_update_body({...})` o `cover: <name>` que pueda pegar en el chat para que Claude lo aplique.
+- **Severidad:** UX, no bloqueante. El flujo funciona end-to-end pasando por el LLM.
+
+### BUG-2 — Vídeos > 10 MB rechazados por nginx con 413
+- **Síntoma:** subidas de vídeo desde la form fallan / no se ven en producción.
+- **Causa:** `/etc/nginx/sites-available/evolve2digital` tiene `client_max_body_size 10M;`. La spec exige 1100M y `proxy_request_buffering off;` para streaming.
+- **Acción:** editar el server block de evolve2digital, recargar nginx (`nginx -t && systemctl reload nginx`). NO requiere redeploy del Next.
+
+### BUG-3 — Por validar: uploads aceptados (HTTP 200) pero ficheros ausentes en disco
+- **Síntoma:** los logs nginx muestran `POST /api/admin/media/upload → 200` y `POST /api/admin/media/upload/commit → 200` el 2026-05-05 12:38, pero `/root/e2dProject/e2d-website-v2/public/uploads/` no existe. `_meta.json` ausente.
+- **Hipótesis principales (sin confirmar):**
+  - (a) El `posts_rebuild` posterior (12:51) re-ejecutó `npm run build` y `scripts/sync-static-files.js` puede haber sobreescrito o limpiado `public/`. Verificar el script.
+  - (b) El proceso PM2 que atendió el upload tenía `process.cwd()` distinto al actual (p.ej. resolvió a `.next/standalone/` que sí se purga en cada build). Ya no es el caso (cwd actual confirmado), pero pudo serlo en el momento.
+  - (c) Permisos: el user que corre PM2 (root) escribió en sitio incorrecto y el path se silenció.
+- **Mitigación inmediata:** definir `MEDIA_UPLOADS_ROOT=/root/e2dProject/e2d-website-v2/public/uploads` explícitamente en `.env` para fijar la ruta y aislar de cambios de cwd. Reproducir un upload pequeño con curl tras `pm2 restart` y verificar el fichero en disco antes de declarar el bug cerrado.
+
+---
+
 ## Phase G — Write tools en JSON-RPC handler (control total desde Claude.ai)
 
 **Diagnóstico (2026-05-04 06:10 UTC, post-F):** Conector OAuth funciona, pero `tools/list` solo expone `posts_search` y `posts_get`. Las herramientas REST (`/api/mcp/tools/posts/{create,delete,rebuild}`) no están enrutadas en el handler MCP, así que Claude.ai no puede crear/borrar posts ni disparar rebuild.
