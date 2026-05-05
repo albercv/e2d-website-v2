@@ -188,6 +188,18 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
     throw new PostsWriteError("internal_error", 500, "Failed to delete file", { details })
   }
 
+  // Cleanup: if the deleted post was the last sibling of its translationKey,
+  // remove public/uploads/<key>/ as well. We must clear the runtime cache
+  // first so findPostsByTranslationKey re-reads from disk and doesn't see
+  // the just-deleted post as still present.
+  clearPostsRuntimeCache()
+  const { findPostsByTranslationKey } = await import("./translation-key")
+  const remaining = await findPostsByTranslationKey(target.translationKey)
+  if (remaining.length === 0) {
+    const { deleteMetaForKey } = await import("./media-meta")
+    await deleteMetaForKey(target.translationKey)
+  }
+
   return { slug, locale, path: filePath }
 }
 
