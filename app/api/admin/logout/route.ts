@@ -50,6 +50,19 @@ function detectLocaleFromAcceptLanguage(header: string | null): SupportedLocale 
   return null
 }
 
+// Resuelve la URL pública del sitio. Necesario porque PM2 lanza el standalone
+// server detrás de nginx con HOSTNAME=127.0.0.1 y trustHostHeader=false, así
+// que `req.url` se ve como http://127.0.0.1:3003/... en producción.
+// Prioridad: NEXT_PUBLIC_BASE_URL > headers proxy (X-Forwarded-Host/Proto) > req.url.
+function getPublicBaseUrl(req: Request): string {
+  const envBase = process.env.NEXT_PUBLIC_BASE_URL
+  if (envBase) return envBase
+  const proto = req.headers.get('x-forwarded-proto') || 'https'
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host')
+  if (host) return `${proto}://${host}`
+  return req.url
+}
+
 export async function POST(req: Request) {
   // Detectar el idioma preferido del usuario (orden: Referer -> cookie NEXT_LOCALE -> Accept-Language -> por defecto)
   const headers = req.headers
@@ -63,7 +76,7 @@ export async function POST(req: Request) {
     detectLocaleFromAcceptLanguage(acceptLanguage) ||
     DEFAULT_LOCALE
 
-  const res = NextResponse.redirect(new URL(`/${locale}`, req.url), 303)
+  const res = NextResponse.redirect(new URL(`/${locale}`, getPublicBaseUrl(req)), 303)
   res.cookies.set("admin_session", "", {
     httpOnly: true,
     sameSite: "lax",

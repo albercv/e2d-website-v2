@@ -9,28 +9,10 @@
 - **BUG-5** — `posts_validate` no comprobaba existencia física. Cerrado en commit `538e4a6`. `ValidationResult` gana `missingBinaries`, `ok` ahora false si falta cualquier binario referenciado.
 - **BUG-7** — posts en path incompatible con runtime reader. Cerrado vía `CONTENT_ROOT=/root/e2dProject/e2d-website-v2` en `ecosystem.config.js` + restauración de los 12 originales en `content/` (walkMdx recursivo los recoge desde ahí + `content/posts/`).
 - **BUG-8** — `resolvePostCovers` rompía URLs absolutas legacy. Cerrado en commit `33a1def`. Passthrough en regex `/^(https?:)?\/\//` y prefijo `/`.
+- **BUG-6** — `sync-static-files.js` copiaba `_next/static` a `public/_next/static/` (intercepted por runtime → 404). Cerrado: `targetDir` ahora apunta a `.next/standalone/.next/static/` (el `distDir/static` que sirve el standalone). Workaround manual ya no necesario; entrada de memoria del proyecto eliminada.
+- **BUG-10** — Logout admin redirigía a `https://localhost:3003/es` porque `req.url` no incluye host real (PM2 detrás de nginx con `trustHostHeader=false`). Cerrado: nuevo helper `getPublicBaseUrl(req)` con prioridad `NEXT_PUBLIC_BASE_URL` > headers proxy `X-Forwarded-Host/Proto` > `req.url`. Verificado: redirect ahora apunta a `https://evolve2digital.com/es`.
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
-
-### BUG-10 — Botón de logout del admin redirige a `https://localhost:3003/es`
-
-**Síntoma reportado el 2026-05-05:** al pulsar "Salir" en `/admin/...`, la redirección apunta a `https://localhost:3003/es` — URL inutilizable desde el navegador del cliente (localhost en HTTPS sin certificado, además del puerto que solo escucha en 127.0.0.1 detrás de nginx).
-
-**Causa probable (sin confirmar — pendiente de grep):** el handler/component de logout construye la URL de redirect concatenando `process.env.HOSTNAME + ':' + process.env.PORT` o algún equivalente, en vez de usar `NEXT_PUBLIC_BASE_URL` (`https://evolve2digital.com`) o un redirect relativo (`/es`). Posibles ubicaciones:
-- `app/[locale]/admin/.../logout` o similar.
-- `components/admin/...` con un `<Link>` o `signOut({ callbackUrl })`.
-- `lib/admin-auth.ts` o equivalente.
-
-**Fix probable:** redirect relativo (`/${locale}` o `/`) sin host. O leer `NEXT_PUBLIC_BASE_URL` del env si necesita absoluto. `HOSTNAME=127.0.0.1` y `PORT=3003` del `ecosystem.config.js` están pensados para que el server escuche localmente, NO como base URL pública.
-
-**Investigación sugerida:**
-```bash
-grep -rn "localhost:3003\|HOSTNAME.*PORT\|signOut\|logout" app/ components/ lib/ --include="*.ts" --include="*.tsx" | head -20
-```
-
-**Severidad:** alta para UX del admin (operación cotidiana rota), baja para seguridad (la cookie/JWT del admin sí se invalida; solo la redirección final está mal).
-
----
 
 ### BUG-9 — `__tests__/api/answers.test.ts` mockea `@/.contentlayer/generated` que ya no se usa
 
@@ -106,28 +88,6 @@ export async function resolvePostCovers(posts: RuntimePost[]): Promise<RuntimePo
 - El de Ferdy original tenía un commit con `cover: ferdy_hero` (commit `df290f5` lo intentó, pero `content/posts/` está gitignored). La recreación usa `cover: hero` porque es el nombre real subido a `_meta.json`. Si el usuario tenía notas o cambios extra en el body, se han perdido — el contenido recreado proviene del system-reminder que capturamos en sesión.
 
 **Severidad:** crítica — sin esto, cualquier build borra todo post creado por el LLM. Mismo patrón que BUG-3 (cwd inestable + dirs efímeros del standalone).
-
----
-
-### BUG-6 — `scripts/sync-static-files.js` copia los `_next/static` al destino equivocado
-
-**Síntoma:** tras `npm run build && pm2 start ecosystem.config.js`, todas las URLs `/_next/static/css/<hash>.css` y `/_next/static/chunks/<hash>.js` devuelven 404. La página HTML carga (200 OK) pero sin estilos ni JS — sitio "roto" visualmente. Reproducible 2026-05-05 20:06 UTC tras una recuperación limpia desde 502.
-
-**Causa raíz:** el script copia `.next/static/` → `.next/standalone/public/_next/static/`. Pero Next.js standalone server busca los assets de `/_next/...` en `<distDir>/static/` que con cwd post-`process.chdir(__dirname)` resuelve a `.next/standalone/.next/static/`. El path `public/_next/...` está reservado por Next.js como ruta interna y NO se sirve desde el directorio público — el runtime intercepta `/_next/...` antes de pasar al static handler de public/.
-
-**Workaround aplicado el 2026-05-05 20:07 UTC:**
-```bash
-mkdir -p .next/standalone/.next/static
-cp -r .next/standalone/public/_next/static/* .next/standalone/.next/static/
-pm2 restart e2d
-```
-Tras el restart todo verde (CSS/JS sirven 200).
-
-**Fix definitivo (en código):** modificar `scripts/sync-static-files.js` para que `targetDir` apunte a `.next/standalone/.next/static/` en vez de `.next/standalone/public/_next/static/`. La copia a `public/_next/static/` puede dejarse como duplicado (algunos despliegues la usan como fallback) pero el dir realmente cargado es el del distDir.
-
-**Por qué no se detectó antes:** el sitio venía funcionando, así que en builds previos el sync iba al sitio correcto (¿simbólico previo? ¿otra versión del script?). Habría que revisar el `git log scripts/sync-static-files.js` para localizar cuándo se rompió.
-
-**Severidad:** alta. CADA `npm run build && pm2 restart` deja el sitio sin CSS hasta que se aplica el workaround.
 
 ---
 

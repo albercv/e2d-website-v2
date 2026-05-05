@@ -6,16 +6,17 @@ const { execSync } = require('child_process');
 
 const projectRoot = process.cwd();
 const sourceDir = path.join(projectRoot, '.next/static');
-const targetDir = path.join(projectRoot, '.next/standalone/public/_next/static');
+// El standalone server resuelve /_next/static/* a <distDir>/static/*. Su distDir
+// relativo es ./.next y arranca con process.chdir(__dirname) → la ruta efectiva
+// es .next/standalone/.next/static/. Copiar a public/_next/static/ NO funciona
+// porque /_next/* lo intercepta el runtime antes que el static handler de public.
+const targetDir = path.join(projectRoot, '.next/standalone/.next/static');
 
 console.log('📦 Syncing static files to standalone build...');
 
 try {
-  // Crear directorios si no existen
-  if (!fs.existsSync(path.join(projectRoot, '.next/standalone/public/_next'))) {
-    fs.mkdirSync(path.join(projectRoot, '.next/standalone/public/_next'), { recursive: true });
-    console.log('📁 Created directory: .next/standalone/public/_next');
-  }
+  // Asegurar que el dir padre exista (next build lo crea, pero por idempotencia)
+  fs.mkdirSync(path.dirname(targetDir), { recursive: true });
 
   // Copiar archivos estáticos
   if (fs.existsSync(sourceDir)) {
@@ -24,7 +25,7 @@ try {
       console.log('🗑️  Removed old static files');
     }
     fs.cpSync(sourceDir, targetDir, { recursive: true });
-    console.log('✅ Static files copied successfully');
+    console.log('✅ Static files copied to .next/standalone/.next/static/');
   } else {
     console.warn('⚠️  Source directory not found:', sourceDir);
   }
