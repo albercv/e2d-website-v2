@@ -75,6 +75,9 @@ coverage/
 # content (external prod posts)
 content/posts/
 
+# media uploads (binarios + _meta.json escritos por la form de /admin/media-upload)
+public/uploads/
+
 # generated documentation and build reports
 docs/mcp-changelog.md
 docs/mcp-examples.md
