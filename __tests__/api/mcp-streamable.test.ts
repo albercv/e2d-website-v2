@@ -113,6 +113,7 @@ describe("/mcp (Streamable HTTP JSON-RPC)", () => {
       "posts_rebuild",
       "posts_request_upload",
       "posts_search",
+      "posts_update_body",
     ])
   })
 

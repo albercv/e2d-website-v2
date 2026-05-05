@@ -197,6 +197,22 @@ export function toolsList() {
           required: ["slug", "locale"],
         },
       },
+      {
+        name: "posts_update_body",
+        description:
+          "Reescribe el cuerpo MDX de un post existente. El frontmatter se mantiene. " +
+          "El `content` puede contener markers `[image:nombre]`/`[video:nombre]`. " +
+          "Operación destructiva — revierte con git si hace falta.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+            content: { type: "string", minLength: 1 },
+          },
+          required: ["slug", "locale", "content"],
+        },
+      },
     ],
   }
 }
@@ -434,6 +450,30 @@ export async function handleRpcCall(
           },
         ],
       })
+    }
+
+    if (toolName === "posts_update_body") {
+      const scopeErr = requireScope(ctx, "posts:write", id)
+      if (scopeErr) return scopeErr
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      const content = typeof args.content === "string" ? args.content : ""
+      if (!slug.trim() || !locale || !content) {
+        return errorResponse(id, -32602, "Invalid params")
+      }
+      try {
+        const { updatePostBody } = await import("@/lib/blog/posts-write")
+        await updatePostBody({ slug, locale, content })
+        return successResponse(id, { content: [{ type: "text", text: JSON.stringify({ ok: true }) }] })
+      } catch (err) {
+        if (isPostsWriteError(err) && err.code === "not_found") {
+          return errorResponse(id, -32004, "Not found")
+        }
+        if (isPostsWriteError(err)) {
+          return errorResponse(id, -32000, err.code, err.details)
+        }
+        return errorResponse(id, -32603, "Internal error", { message: String(err) })
+      }
     }
 
     if (toolName === "posts_rebuild") {

@@ -7,7 +7,8 @@
 
 import * as fs from "fs/promises"
 import * as path from "path"
-import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
+import matter from "gray-matter"
+import { clearPostsRuntimeCache, listPostsFromDisk } from "@/lib/blog/posts-runtime"
 
 /**
  * Raíz del repo donde vive `content/`. PM2 corre desde `.next/standalone/`,
@@ -242,6 +243,52 @@ export async function triggerRebuild(): Promise<RebuildResult> {
           ? null
           : undefined,
   }
+}
+
+export interface UpdatePostBodyInput {
+  slug: string
+  locale: Locale
+  content: string
+}
+
+export async function updatePostBody(input: UpdatePostBodyInput): Promise<void> {
+  const slug = (input.slug || "").trim()
+  const locale = input.locale
+  const content = typeof input.content === "string" ? input.content : ""
+
+  if (!slug) {
+    throw new PostsWriteError("invalid_params", 400, "slug is required", { field: "slug" })
+  }
+  if (!isValidLocale(locale)) {
+    throw new PostsWriteError("unsupported_locale", 400, "locale is required and must be one of es,en,it", { supported: SUPPORTED_LOCALES })
+  }
+  if (!content) {
+    throw new PostsWriteError("invalid_params", 400, "content is required", { field: "content" })
+  }
+
+  const all = await listPostsFromDisk()
+  const post = all.find((p) => p.slug === slug && p.locale === locale)
+  if (!post) {
+    throw new PostsWriteError("not_found", 404, `Post ${slug}/${locale} not found`, { slug, locale })
+  }
+
+  const filePath = path.join(getContentRoot(), "content", post._raw.sourceFilePath)
+  let raw: string
+  try {
+    raw = await fs.readFile(filePath, "utf-8")
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to read file", { details })
+  }
+  const parsed = matter(raw)
+  const next = matter.stringify(content, parsed.data)
+  try {
+    await fs.writeFile(filePath, next, { encoding: "utf-8" })
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
+  }
+  clearPostsRuntimeCache()
 }
 
 export function isPostsWriteError(err: unknown): err is PostsWriteError {
