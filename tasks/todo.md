@@ -2,6 +2,54 @@
 
 ## Bugs abiertos — feature/mcpblog-images (post deploy 2026-05-05)
 
+### BUG-4 — Cerrar la migración contentlayer→runtime y dejar `posts_rebuild` sin uso operativo
+
+**Objetivo:** que el flujo diario (crear/editar/borrar posts + subir media) NO necesite rebuild. Los rebuilds quedarían reservados para SEO nocturno automático (cron) o cambios de código MCP (deploy humano).
+
+**Contexto / por qué hoy se necesita rebuild:**
+- La migración contentlayer→runtime cubrió el render del post (`lib/blog/posts-runtime.ts` lee `.mdx` en cada request) pero **NO** los generadores de SEO.
+- `lib/sitemap-generator.ts:13` sigue importando `allPosts` desde `.contentlayer/generated/index.mjs` (build-time).
+- `public/sitemap.xml` y `public/rss-{es,en,it}.xml` existen como ficheros estáticos, generados por `scripts/build-ai-indexing-advanced.js`. Como Next.js sirve `public/` antes que las routes dinámicas, `app/sitemap.ts` está sombreado y nunca se ejecuta en producción.
+- Resultado: cada vez que aparece o cambia un post, sitemap/RSS quedan stale hasta el siguiente `npm run build` — y por eso `posts_rebuild` sigue siendo necesario en el flujo diario.
+
+**Plan de resolución (4 cambios, ~2-3h con tests):**
+
+1. **Refactor `lib/sitemap-generator.ts`:**
+   - Reemplazar `import { allPosts } from '.contentlayer/...'` por `await listPostsFromDisk()` desde `lib/blog/posts-runtime.ts`.
+   - Adaptar el shape del objeto post (los campos que use `allPosts` que no estén en `RuntimePost` se mapean o se omiten).
+   - Tests: `__tests__/lib/sitemap-generator.test.ts` con un fixture en disco vía `CONTENT_ROOT` tmp dir, asserting que el sitemap incluye el post recién creado sin pasar por contentlayer.
+   - Verificar que la función ya NO sea sync (al pasar a `listPostsFromDisk` se vuelve async). Esto obliga a cambiar `app/sitemap.ts` para `export default async function sitemap()`. Compatible con Next 14.
+
+2. **Hacer lo mismo con RSS:**
+   - Localizar el generador RSS (probablemente en `scripts/build-ai-indexing-advanced.js` o un módulo similar).
+   - Crear `app/feed/[locale]/route.ts` que genere XML al vuelo: lee `listPostsFromDisk()`, filtra por locale, devuelve `Content-Type: application/rss+xml`.
+   - Tests para los tres locales con fixture de posts.
+
+3. **Borrar los static que sombrean las routes dinámicas:**
+   - Eliminar `public/sitemap.xml`, `public/rss-es.xml`, `public/rss-en.xml`, `public/rss-it.xml`.
+   - Añadir esos paths al `.gitignore` (algunos ya están). Garantizar que `scripts/build-ai-indexing-advanced.js` deje de generarlos.
+   - Resto de `public/build-report-advanced.json`: ese sí se mantiene como build artifact, ignorado.
+
+4. **Limpiar `scripts/build-ai-indexing-advanced.js`:**
+   - Quitar las funciones que regeneran sitemap/RSS.
+   - Mantener solo la regeneración de `docs/mcp-*.md` (esos dependen del código del handler MCP, no del contenido).
+   - Renombrar el script si pierde casi toda su lógica de "indexing" (a evaluar).
+
+**Tras esos cambios:**
+- `posts_create` / `posts_update_body` / `posts_delete` / subidas de media → cero rebuild necesario, todo es runtime.
+- `posts_rebuild` queda como pure escape hatch para regenerar `docs/mcp-*.md` tras un cambio de código MCP — el LLM no debería invocarlo nunca.
+- Considerar **retirar `posts_rebuild` del `tools/list` MCP** después del refactor (la ruta REST `/api/admin/rebuild` se queda para uso interno o cron).
+
+**Cron nocturno para SEO (opcional, post-refactor):**
+- Si tras la migración hay índices/reportes que no son del request path pero sí útiles (p.ej. un report de SEO score), hacer un cron a las 03:00 UTC que dispare `npm run build:ai-indexing:advanced` solo para regenerar `docs/mcp-*.md` y `public/build-report-advanced.json`.
+- NO meter `next build` en el cron — el código solo se rebuildea en deploy humano.
+
+**Severidad:** alta a medio plazo, baja a corto. Hoy el rebuild "funciona" pero contamina logs, gasta CPU, induce a Claude.ai a llamadas redundantes y mantiene viva una dependencia (contentlayer) que se suponía retirada.
+
+**Owner / siguiente paso:** decisión del usuario sobre cuándo abordarlo. Cuando se aborde, abrir rama `feature/runtime-sitemap-rss` desde `develop` y aplicar los 4 cambios encadenados con TDD.
+
+---
+
 ### BUG-1 — La form `/admin/media-upload` no permite marcar una imagen como cover/hero
 - **Síntoma:** el usuario sube imágenes pero no encuentra dónde decir "esta es la portada del post". Tiene que volver al chat de Claude y decirlo a mano (o editar el .mdx manualmente).
 - **Causa:** la spec/plan de F1 solo definió Name/Alt/Caption por fila; no hay un radio/checkbox "Use as cover" ni un selector único en la batch. El campo `cover` vive solo en el frontmatter del post (lo escribe `posts_create` o, hoy, edición manual).
@@ -16,13 +64,65 @@
 - **Causa:** `/etc/nginx/sites-available/evolve2digital` tiene `client_max_body_size 10M;`. La spec exige 1100M y `proxy_request_buffering off;` para streaming.
 - **Acción:** editar el server block de evolve2digital, recargar nginx (`nginx -t && systemctl reload nginx`). NO requiere redeploy del Next.
 
-### BUG-3 — Por validar: uploads aceptados (HTTP 200) pero ficheros ausentes en disco
-- **Síntoma:** los logs nginx muestran `POST /api/admin/media/upload → 200` y `POST /api/admin/media/upload/commit → 200` el 2026-05-05 12:38, pero `/root/e2dProject/e2d-website-v2/public/uploads/` no existe. `_meta.json` ausente.
-- **Hipótesis principales (sin confirmar):**
-  - (a) El `posts_rebuild` posterior (12:51) re-ejecutó `npm run build` y `scripts/sync-static-files.js` puede haber sobreescrito o limpiado `public/`. Verificar el script.
-  - (b) El proceso PM2 que atendió el upload tenía `process.cwd()` distinto al actual (p.ej. resolvió a `.next/standalone/` que sí se purga en cada build). Ya no es el caso (cwd actual confirmado), pero pudo serlo en el momento.
-  - (c) Permisos: el user que corre PM2 (root) escribió en sitio incorrecto y el path se silenció.
-- **Mitigación inmediata:** definir `MEDIA_UPLOADS_ROOT=/root/e2dProject/e2d-website-v2/public/uploads` explícitamente en `.env` para fijar la ruta y aislar de cambios de cwd. Reproducir un upload pequeño con curl tras `pm2 restart` y verificar el fichero en disco antes de declarar el bug cerrado.
+### BUG-3 — Uploads aceptados (HTTP 200) pero invisibles: arquitectura de storage incompatible con Next standalone
+
+**Estado:** causa raíz identificada (forensics 2026-05-05 16:30 UTC). Pendiente de implementar fix.
+
+**Síntoma:** logs nginx muestran `POST /api/admin/media/upload → 200` y `POST /api/admin/media/upload/commit → 200` el 2026-05-05 12:38 y 12:44, pero ningún fichero aparece en `/root/e2dProject/e2d-website-v2/public/uploads/` y la URL `/uploads/<key>/<name>.<ext>` da 404.
+
+**Causa raíz (dos problemas encadenados):**
+
+1. **El standalone server NO sirve el `public/` del repo.** PM2 ejecuta `node .next/standalone/server.js`. Ese server solo sirve estáticos desde `.next/standalone/public/`, NO desde `/root/e2dProject/e2d-website-v2/public/`. Aunque hoy `process.cwd()` apunta al root del proyecto, `scripts/sync-static-files.js` copia `public/` → `.next/standalone/public/` solo en build-time. Cualquier upload posterior a un build queda fuera del path servido.
+
+2. **Cada `next build` purga `.next/standalone/`.** La evidencia: el `mtime` del `public/` fuente es `May 4 21:10` — anterior al primer upload (12:38), prueba de que el write nunca tocó el `public/` fuente. Probablemente el `process.cwd()` del PM2 al momento del upload era `.next/standalone/` (PM2 cachea cwd del primer spawn y `pm2 restart` sin `--update-env` no lo refresca; el log 12:51 muestra explícitamente el aviso `Use --update-env to update environment variables`). Los binarios aterrizaron en `.next/standalone/public/uploads/<key>/`. El `npm run build` lanzado por el `posts_rebuild` 13 minutos después limpió `.next/standalone/` y los borró. Desde entonces ha habido 60+ rebuilds más.
+
+**Por qué el route devuelve 200:** `saveMediaFile` ejecuta `pipeline(stream, transform, createWriteStream(path))` y el path resuelve, mkdir-p funciona, write succeed. Devuelve éxito honestamente. El bug no está en el route handler; está en que el path resuelto es volátil.
+
+**Plan de fix (3 cambios encadenados, ~1h con tests):**
+
+1. **Crear directorio persistente fuera de `.next/`:**
+   ```bash
+   sudo mkdir -p /var/lib/e2d-uploads
+   sudo chown $(whoami):$(whoami) /var/lib/e2d-uploads
+   ```
+   (O un path equivalente fuera del repo. NO usar `public/` del repo — es vulnerable a sync-static-files.)
+
+2. **Pin `MEDIA_UPLOADS_ROOT` en `.env`:**
+   ```
+   MEDIA_UPLOADS_ROOT=/var/lib/e2d-uploads
+   ```
+   Esto fija el path absoluto y aísla del cwd. Tras esto, `pm2 restart e2d --update-env` para que PM2 cargue la variable.
+
+3. **Servir los uploads sin pasar por el `public/` del standalone.** Tres opciones, en orden de preferencia:
+   - **(a) nginx alias (cleanest):** añadir al server block:
+     ```nginx
+     location /uploads/ {
+       alias /var/lib/e2d-uploads/;
+       try_files $uri =404;
+       expires 30d;
+       add_header Cache-Control "public, immutable";
+     }
+     ```
+     Bypass total de Next.js para estáticos. Más rápido, sin riesgo. **Recomendada.**
+   - **(b) Symlink en post-build:** modificar `scripts/sync-static-files.js` para que tras copiar `public/` haga `ln -sfn /var/lib/e2d-uploads .next/standalone/public/uploads`. Requiere que el sync corra en cada build (ya lo hace).
+   - **(c) Route dinámica de Next:** crear `app/uploads/[key]/[name]/route.ts` que stream-ee el fichero desde `MEDIA_UPLOADS_ROOT`. Funciona pero peor performance que (a) y mete a Node en el camino crítico de servir media.
+
+**Experimento de confirmación (si quieres certeza 100% antes del fix):**
+```bash
+# 1. Pedir token con posts_request_upload desde Claude.ai
+# 2. Subir un fichero diminuto:
+curl -s -X POST -H "Authorization: Bearer <token>" \
+  -H "Content-Type: image/png" -H "X-Media-Name: probe_$(date +%s)" \
+  --data-binary @/tmp/1px.png \
+  https://evolve2digital.com/api/admin/media/upload
+# 3. Inmediatamente, sin rebuild:
+find /root/e2dProject/e2d-website-v2 -name "probe_*.png" 2>/dev/null
+# 4. Si aparece bajo .next/standalone/public/uploads/, hipótesis confirmada.
+```
+
+**Severidad:** crítica — feature media inutilizable hasta resolver. Ninguno de los uploads del usuario se preservan tras el primer rebuild.
+
+**Owner / siguiente paso:** humano. La opción (a) es la recomendada — un cambio en nginx config, un `mkdir`, una línea en `.env`, `pm2 restart e2d --update-env`. Sin código nuevo.
 
 ---
 
