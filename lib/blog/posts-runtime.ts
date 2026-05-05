@@ -161,6 +161,10 @@ export async function resolvePostCovers(posts: RuntimePost[]): Promise<RuntimePo
   return Promise.all(
     posts.map(async (post) => {
       if (!post.cover) return post
+      // Legacy: URL absoluta (https://, http://, //) o path absoluto (/x.png)
+      // precede a la convención de markers. Devolver tal cual; el resolver de
+      // _meta.json solo aplica a slug-keys (lowercase ASCII + _-).
+      if (/^(https?:)?\/\//.test(post.cover) || post.cover.startsWith("/")) return post
       const meta = await readMeta(post.translationKey)
       const cover = resolveCover(post.cover, meta, post.translationKey)
       return { ...post, cover: cover.ok ? cover.url : undefined }

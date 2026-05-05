@@ -95,4 +95,44 @@ body
 
     expect(resolved.cover).toBeUndefined()
   })
+
+  it("passes through absolute https:// covers untouched", async () => {
+    fs.writeFileSync(
+      path.join(tmp, "content", "posts", "legacy.mdx"),
+      `---
+slug: legacy
+title: Post legacy con cover Unsplash
+date: 2024-01-20
+locale: en
+translationKey: legacy
+cover: "https://images.unsplash.com/photo-x"
+---
+
+body
+`
+    )
+    const all = await listPostsFromDisk()
+    const [resolved] = await resolvePostCovers(all)
+    expect(resolved.cover).toBe("https://images.unsplash.com/photo-x")
+  })
+
+  it("passes through absolute / paths untouched", async () => {
+    fs.writeFileSync(
+      path.join(tmp, "content", "posts", "abs.mdx"),
+      `---
+slug: abs
+title: Cover ruta absoluta local
+date: 2024-01-20
+locale: en
+translationKey: abs
+cover: "/placeholder.svg"
+---
+
+body
+`
+    )
+    const all = await listPostsFromDisk()
+    const [resolved] = await resolvePostCovers(all)
+    expect(resolved.cover).toBe("/placeholder.svg")
+  })
 })
