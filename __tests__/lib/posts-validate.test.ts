@@ -65,6 +65,8 @@ cover: fachada
 [image:fachada]
 `
     )
+    fs.mkdirSync(path.join(tmp, "uploads", "ferdy-2026"), { recursive: true })
+    fs.writeFileSync(path.join(tmp, "uploads", "ferdy-2026", "fachada.jpg"), "x")
     await writeMeta("ferdy-2026", {
       fachada: { ext: "jpg", kind: "image", alt: "F", caption: "" },
     })
@@ -73,5 +75,55 @@ cover: fachada
     expect(out.missingMarkers).toEqual([])
     expect(out.unusedMedia).toEqual([])
     expect(out.coverOk).toBe(true)
+  })
+
+  it("flags missing binaries even when _meta.json is consistent", async () => {
+    fs.writeFileSync(
+      path.join(tmp, "content", "posts", "ferdy.mdx"),
+      `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: es
+translationKey: ferdy-2026
+cover: hero
+---
+
+[image:hero]
+`
+    )
+    await writeMeta("ferdy-2026", {
+      hero: { ext: "png", kind: "image", alt: "", caption: "" },
+    })
+    const out = await validatePost("ferdy", "es")
+    expect(out.ok).toBe(false)
+    expect(out.missingBinaries.find((b) => b.name === "hero")).toBeDefined()
+    expect(out.missingMarkers).toEqual([])
+    expect(out.coverOk).toBe(true)
+  })
+
+  it("ok=true when meta + body + binaries are all aligned", async () => {
+    fs.writeFileSync(
+      path.join(tmp, "content", "posts", "ferdy.mdx"),
+      `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: es
+translationKey: ferdy-2026
+cover: hero
+---
+
+[image:hero]
+`
+    )
+    fs.mkdirSync(path.join(tmp, "uploads", "ferdy-2026"), { recursive: true })
+    fs.writeFileSync(path.join(tmp, "uploads", "ferdy-2026", "hero.png"), "x")
+    await writeMeta("ferdy-2026", {
+      hero: { ext: "png", kind: "image", alt: "", caption: "" },
+    })
+    const out = await validatePost("ferdy", "es")
+    expect(out.ok).toBe(true)
+    expect(out.missingBinaries).toEqual([])
   })
 })
