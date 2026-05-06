@@ -146,7 +146,6 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
               description: "Post de smoke test desde Jest con descripcion suficiente.",
               content: "Contenido suficientemente largo para pasar la validacion " + "x".repeat(50),
               locale: "es",
-              skip_rebuild: true,
             },
           },
         },

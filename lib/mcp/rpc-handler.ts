@@ -157,11 +157,6 @@ export function toolsList() {
             published: { type: "boolean", default: true },
             cover: { type: "string", description: "Nombre de marker (slug-key) usado como portada." },
             translationKey: { type: "string", description: "Agrupa posts hermanos i18n. Default = slug." },
-            skip_rebuild: {
-              type: "boolean",
-              default: false,
-              description: "Si true, no dispara rebuild automático tras crear.",
-            },
           },
           required: ["title", "description", "content"],
         },
@@ -184,7 +179,6 @@ export function toolsList() {
               default: false,
               description: "Si true, también borra el dir /uploads/<translationKey>/ cuando es el último sibling.",
             },
-            skip_rebuild: { type: "boolean", default: false },
           },
           required: ["slug", "locale", "confirm"],
         },
@@ -284,20 +278,11 @@ export async function handleRpcCall(
         "media llama primero a `posts_request_upload`, que devuelve una URL para que el " +
         "usuario complete la subida vía form. Después usa `posts_create` o `posts_update_body` " +
         "con los markers ya escritos. `posts_validate` hace pre-flight de markers rotos.\n\n" +
-        "REBUILD — cuándo llamar a `posts_rebuild` (caro, 2–3 min):\n" +
-        "• `posts_create` y `posts_delete` ya disparan rebuild automáticamente (salvo que pases " +
-        "`skip_rebuild: true`). NO llames a `posts_rebuild` después de ellos: es redundante.\n" +
-        "• `posts_update_body` NO rebuildea solo. Si tras editar el body necesitas que el HTML " +
-        "público refleje el cambio, llama a `posts_rebuild` UNA vez al terminar todas las " +
-        "ediciones (no después de cada update).\n" +
-        "• Las subidas de media (`posts_request_upload` + form) NO requieren rebuild: el resolver " +
-        "de markers lee `_meta.json` en cada petición. La nueva imagen/vídeo se ve al instante " +
-        "siguiente que cargues la página del post.\n" +
-        "• `posts_rebuild` solo regenera sitemap, RSS y docs MCP a partir del contenido en disco. " +
-        "NO despliega código. Si falta una tool nueva, la causa es deploy pendiente, no falta de " +
-        "rebuild.\n" +
-        "Regla general: si te preguntas si llamar a `posts_rebuild`, asume que NO es necesario " +
-        "salvo que acabes de editar bodies con `posts_update_body` y el usuario quiera publicar.",
+        "REBUILD — `posts_rebuild` NO es necesario para publicar contenido. Las páginas del " +
+        "blog, sitemap y RSS leen del disco en cada request, así que `posts_create`, " +
+        "`posts_delete` y `posts_update_body` se reflejan instantáneamente. `posts_rebuild` " +
+        "solo se usa para forzar build+restart del servidor tras cambios de código (raro " +
+        "desde MCP, normalmente lo hace el operador en shell).",
     })
   }
 
@@ -401,23 +386,11 @@ export async function handleRpcCall(
           translationKey: typeof args.translationKey === "string" ? args.translationKey : undefined,
         })
 
-        let rebuild: unknown = null
-        const skipRebuild = args.skip_rebuild === true
-        if (!skipRebuild && process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === "true") {
-          try {
-            rebuild = await triggerRebuild()
-          } catch (err) {
-            rebuild = isPostsWriteError(err)
-              ? { error: err.code, message: err.message, details: err.details }
-              : { error: "rebuild_failed", message: String(err) }
-          }
-        }
-
         return successResponse(id, {
           content: [
             {
               type: "text",
-              text: JSON.stringify({ created: true, ...result, rebuild }),
+              text: JSON.stringify({ created: true, ...result }),
             },
           ],
         })
@@ -445,23 +418,11 @@ export async function handleRpcCall(
           cleanupMedia: args.cleanupMedia === true,
         })
 
-        let rebuild: unknown = null
-        const skipRebuild = args.skip_rebuild === true
-        if (!skipRebuild && process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === "true") {
-          try {
-            rebuild = await triggerRebuild()
-          } catch (err) {
-            rebuild = isPostsWriteError(err)
-              ? { error: err.code, message: err.message, details: err.details }
-              : { error: "rebuild_failed", message: String(err) }
-          }
-        }
-
         return successResponse(id, {
           content: [
             {
               type: "text",
-              text: JSON.stringify({ deleted: true, ...result, rebuild }),
+              text: JSON.stringify({ deleted: true, ...result }),
             },
           ],
         })

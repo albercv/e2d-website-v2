@@ -197,7 +197,7 @@ describe('/api/mcp/tools/posts/create', () => {
     expect(fs.existsSync(fp)).toBe(true)
   })
 
-  describe('skip_rebuild parameter', () => {
+  describe('rebuild side-effects', () => {
     let fetchSpy: jest.SpyInstance
 
     beforeEach(() => {
@@ -214,47 +214,20 @@ describe('/api/mcp/tools/posts/create', () => {
       delete process.env.ADMIN_REBUILD_URL
     })
 
-    const validBody = (overrides: any = {}) => ({
-      title: 'Skip rebuild test post',
-      description: 'Descripción suficiente para skip rebuild',
-      locale: 'es',
-      content: '# MDX\n\n'.padEnd(60, 'q'),
-      ...overrides,
-    })
-
-    it('should NOT trigger rebuild when skip_rebuild is true', async () => {
+    it('does NOT trigger rebuild on posts_create even when AUTO_REBUILD_AFTER_MCP_CHANGE=true', async () => {
       const req = mkRequest(
         'http://localhost:3000/api/mcp/tools/posts/create',
-        validBody({ title: 'Skip rebuild true', skip_rebuild: true })
+        {
+          title: 'No autorebuild expected',
+          description: 'Descripción suficiente para verificar que no hay rebuild',
+          locale: 'es',
+          content: '# MDX\n\n'.padEnd(60, 'q'),
+        }
       )
       const res = await createRoute.POST(req)
       expect([200, 201]).toContain(res.status)
-      // Allow microtasks to flush in case fetch was scheduled async
       await new Promise(r => setImmediate(r))
       expect(fetchSpy).not.toHaveBeenCalled()
-    })
-
-    it('SHOULD trigger rebuild when skip_rebuild is omitted', async () => {
-      const req = mkRequest(
-        'http://localhost:3000/api/mcp/tools/posts/create',
-        validBody({ title: 'Skip rebuild omitted' })
-      )
-      const res = await createRoute.POST(req)
-      expect([200, 201]).toContain(res.status)
-      await new Promise(r => setImmediate(r))
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
-      expect(fetchSpy.mock.calls[0][0]).toBe('http://localhost:3000/api/admin/rebuild')
-    })
-
-    it('should treat skip_rebuild non-boolean values as false', async () => {
-      const req = mkRequest(
-        'http://localhost:3000/api/mcp/tools/posts/create',
-        validBody({ title: 'Skip rebuild string', skip_rebuild: 'true' })
-      )
-      const res = await createRoute.POST(req)
-      expect([200, 201]).toContain(res.status)
-      await new Promise(r => setImmediate(r))
-      expect(fetchSpy).toHaveBeenCalledTimes(1)
     })
   })
 })
