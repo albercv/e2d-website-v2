@@ -1,9 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, generateClientId } from '@/lib/oauth-db'
+import { isAllowedRedirectUri } from '@/lib/oauth/redirect-uri-allowlist'
 
 export const runtime = 'nodejs'
 
-const ALL_SCOPES = [
+/**
+ * Default scopes granted at dynamic registration time.
+ *
+ * IMPORTANT — security policy:
+ *  Dynamic Client Registration (RFC 7591) is open to any HTTPS caller, so a
+ *  freshly-registered client gets only readonly scopes by default. Write
+ *  scopes (posts:write, posts:delete, appointments:create, agent:query) must
+ *  be granted later through an authenticated channel — currently the
+ *  hard-coded `seedClients()` entries in lib/oauth-db.ts (e.g. `chatgpt-mcp`)
+ *  or by an admin updating `oauth_clients.allowed_scopes` directly.
+ *
+ *  The /oauth/authorize consent UI still surfaces every requested scope to
+ *  the human admin; restricting the allowed_scopes here means a malicious
+ *  client cannot escalate beyond read even if it asks the user for write.
+ */
+const READONLY_DEFAULT_SCOPES = ['posts:read', 'search:read', 'fetch:read'] as const
+
+/**
+ * Full set of scopes the server understands. Used for the response `scope`
+ * field so well-behaved clients can discover what *could* exist, while the
+ * `allowed_scopes` they receive is restricted (see above).
+ */
+const ALL_KNOWN_SCOPES = [
   'posts:read',
   'search:read',
   'fetch:read',
@@ -11,14 +34,7 @@ const ALL_SCOPES = [
   'agent:query',
   'posts:write',
   'posts:delete',
-]
-
-const ALLOWED_REDIRECT_PATTERNS: RegExp[] = [
-  /^https:\/\/claude\.ai\/[^\s]+$/,
-  /^https:\/\/[a-z0-9-]+\.claude\.ai\/[^\s]+$/,
-  /^http:\/\/localhost(:\d+)?(\/.*)?$/,
-  /^http:\/\/127\.0\.0\.1(:\d+)?(\/.*)?$/,
-]
+] as const
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -31,10 +47,6 @@ function err(status: number, error: string, description: string) {
     { error, error_description: description },
     { status, headers: CORS_HEADERS }
   )
-}
-
-function isAllowedRedirect(uri: unknown): uri is string {
-  return typeof uri === 'string' && ALLOWED_REDIRECT_PATTERNS.some(p => p.test(uri))
 }
 
 export async function OPTIONS() {
@@ -55,7 +67,7 @@ export async function POST(request: NextRequest) {
   }
 
   for (const uri of redirect_uris) {
-    if (!isAllowedRedirect(uri)) {
+    if (!isAllowedRedirectUri(uri)) {
       return err(
         400,
         'invalid_redirect_uri',
@@ -69,7 +81,7 @@ export async function POST(request: NextRequest) {
     client_id,
     client_type: 'public',
     redirect_uris,
-    allowed_scopes: ALL_SCOPES,
+    allowed_scopes: [...READONLY_DEFAULT_SCOPES],
   })
 
   const response: Record<string, unknown> = {
@@ -79,7 +91,11 @@ export async function POST(request: NextRequest) {
     token_endpoint_auth_method: 'none',
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    scope: ALL_SCOPES.join(' '),
+    // Advertise the full set of scopes the server *understands* so clients
+    // can negotiate. The `allowed_scopes` stored for this client is the
+    // readonly subset above; requests for write scopes will be rejected at
+    // /oauth/authorize.
+    scope: ALL_KNOWN_SCOPES.join(' '),
   }
   if (typeof body.client_name === 'string' && body.client_name.length > 0) {
     response.client_name = body.client_name
