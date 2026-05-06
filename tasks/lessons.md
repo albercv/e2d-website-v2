@@ -37,6 +37,19 @@ if (entry.isDirectory()) {
 
 `fs.stat` (no `lstat`) resuelve el symlink y nos dice si el target es archivo o directorio. Aplicable a cualquier scanner que pueda toparse con `BLOG_POSTS_DIR` / `MEDIA_UPLOADS_ROOT` / etc. via symlink.
 
+## 2026-05-06 — Tests con cleanup blanket sobre dir compartido = land mine en producción (BUG-15)
+
+**Antipatrón concreto**: `__tests__/api/mcp-posts-create.test.ts` resolvía `postsDir = path.resolve(process.cwd(), 'content', 'posts')` y hacía un `afterEach` con `fs.readdirSync(postsDir)` + `fs.unlinkSync` para cada `.mdx`. En el repo principal `content/posts` es un symlink a `/var/lib/e2d-content/posts/` (producción). Resultado: cada `npx jest` borraba TODOS los posts reales sin pasar por `deletePost`, así que sin entrada en `posts-audit.log`. Ferdy y canaries desaparecidos durante semanas sin trazas.
+
+**El subagente en worktree NO destruía nada** — worktrees creados con `git worktree add` tienen su propia copia de `content/posts/` (no symlink, ya que el symlink es untracked en `.gitignore`). Los tests del worktree creaban un dir real local, lo limpiaban, y producción seguía intacta. Solo el repo principal disparaba el bug.
+
+**Reglas que sacar de aquí**:
+
+1. **Nunca** resolver paths de tests con `path.resolve(process.cwd(), …)` apuntando a un dir que pueda ser symlink a producción. Para tests que ejercitan write paths, usar `fs.mkdtempSync(path.join(os.tmpdir(), 'prefix-'))` y setear la env var dedicada (`BLOG_POSTS_DIR`, `MEDIA_UPLOADS_ROOT`, etc.) al tmpdir antes de cargar el módulo bajo test.
+2. **Nunca** hacer `readdirSync + unlinkSync` masivo en un dir que pueda contener archivos no-test. Los cleanups deben ser dirigidos: el test sabe qué slug creó y borra solo ese. O — mejor — todo el test usa un tmpdir aislado y `rmSync` recursivo sobre el tmpdir entero en `afterAll`.
+3. **Cada test que toca filesystem debe tener forense**: si un test hace algo destructivo, debe ser fácil saber qué fue. El watchdog `inotifywait` con snapshots por evento (PM2 process `posts-watchdog`, `scripts/posts-fs-watchdog.sh`) es la red de seguridad — captura PID + comando del proceso destructor en cada `DELETE`. Reusable para `MEDIA_UPLOADS_ROOT` y otros stores persistentes.
+4. **`testPathIgnorePatterns` debe incluir `/.claude/worktrees/`**: jest descubre por defecto cualquier `__tests__/**/*.test.ts` bajo `<rootDir>`, incluyendo worktrees de subagentes. Tests viejos en worktrees viejos pueden seguir teniendo antipatrones ya corregidos en la rama actual y van a romper aserciones (o, peor, ejecutar el bug sobre producción).
+
 **Anti-patrones detectados**:
 
 - Duplicar lógica de write entre el lib (con env var correcta) y un route handler REST (con `process.cwd()` legacy). Resultado: la mitad de las llamadas escriben donde toca, la otra mitad las pierde el siguiente build. Solo se ve si el LLM elige sistemáticamente uno u otro endpoint.

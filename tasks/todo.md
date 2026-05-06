@@ -18,14 +18,16 @@
   - **Verificación**: canary `.mdx` con `published: true` en `/var/lib/e2d-content/posts/` → `curl /feed/es` (route dinámico que usa `listPostsFromDisk` en cada request) → canary aparece en el output. Pre-fix devolvía 4 posts, post-fix 5.
   - **Lección**: `Dirent.isDirectory()` NO sigue symlinks. Cualquier `walk*` que use `withFileTypes: true` debe añadir explícitamente la rama symlink → `fs.stat` + recurso. Aplicable a `lib/blog/media-meta.ts` y futuros walkers que vayan a interactuar con paths externos.
 
-- **BUG-15 (open, follow-up)** — Algo borra ficheros bajo `/var/lib/e2d-content/posts/` sin pasar por audit log
-  - **Síntoma**: durante la sesión 2026-05-05 23:14-23:22 vi al menos dos canary `.mdx` desaparecer entre operaciones, sin entrada en `logs/posts-audit.log` (audit añadido en BUG-11). El último delete registrado es de 21:48. La hipótesis principal era `next build` destructivo, pero un experimento controlado (canary + cada fase del build secuencialmente) NO reprodujo el delete. Una segunda hipótesis (concurrent builds: AUTO_REBUILD vía MCP write + `npm run build` manual al mismo tiempo) tampoco se confirmó.
-  - **Lo que sí sabemos**: sucedió tras la migración a BLOG_POSTS_DIR + symlink. No es el `posts_delete` MCP (audit log lo registraría). No son los scripts del build pipeline (probados en aislamiento).
-  - **Pendiente para diagnosticar**:
-    1. `auditctl -w /var/lib/e2d-content/posts -p w -k blog-posts-watch` y revisar `ausearch -k blog-posts-watch` cuando vuelva a desaparecer un post.
-    2. Añadir un watchdog (`fs.watch`) sobre el dir que loggee cada `unlink`/`rm` con la stack trace del PM2.
-    3. Auditar también `posts_create` (no solo delete) para detectar overwrites accidentales con `O_TRUNC` que un test pueda leer como "borrado".
-  - **Severidad**: alta hasta tener forense. Mientras: el backup periódico del dir (`/var/lib/e2d-content/posts/`) deja de ser opcional — sin él, el siguiente delete misterioso es irrecuperable.
+- **BUG-15 (closed 2026-05-06)** — Posts desaparecen de `/var/lib/e2d-content/posts/` sin entrada en audit log.
+  - **Síntoma**: en sesiones de 2026-05-05 y 2026-05-06 desaparecen canary y posts reales (Ferdy, canary-bug-15-v2). El audit log solo registra los `posts_delete` MCP legítimos. No reproducible vía build aislado.
+  - **Diagnóstico**: instalado watchdog `inotifywait` sobre `/var/lib/e2d-content/posts/` (PM2 process `posts-watchdog`, captura snapshots con `ps auxf` por evento DELETE). Tras la primera ejecución de `npx jest --testPathPatterns="..."` la snapshot identificó al culpable: pid de Jest creando y borrando archivos `.mdx` con nombres = slugs de tests (`titulo-valido`, `post-de-prueba-mcp-test`, `skip-rebuild-true`...).
+  - **Root cause**: `__tests__/api/mcp-posts-create.test.ts:73` resolvía `postsDir = path.resolve(process.cwd(), 'content', 'posts')`. En el repo principal `content/posts` es un **symlink a `/var/lib/e2d-content/posts/`** (BUG-13). El `afterEach` (líneas 91-99) hacía `fs.readdirSync(postsDir)` + `fs.unlinkSync` por cada `.mdx` encontrado — borraba los del test Y los preexistentes (Ferdy, canaries, etc.) sin pasar por `deletePost`, así que sin audit. El subagente en worktree NO destruía nada porque los worktrees tienen su propio `content/posts/` real (gitignored, no symlink).
+  - **Fix**:
+    - `__tests__/api/mcp-posts-create.test.ts`: `postsDir` ahora es `fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-create-'))` y se setea `process.env.BLOG_POSTS_DIR = postsDir` en `beforeAll`. `afterAll` hace `fs.rmSync(postsDir, { recursive: true })`. Dir aislado, sin contacto con `/var/lib/`.
+    - `jest.config.js` y `jest.config.api.js`: añadido `testPathIgnorePatterns: ['/node_modules/', '/.claude/worktrees/', '/.next/']` para que jest no descubra tests de worktrees viejos que aún tienen el antipatrón.
+    - Watchdog `posts-fs-watchdog.sh` + PM2 process `posts-watchdog` queda permanente como red de seguridad. Loguea a `logs/fs-watchdog.log` + snapshots en `logs/fs-watchdog-snapshots/`.
+  - **Verificación**: tras el fix, `npx jest __tests__/api/mcp-posts-create.test.ts` pasa (17/18, el 1 fallo era del worktree y ya no aparece tras el ignore patterns) y el watchdog NO registra ningún evento sobre `/var/lib/e2d-content/posts/` durante el run.
+  - **Lección**: ver `tasks/lessons.md` — "tests con `readdirSync + unlinkSync` sobre `content/posts` cuando ese path es symlink a producción".
 
 - **BUG-13** — Posts desaparecidos tras build (segunda iteración). Cerrado en commit pendiente.
   - **Síntoma**: el usuario reporta "el post de ferdy desaparece cada vez que hacemos build". El audit log (forense de BUG-11) registra UN solo `posts_delete` esta noche (21:48:22). El post se evapora en el siguiente build.

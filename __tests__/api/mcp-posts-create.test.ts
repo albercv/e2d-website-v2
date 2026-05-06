@@ -4,6 +4,7 @@
 
 import { NextRequest } from 'next/server'
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import { signAccessToken } from '../../lib/oauth-jwt'
 
@@ -70,16 +71,26 @@ const mkRequest = (url: string, body: any, headers: Record<string, string> = {})
 }
 
 describe('/api/mcp/tools/posts/create', () => {
-  const postsDir = path.resolve(process.cwd(), 'content', 'posts')
+  // Aislamos el dir de posts en tmp. Antes este test usaba
+  // path.resolve(process.cwd(), 'content', 'posts') — que en el repo principal
+  // ES UN SYMLINK a /var/lib/e2d-content/posts/ (producción). El afterEach
+  // borraba los .mdx existentes con fs.unlinkSync, sin pasar por deletePost,
+  // así que no quedaba traza en posts-audit.log. Causa raíz de BUG-15.
+  let postsDir: string
 
   beforeAll(() => {
     process.env.E2D_MCP_API_KEY = 'local-dev-mcp-key'
     process.env.NEXT_PUBLIC_BASE_URL = 'http://localhost:3000'
     process.env.JWT_SECRET = 'test-jwt-secret-32-bytes-minimum-123456'
-    // Ensure clean posts directory
-    if (!fs.existsSync(postsDir)) {
-      fs.mkdirSync(postsDir, { recursive: true })
-    }
+    postsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-create-'))
+    process.env.BLOG_POSTS_DIR = postsDir
+  })
+
+  afterAll(() => {
+    delete process.env.BLOG_POSTS_DIR
+    try {
+      fs.rmSync(postsDir, { recursive: true, force: true })
+    } catch {}
   })
 
   beforeEach(() => {
