@@ -482,3 +482,18 @@ M public/build-report-advanced.json
 ```
 
 Estos venían de antes. Decisión tomada en el plan: la Task C2 los integra junto con las entradas nuevas de `posts_rebuild` y `skip_rebuild`. **No tocarlos antes de C2.**
+
+---
+
+## Vigilancia de Ferdy (2026-05-06 20:15 UTC)
+
+Contexto: Ferdy desapareció por segunda vez (jest pre-fix BUG-15 corriendo a las 13:10:56). Re-subido vía MCP a las 20:11:02. Plan ejecutado para que un eventual tercer borrado quede atribuido al kernel.
+
+- [x] Capa A — auditd: regla `-w /var/lib/e2d-content/posts -p wa -k e2d_posts` activa y persistida en `/etc/audit/rules.d/e2d-posts.rules`. Smoke test (`touch+rm` de `.audit-smoke`) confirmó captura de PID/PPID/UID/EUID/exe/syscall/cwd. Consultar con `ausearch -k e2d_posts -ts today`.
+- [x] Capa B — tripwire: `scripts/ferdy-tripwire.sh`, PM2 process `ferdy-tripwire` (id 5). Comprueba el fichero cada 180 s; si falta, dump forense en `logs/ferdy-disappeared-<UTC>.txt` con `ps auxf`, `ausearch -k e2d_posts`, `journalctl --since '15 minutes ago'`, tails de `posts-audit.log`, `fs-watchdog.log`, `pm2-out/error.log`. Cooldown 300 s. `pm2 save` ejecutado. Vars overridables: `TARGET`, `LOG_DIR`, `COOLDOWN_FILE`, `INTERVAL`, `COOLDOWN_SECONDS`.
+- [x] Capa C — baseline: `logs/ferdy-baseline.txt` (sha256=`f6b4e769...`, 6864 B, mtime `2026-05-06T20:11:02.306Z`) + `logs/ferdy-baseline.mdx` (copia 0444).
+- [x] Capa D — guard de jest: `jest.setup-prod-guard.js` añadido como `globalSetup` en `jest.config.js` y `jest.config.api.js`. Aborta si `BLOG_POSTS_DIR` resuelve dentro de `/var/lib/e2d-content`, o si — sin `BLOG_POSTS_DIR` — `process.cwd()/content/posts` es symlink a prod. Smoke test pasó en los tres casos.
+
+Si mañana Ferdy no está, los tres puntos de evidencia son: `ausearch -k e2d_posts -ts today` (atribución kernel), `logs/ferdy-disappeared-*.txt` (contexto sistema en t+0…180 s), `logs/fs-watchdog.log` + snapshot (evento real-time).
+
+Pendiente (no bloqueante): commitear `jest.setup-prod-guard.js` + edits de `jest.config.*` + `scripts/ferdy-tripwire.sh`. Fuera del repo: `/etc/audit/rules.d/e2d-posts.rules`, `pm2 dump`.
