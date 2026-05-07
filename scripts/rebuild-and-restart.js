@@ -23,6 +23,13 @@ const RESTART_COMMAND = process.env.RESTART_COMMAND || ''
 const NO_RESTART = process.argv.includes('--no-restart')
 
 const LOG_PATH = path.join(PROJECT_DIR, 'build.log')
+// Lock que evita builds solapados. Lo crea /api/admin/rebuild antes de
+// spawn-ear este script, lo borramos aquí al terminar (success o error).
+const LOCK_PATH = process.env.BUILD_LOCK_PATH || path.join(PROJECT_DIR, '.build.lock')
+
+function releaseLock() {
+  try { fs.unlinkSync(LOCK_PATH) } catch { /* ignore — ya borrado o no existía */ }
+}
 
 function appendLog(line) {
   const entry = `[${new Date().toISOString()}] ${line}\n`
@@ -73,12 +80,19 @@ async function main() {
     }
 
     appendLog('===== Fin de rebuild OK =====')
+    releaseLock()
     process.exit(0)
   } catch (err) {
     appendLog(`[rebuild] Fallo en rebuild: ${err.message}`)
     appendLog('===== Fin de rebuild con errores =====')
+    releaseLock()
     process.exit(1)
   }
 }
+
+// Liberar lock incluso si el proceso recibe SIGTERM/SIGINT (kill normal de PM2
+// durante un restart). SIGKILL no nos da chance — el TTL del lock cubre ese caso.
+process.on('SIGTERM', () => { releaseLock(); process.exit(143) })
+process.on('SIGINT', () => { releaseLock(); process.exit(130) })
 
 main()

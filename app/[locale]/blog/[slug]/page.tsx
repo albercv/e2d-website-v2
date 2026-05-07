@@ -1,4 +1,4 @@
-import { listPostsFromDisk, getCompiledPost, type RuntimeLocale } from "@/lib/blog/posts-runtime"
+import { listPostsFromDisk, getCompiledPost, resolvePostCovers, type RuntimeLocale } from "@/lib/blog/posts-runtime"
 import { BlogPost } from "@/components/blog/blog-post"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -19,11 +19,13 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const { locale, slug } = await params
   if (!isLocale(locale)) return {}
   const all = await listPostsFromDisk()
-  const post = all.find((p) => p.locale === locale && p.slug === slug)
+  const raw = all.find((p) => p.locale === locale && p.slug === slug)
 
-  if (!post) {
+  if (!raw) {
     return {}
   }
+
+  const [post] = await resolvePostCovers([raw])
 
   const baseUrl = "https://evolve2digital.com"
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"

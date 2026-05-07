@@ -110,7 +110,7 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
       })
     })
 
-    it("tools/list expone los 5 tools", async () => {
+    it("tools/list expone los tools", async () => {
       const req = rpcRequest(
         { jsonrpc: "2.0", id: 2, method: "tools/list" },
         { Authorization: `Bearer ${makeBearer()}` }
@@ -121,8 +121,12 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
         "posts_create",
         "posts_delete",
         "posts_get",
+        "posts_list_media",
         "posts_rebuild",
+        "posts_request_upload",
         "posts_search",
+        "posts_update_body",
+        "posts_validate",
       ])
     })
 
@@ -142,7 +146,6 @@ describe("POST /sse (MCP Streamable HTTP transport)", () => {
               description: "Post de smoke test desde Jest con descripcion suficiente.",
               content: "Contenido suficientemente largo para pasar la validacion " + "x".repeat(50),
               locale: "es",
-              skip_rebuild: true,
             },
           },
         },

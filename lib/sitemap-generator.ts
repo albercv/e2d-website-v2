@@ -1,19 +1,21 @@
 /**
  * Advanced Sitemap Generator for AI Crawlers
  * Optimized for GPTBot, Google-Extended, ClaudeBot, ChatGPT-User, and Bingbot
- * 
+ *
  * Features:
  * - Dynamic route discovery
  * - AI-optimized metadata
  * - Multi-language support
  * - Content freshness tracking
  * - Semantic categorization
+ *
+ * Migrated from contentlayer (build-time `allPosts`) to the runtime reader
+ * `listPostsFromDisk()`. The sitemap is now produced async at request time, so
+ * any new/edited post under `content/posts/` is reflected without a rebuild.
  */
 
-import { allPosts } from '../.contentlayer/generated/index.mjs';
+import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
 import type { MetadataRoute } from "next"
-import fs from "fs"
-import path from "path"
 
 export interface SitemapEntry {
   url: string
@@ -56,16 +58,22 @@ export class SitemapGenerator {
   }
 
   /**
-   * Generate complete sitemap with AI optimization
+   * Generate complete sitemap with AI optimization.
+   *
+   * Async because the post inventory is read at request time from disk via
+   * `listPostsFromDisk()` (no contentlayer build step).
    */
-  public generateSitemap(): MetadataRoute.Sitemap {
+  public async generateSitemap(): Promise<MetadataRoute.Sitemap> {
+    const posts = await listPostsFromDisk()
+
     const entries: SitemapEntry[] = []
 
-    // Add static pages
-    entries.push(...this.generateStaticPages())
+    // Add static pages — depend on the post list to compute the freshest blog
+    // index `lastContentUpdate`, so pass the snapshot through.
+    entries.push(...this.generateStaticPages(posts))
 
     // Add blog posts
-    entries.push(...this.generateBlogPosts())
+    entries.push(...this.generateBlogPosts(posts))
 
     // Add documentation pages
     entries.push(...this.generateDocumentationPages())
@@ -93,7 +101,7 @@ export class SitemapGenerator {
   /**
    * Generate static homepage and main sections
    */
-  private generateStaticPages(): SitemapEntry[] {
+  private generateStaticPages(posts: RuntimePost[]): SitemapEntry[] {
     const pages: SitemapEntry[] = []
 
     // Homepage for each locale
@@ -129,7 +137,7 @@ export class SitemapGenerator {
           contentType: "blog",
           importance: "high",
           crawlPriority: 9,
-          lastContentUpdate: this.getLatestPostDate(),
+          lastContentUpdate: this.getLatestPostDate(posts),
           semanticTags: ["blog", "articles", "automation", "technology"],
         },
       })
@@ -155,10 +163,14 @@ export class SitemapGenerator {
   }
 
   /**
-   * Generate blog post entries with AI metadata
+   * Generate blog post entries with AI metadata.
+   *
+   * Operates on the runtime post snapshot (no contentlayer). The shape from
+   * `listPostsFromDisk()` exposes slug, locale, date, published, url,
+   * wordCount and tags — every field this method needs.
    */
-  private generateBlogPosts(): SitemapEntry[] {
-    return allPosts
+  private generateBlogPosts(posts: RuntimePost[]): SitemapEntry[] {
+    return posts
       .filter(post => post.published)
       .map(post => {
         const alternateUrls = this.config.includeAlternateLanguages
@@ -194,7 +206,7 @@ export class SitemapGenerator {
   private generateDocumentationPages(): SitemapEntry[] {
     const docSlugs = [
       "principles",
-      "architecture", 
+      "architecture",
       "security",
       "performance",
       "deployment",
@@ -270,10 +282,10 @@ export class SitemapGenerator {
   }
 
   /**
-   * Get the latest blog post date
+   * Get the latest blog post date from a runtime post snapshot.
    */
-  private getLatestPostDate(): Date {
-    const publishedPosts = allPosts.filter(post => post.published)
+  private getLatestPostDate(posts: RuntimePost[]): Date {
+    const publishedPosts = posts.filter(post => post.published)
     if (publishedPosts.length === 0) return new Date()
 
     const latestPost = publishedPosts.reduce((latest, current) => {
@@ -284,20 +296,24 @@ export class SitemapGenerator {
   }
 
   /**
-   * Generate XML sitemap for external validation
+   * Generate XML sitemap for external validation.
+   *
+   * Async because it consumes the runtime sitemap. Kept for consumers that
+   * still want the raw XML string (e.g. ad-hoc cron). Production sitemap is
+   * served by the dynamic Next.js route in `app/sitemap.ts`.
    */
-  public generateXMLSitemap(): string {
-    const entries = this.generateSitemap()
-    
+  public async generateXMLSitemap(): Promise<string> {
+    const entries = await this.generateSitemap()
+
     const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">`
 
     const xmlEntries = entries.map(entry => {
-      const lastModified = entry.lastModified instanceof Date 
+      const lastModified = entry.lastModified instanceof Date
         ? entry.lastModified.toISOString().split('T')[0]
         : new Date(entry.lastModified || new Date()).toISOString().split('T')[0]
-      
+
       return `  <url>
     <loc>${entry.url}</loc>
     <lastmod>${lastModified}</lastmod>
@@ -312,27 +328,11 @@ export class SitemapGenerator {
   }
 
   /**
-   * Save XML sitemap to file
+   * Get sitemap statistics for monitoring.
    */
-  public async saveXMLSitemap(filePath: string = "./public/sitemap.xml"): Promise<void> {
-    const xmlContent = this.generateXMLSitemap()
-    
-    // Ensure directory exists
-    const dir = path.dirname(filePath)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
+  public async getSitemapStats() {
+    const entries = await this.generateSitemap()
 
-    fs.writeFileSync(filePath, xmlContent, 'utf-8')
-    console.log(`✅ Sitemap XML saved to: ${filePath}`)
-  }
-
-  /**
-   * Get sitemap statistics for monitoring
-   */
-  public getSitemapStats() {
-    const entries = this.generateSitemap()
-    
     const stats = {
       totalUrls: entries.length,
       lastGenerated: this.lastGenerated,
@@ -360,7 +360,7 @@ export class SitemapGenerator {
 export const defaultSitemapGenerator = new SitemapGenerator()
 
 // Export utility functions
-export function generateAISitemap(): MetadataRoute.Sitemap {
+export function generateAISitemap(): Promise<MetadataRoute.Sitemap> {
   return defaultSitemapGenerator.generateSitemap()
 }
 

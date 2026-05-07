@@ -1,12 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { spawn } from 'child_process'
 import path from 'path'
+import * as fs from 'fs'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 function json(msg: unknown, status = 200) {
   return NextResponse.json(msg, { status })
+}
+
+// Lock que evita builds solapados. Stale TTL 30 min: si el lock está más viejo
+// es probable que el proceso que lo creó murió sin limpiar (SIGKILL, OOM, crash
+// en cascada por el chdir+rm de .next/standalone). El cleanup lo hace el script
+// rebuild-and-restart.js al terminar (success O error). Si crash duro, el TTL
+// recupera el sistema solo.
+const LOCK_TTL_MS = 30 * 60 * 1000
+
+interface LockData {
+  jobId: string
+  startedAt: number
+  buildCommand: string
+}
+
+function getLockPath(projectDir: string): string {
+  return path.join(projectDir, '.build.lock')
+}
+
+function readActiveLock(lockPath: string): LockData | null {
+  if (!fs.existsSync(lockPath)) return null
+  try {
+    const stat = fs.statSync(lockPath)
+    const ageMs = Date.now() - stat.mtimeMs
+    if (ageMs >= LOCK_TTL_MS) {
+      // Stale: el dueño murió sin limpiar. Borramos y dejamos pasar.
+      fs.unlinkSync(lockPath)
+      return null
+    }
+    const raw = fs.readFileSync(lockPath, 'utf-8')
+    return JSON.parse(raw) as LockData
+  } catch {
+    // Lock corrupto: lo eliminamos y procedemos.
+    try { fs.unlinkSync(lockPath) } catch { /* ignore */ }
+    return null
+  }
 }
 
 function requireApiKey(request: NextRequest) {
@@ -48,7 +85,29 @@ export async function POST(request: NextRequest) {
   const RESTART_COMMAND = restartCommand || process.env.RESTART_COMMAND || ''
   const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd()
 
-  // Ejecutar scripts/rebuild-and-restart.js como proceso desacoplado
+  // BUG-11 fix: rechazar si ya hay un build en marcha. Builds solapados
+  // dejaban .next/standalone/ inconsistente y daban 500 en cascada.
+  const lockPath = getLockPath(PROJECT_DIR)
+  const activeLock = readActiveLock(lockPath)
+  if (activeLock) {
+    return json({
+      error: 'build_in_progress',
+      lock: activeLock,
+      ageSeconds: Math.floor((Date.now() - activeLock.startedAt) / 1000),
+      hint: 'Otro rebuild está activo. Reintenta cuando termine, o espera al TTL (30 min).',
+    }, 409)
+  }
+
+  const jobId = Date.now().toString()
+  const lockData: LockData = { jobId, startedAt: Date.now(), buildCommand: BUILD_COMMAND }
+  try {
+    fs.writeFileSync(lockPath, JSON.stringify(lockData), { encoding: 'utf-8' })
+  } catch (err) {
+    return json({ error: 'lock_write_failed', message: String(err) }, 500)
+  }
+
+  // Ejecutar scripts/rebuild-and-restart.js como proceso desacoplado.
+  // El script borra el lock al terminar (success o error) — ver finally en main().
   const scriptPath = path.join(PROJECT_DIR, 'scripts', 'rebuild-and-restart.js')
   const args: string[] = []
   // Pasar env vía process.env (ya está) y permitir body controlar no-restart
@@ -72,6 +131,7 @@ export async function POST(request: NextRequest) {
       BUILD_COMMAND,
       RESTART_COMMAND,
       PROJECT_DIR,
+      BUILD_LOCK_PATH: lockPath,
     },
     detached: true,
     stdio: 'ignore',
@@ -79,7 +139,6 @@ export async function POST(request: NextRequest) {
 
   child.unref()
 
-  const jobId = Date.now().toString()
   return json({
     accepted: true,
     jobId,

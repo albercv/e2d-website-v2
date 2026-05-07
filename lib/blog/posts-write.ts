@@ -7,7 +7,8 @@
 
 import * as fs from "fs/promises"
 import * as path from "path"
-import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
+import matter from "gray-matter"
+import { clearPostsRuntimeCache, listPostsFromDisk } from "@/lib/blog/posts-runtime"
 
 /**
  * Raíz del repo donde vive `content/`. PM2 corre desde `.next/standalone/`,
@@ -17,6 +18,21 @@ import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
  */
 function getContentRoot(): string {
   return process.env.CONTENT_ROOT || process.cwd()
+}
+
+/**
+ * Directorio físico donde aterrizan los `.mdx` de blog. Se aísla del repo para
+ * que `next build` (que regenera `.next/standalone/`) no arrastre los posts y
+ * para resistir a `git clean -fdx`. Si `BLOG_POSTS_DIR` no está seteado, cae
+ * al path legacy `${CONTENT_ROOT}/content/posts` (dev/tests). En producción,
+ * apuntar a un dir persistente fuera del proyecto y dejar `content/posts`
+ * como symlink hacia ese dir para que Contentlayer y posts-runtime lo vean.
+ */
+export function getPostsDir(): string {
+  return (
+    process.env.BLOG_POSTS_DIR ||
+    path.resolve(getContentRoot(), "content", "posts")
+  )
 }
 
 export type Locale = "es" | "en" | "it"
@@ -62,6 +78,8 @@ export interface CreatePostInput {
   date?: string
   author?: string
   published?: boolean
+  cover?: string
+  translationKey?: string
 }
 
 export interface CreatePostResult {
@@ -114,11 +132,13 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
     tags.length ? `tags: [${tags.map((t) => yamlQuote(t)).join(", ")}]` : "tags: []",
     `author: ${yamlQuote(author)}`,
     `published: ${published ? "true" : "false"}`,
+    ...(input.cover ? [`cover: ${input.cover}`] : []),
+    ...(input.translationKey ? [`translationKey: ${input.translationKey}`] : []),
     "---",
   ]
   const mdx = frontmatterLines.join("\n") + "\n\n" + content + "\n"
 
-  const postsDir = path.resolve(getContentRoot(), "content", "posts")
+  const postsDir = getPostsDir()
   const filePath = path.resolve(postsDir, `${slug}.mdx`)
 
   try {
@@ -141,12 +161,27 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
 export interface DeletePostInput {
   slug: string
   locale: Locale
+  /**
+   * Confirmation flag — debe ser `true` para que el delete proceda. Sin él,
+   * deletePost rechaza con 400. Diseñado para evitar deletes accidentales del
+   * LLM (Claude.ai recibió 409 sobre posts_create y "ayudó" haciendo delete +
+   * recreate, perdiendo /var/lib/e2d-uploads/<key>/ con todos los binarios).
+   */
+  confirm?: boolean
+  /**
+   * Si true, además de borrar el .mdx también borra `MEDIA_UPLOADS_ROOT/<key>/`
+   * cuando es el último sibling i18n del translationKey. Si false (default),
+   * el dir de uploads se preserva — la media puede ser recuperada manualmente
+   * o reutilizada si se recrea el post con el mismo translationKey.
+   */
+  cleanupMedia?: boolean
 }
 
 export interface DeletePostResult {
   slug: string
   locale: Locale
   path: string
+  mediaCleanedUp: boolean
 }
 
 export async function deletePost(input: DeletePostInput): Promise<DeletePostResult> {
@@ -158,6 +193,14 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
   }
   if (!isValidLocale(locale)) {
     throw new PostsWriteError("unsupported_locale", 400, "locale is required and must be one of es,en,it", { supported: SUPPORTED_LOCALES })
+  }
+  if (input.confirm !== true) {
+    throw new PostsWriteError(
+      "confirm_required",
+      400,
+      "posts_delete requiere confirm:true explícito para evitar deletes accidentales. Pasa { confirm: true } en el body.",
+      { hint: "Si quieres también borrar la media subida, añade cleanupMedia: true" }
+    )
   }
 
   const existing = await listPostsFromDisk()
@@ -176,6 +219,19 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
 
   const filePath = path.resolve(getContentRoot(), "content", target._raw.sourceFilePath)
 
+  // Audit log: forense para entender quién borra posts. Contexto histórico —
+  // tras BUG-7/BUG-11 hubo desapariciones recurrentes de posts que NO eran
+  // causadas por el build (verified empíricamente con canary). El log nos
+  // dirá quién llamó a deletePost y desde dónde la próxima vez.
+  try {
+    const auditDir = path.join(getContentRoot(), "logs")
+    await fs.mkdir(auditDir, { recursive: true })
+    const entry = `${new Date().toISOString()}\tDELETE\t${slug}\t${locale}\ttranslationKey=${target.translationKey}\tcleanupMedia=${input.cleanupMedia === true}\tcwd=${process.cwd()}\tpid=${process.pid}\n`
+    await fs.appendFile(path.join(auditDir, "posts-audit.log"), entry, "utf-8")
+  } catch {
+    /* no bloquear el delete por un fallo de logging */
+  }
+
   try {
     await fs.unlink(filePath)
   } catch (err) {
@@ -183,7 +239,26 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
     throw new PostsWriteError("internal_error", 500, "Failed to delete file", { details })
   }
 
-  return { slug, locale, path: filePath }
+  // Cleanup opcional de uploads. Solo si cleanupMedia:true Y es el último
+  // sibling i18n del translationKey. Default false: la media se preserva
+  // ante un delete (los binarios pesan y son caros — el usuario puede tener
+  // motivos para borrar el .mdx pero conservar las fotos para reuse).
+  let mediaCleanedUp = false
+  if (input.cleanupMedia === true) {
+    clearPostsRuntimeCache()
+    const { findPostsByTranslationKey } = await import("./translation-key")
+    const remaining = await findPostsByTranslationKey(target.translationKey)
+    if (remaining.length === 0) {
+      const { deleteMetaForKey } = await import("./media-meta")
+      await deleteMetaForKey(target.translationKey)
+      mediaCleanedUp = true
+    }
+  } else {
+    // Aún limpiamos cache para que el siguiente listPostsFromDisk vea estado fresco.
+    clearPostsRuntimeCache()
+  }
+
+  return { slug, locale, path: filePath, mediaCleanedUp }
 }
 
 export interface RebuildResult {
@@ -242,6 +317,52 @@ export async function triggerRebuild(): Promise<RebuildResult> {
           ? null
           : undefined,
   }
+}
+
+export interface UpdatePostBodyInput {
+  slug: string
+  locale: Locale
+  content: string
+}
+
+export async function updatePostBody(input: UpdatePostBodyInput): Promise<void> {
+  const slug = (input.slug || "").trim()
+  const locale = input.locale
+  const content = typeof input.content === "string" ? input.content : ""
+
+  if (!slug) {
+    throw new PostsWriteError("invalid_params", 400, "slug is required", { field: "slug" })
+  }
+  if (!isValidLocale(locale)) {
+    throw new PostsWriteError("unsupported_locale", 400, "locale is required and must be one of es,en,it", { supported: SUPPORTED_LOCALES })
+  }
+  if (!content) {
+    throw new PostsWriteError("invalid_params", 400, "content is required", { field: "content" })
+  }
+
+  const all = await listPostsFromDisk()
+  const post = all.find((p) => p.slug === slug && p.locale === locale)
+  if (!post) {
+    throw new PostsWriteError("not_found", 404, `Post ${slug}/${locale} not found`, { slug, locale })
+  }
+
+  const filePath = path.join(getContentRoot(), "content", post._raw.sourceFilePath)
+  let raw: string
+  try {
+    raw = await fs.readFile(filePath, "utf-8")
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to read file", { details })
+  }
+  const parsed = matter(raw)
+  const next = matter.stringify(content, parsed.data)
+  try {
+    await fs.writeFile(filePath, next, { encoding: "utf-8" })
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
+  }
+  clearPostsRuntimeCache()
 }
 
 export function isPostsWriteError(err: unknown): err is PostsWriteError {

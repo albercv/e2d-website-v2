@@ -14,6 +14,11 @@ const customJestConfig = {
   testMatch: [
     '**/__tests__/api/**/*.(js|jsx|ts|tsx)',
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.claude/worktrees/',
+    '/.next/',
+  ],
   collectCoverageFrom: [
     'app/api/**/*.{js,jsx,ts,tsx}',
     'lib/**/*.{js,jsx,ts,tsx}',

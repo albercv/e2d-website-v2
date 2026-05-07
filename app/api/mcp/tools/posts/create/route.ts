@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { listPostsFromDisk, type RuntimePost as Post } from '@/lib/blog/posts-runtime'
+import { getPostsDir } from '@/lib/blog/posts-write'
 import { createRateLimitMiddleware, getRateLimitHeaders } from '@/lib/mcp-rate-limiter'
 import { mcpLogger } from '@/lib/mcp-logger'
 import { requireOAuthScopes } from '@/lib/mcp-oauth'
@@ -99,7 +100,6 @@ export async function POST(request: NextRequest) {
   const date = typeof payloadObj.date === 'string' ? payloadObj.date : new Date().toISOString().slice(0, 10)
   const published = payloadObj.published !== false
   const author = typeof payloadObj.author === 'string' ? payloadObj.author : 'Alberto Carrasco'
-  const skipRebuild = payloadObj.skip_rebuild === true
 
   if (!title || typeof title !== 'string' || title.trim().length < 3) {
     return respondErrorAsMcpOrJson(request, 'title is required and must be at least 3 characters', 400, 'invalid_params', { field: 'title' }, TOOL_NAME)
@@ -142,7 +142,12 @@ export async function POST(request: NextRequest) {
 
   const mdx = frontmatterLines.join('\n') + '\n\n' + content.trim() + '\n'
 
-  const postsDir = path.resolve(process.cwd(), 'content', 'posts')
+  // Bug histórico (obs 770/771): aquí se usaba `process.cwd()` que bajo PM2
+  // standalone resuelve a `.next/standalone/`, así que los `.mdx` aterrizaban
+  // en un dir que `next build` regenera y los borraba en cada rebuild. Ahora
+  // delegamos en `getPostsDir()` (BLOG_POSTS_DIR / CONTENT_ROOT) — mismo dir
+  // físico persistente que usa el JSON-RPC `posts_create`.
+  const postsDir = getPostsDir()
   const filePath = path.resolve(postsDir, `${slug}.mdx`)
 
   try {
@@ -167,23 +172,6 @@ export async function POST(request: NextRequest) {
     path: filePath,
     timestamp: new Date().toISOString(),
     processingTime: elapsed,
-  }
-
-  // Trigger optional rebuild (admin endpoint) asynchronously
-  if (!skipRebuild && process.env.AUTO_REBUILD_AFTER_MCP_CHANGE === 'true' && process.env.ADMIN_REBUILD_URL) {
-    try {
-      const rebuildUrl = process.env.ADMIN_REBUILD_URL!
-      const apiKey = process.env.E2D_MCP_API_KEY || ''
-      // Fire-and-forget; don't await to avoid delaying the response
-      fetch(rebuildUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({ noRestart: false }),
-      }).catch(() => {})
-    } catch {}
   }
 
   return respondAsMcpOrJson(request, payloadOut, 201, TOOL_NAME, { 'X-Content-Type': 'mcp-tool-response' })

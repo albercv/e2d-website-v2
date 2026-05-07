@@ -72,8 +72,12 @@ coverage/
 # contentlayer
 .contentlayer/
 
-# content (external prod posts)
+# content (external prod posts) — dir o symlink a BLOG_POSTS_DIR
 content/posts/
+content/posts
+
+# media uploads (binarios + _meta.json escritos por la form de /admin/media-upload)
+public/uploads/
 
 # generated documentation and build reports
 docs/mcp-changelog.md

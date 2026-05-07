@@ -224,4 +224,26 @@ body body body
     posts = await mod.listPostsFromDisk()
     expect(posts).toHaveLength(2)
   })
+
+  it("recurses into a symlinked subdir of content/", async () => {
+    // Regresión: BLOG_POSTS_DIR vive fuera del proyecto; `content/posts` es un
+    // symlink. `Dirent.isDirectory()` devuelve false para symlinks, así que sin
+    // la rama isSymbolicLink en walkMdx el subárbol queda invisible y los posts
+    // creados por MCP devuelven 404 en posts_get/posts_search.
+    const externalDir = await fs.mkdtemp(path.join(os.tmpdir(), "blog-posts-ext-"))
+    await fs.writeFile(
+      path.join(externalDir, "external.mdx"),
+      `---\ntitle: External\ndescription: Description long enough\ndate: 2026-05-05\nlocale: es\nslug: external\npublished: true\n---\n\nbody body body\n`,
+      "utf-8",
+    )
+    await fs.mkdir(path.join(tmpDir, "content"), { recursive: true })
+    await fs.symlink(externalDir, path.join(tmpDir, "content", "posts"))
+    try {
+      const posts = await mod.listPostsFromDisk()
+      const slugs = posts.map((p) => p.slug)
+      expect(slugs).toContain("external")
+    } finally {
+      await fs.rm(externalDir, { recursive: true, force: true })
+    }
+  })
 })

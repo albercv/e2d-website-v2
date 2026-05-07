@@ -132,11 +132,38 @@ describe("lib/blog/posts-write", () => {
         })
       ).rejects.toMatchObject({ code: "conflict", status: 409 })
     })
+
+    it("escribe a BLOG_POSTS_DIR cuando está seteado, ignorando CONTENT_ROOT", async () => {
+      // Regresión obs 770/771: bajo PM2 standalone los posts aterrizaban en
+      // .next/standalone/content/posts/ y next build los regeneraba/borraba.
+      // BLOG_POSTS_DIR aísla el dir físico fuera del proyecto.
+      const altDir = await fs.mkdtemp(path.join(os.tmpdir(), "alt-posts-"))
+      process.env.BLOG_POSTS_DIR = altDir
+      try {
+        const result = await mod.createPost({
+          title: "Post fuera del repo",
+          description: "Descripcion suficientemente larga para pasar la validacion.",
+          content: "Contenido suficientemente largo para pasar la validacion " + "x".repeat(50),
+          locale: "en",
+        })
+        expect(result.path.startsWith(altDir)).toBe(true)
+        const files = await fs.readdir(altDir)
+        expect(files).toHaveLength(1)
+        expect(files[0].endsWith(".mdx")).toBe(true)
+        // Y NO se escribió en el path basado en CONTENT_ROOT.
+        const legacyDir = path.join(tmpDir, "content", "posts")
+        const legacyFiles = await fs.readdir(legacyDir)
+        expect(legacyFiles.includes(files[0])).toBe(false)
+      } finally {
+        delete process.env.BLOG_POSTS_DIR
+        await fs.rm(altDir, { recursive: true, force: true })
+      }
+    })
   })
 
   describe("deletePost", () => {
     it("borra el fichero del post existente", async () => {
-      const result = await mod.deletePost({ slug: "guia-n8n", locale: "es" })
+      const result = await mod.deletePost({ slug: "guia-n8n", locale: "es", confirm: true })
       expect(result.slug).toBe("guia-n8n")
       // Re-crear el fichero para no romper otros tests.
       await fs.writeFile(path.join(tmpDir, "content", "posts", "guia-n8n.mdx"), seedPostMdx)
@@ -144,14 +171,23 @@ describe("lib/blog/posts-write", () => {
 
     it("devuelve not_found si el slug no existe", async () => {
       await expect(
-        mod.deletePost({ slug: "no-existe", locale: "es" })
+        mod.deletePost({ slug: "no-existe", locale: "es", confirm: true })
       ).rejects.toMatchObject({ code: "not_found", status: 404 })
     })
 
     it("devuelve conflict si el locale no coincide con el del post", async () => {
       await expect(
-        mod.deletePost({ slug: "guia-n8n", locale: "en" })
+        mod.deletePost({ slug: "guia-n8n", locale: "en", confirm: true })
       ).rejects.toMatchObject({ code: "conflict", status: 409 })
+    })
+
+    it("rechaza con confirm_required si confirm no es true", async () => {
+      await expect(
+        mod.deletePost({ slug: "guia-n8n", locale: "es" })
+      ).rejects.toMatchObject({ code: "confirm_required", status: 400 })
+      await expect(
+        mod.deletePost({ slug: "guia-n8n", locale: "es", confirm: false })
+      ).rejects.toMatchObject({ code: "confirm_required", status: 400 })
     })
   })
 
