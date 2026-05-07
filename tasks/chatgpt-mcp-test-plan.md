@@ -8,12 +8,18 @@
 
 ## 0. Pre-deploy checklist
 
-- [ ] Branch: `worktree-agent-aae14f9f272091024` (worktree at
-      `/root/e2dProject/e2d-website-v2/.claude/worktrees/agent-aae14f9f272091024`)
-- [ ] All Jest suites green locally: `npx jest --no-coverage`
+- [ ] Branch: `feature/chatgpt-custom-connector` (renamed 2026-05-07 desde
+      `worktree-agent-aae14f9f272091024` per gitflow convention; worktree
+      eliminado, rama checked-out en el working tree principal).
+- [ ] Develop ya mergeado (commit `83c69b3`, 0 conflictos como predicho —
+      file sets disjuntos). Rama 4 commits ahead, 0 behind develop.
+- [ ] **En este servidor**, jest necesita `BLOG_POSTS_DIR=$(mktemp -d)` por
+      el TEST_PROD_GUARD (ver `tasks/lessons.md` 2026-05-07).
 - [ ] Targeted suites green:
-      `npx jest --no-coverage __tests__/lib/oauth-redirect-uri-allowlist.test.ts __tests__/api/register.test.ts`
-- [ ] Files changed (review with `git diff develop...HEAD`):
+      `BLOG_POSTS_DIR=$(mktemp -d) npx jest --no-coverage __tests__/lib/oauth-redirect-uri-allowlist.test.ts __tests__/api/register.test.ts`
+- [ ] Suite completa green (opcional, ~3 min):
+      `BLOG_POSTS_DIR=$(mktemp -d) npx jest --no-coverage`
+- [ ] Files changed by this branch alone (review con `git log develop..HEAD --not --merges`):
   - `lib/oauth/redirect-uri-allowlist.ts`            *(new helper)*
   - `app/register/route.ts`                          *(use helper, restrict default scopes to readonly)*
   - `__tests__/lib/oauth-redirect-uri-allowlist.test.ts` *(new)*
@@ -30,13 +36,16 @@
 # 1.1 — switch to the feature branch
 cd /root/e2dProject/e2d-website-v2
 git fetch
-git checkout worktree-agent-aae14f9f272091024
+git checkout feature/chatgpt-custom-connector
 
 # 1.2 — install (only if package-lock changed; this branch did not add deps)
 # npm ci   # skip unless you suspect a stale node_modules
 
-# 1.3 — re-verify the test suite on the deploy host
-npm test -- --no-coverage --testPathPatterns="oauth|register"
+# 1.3 — re-verify OAuth suites on the deploy host
+#       (BLOG_POSTS_DIR override required here; ver §0)
+BLOG_POSTS_DIR=$(mktemp -d) npx jest --no-coverage \
+  __tests__/lib/oauth-redirect-uri-allowlist.test.ts \
+  __tests__/api/register.test.ts
 
 # 1.4 — full build pipeline (pull-content + next build + ai-indexing)
 npm run build
@@ -343,5 +352,75 @@ by `disabled = 0`.)
 - [ ] §3 ChatGPT happy-path completes through to a successful `search` tool call
 - [ ] §5 Claude.ai still works
 - [ ] §4 logs reviewed, no unexpected 5xx
+- [ ] §9 post-merge regression all green
 - [ ] No new entries in `oauth_clients` with non-allowlisted redirect URIs
       (`sqlite3 data/oauth.sqlite "SELECT client_id, redirect_uris FROM oauth_clients;"`)
+
+---
+
+## 9. Post-merge regression smoke (added 2026-05-07)
+
+Develop entró en este branch con 13 commits que tocan blog-monitoring,
+runtime reader, MCP write tools, build lock y typography. Ninguno se solapa
+con OAuth, pero el binario sí cambia. Verificar que no se rompió nada de eso
+después del `pm2 restart`.
+
+### 9.1 — Monitoring stack vivo tras restart
+
+```bash
+pm2 list | grep -E "ferdy-tripwire|posts-watchdog"   # ambos online
+auditctl -l | grep e2d_posts                          # regla cargada
+sha256sum /var/lib/e2d-content/posts/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy.mdx \
+          logs/ferdy-baseline.mdx | awk '{print $1}' | sort -u | wc -l
+# debe imprimir "1" (hashes idénticos)
+```
+
+### 9.2 — Blog público sigue leyendo desde disco (BUG-13/14)
+
+```bash
+curl -fsS https://www.evolve2digital.com/es/blog/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy \
+  | grep -c "<article" | awk '{print ($0>=1)?"OK":"FAIL — Ferdy no renderiza"}'
+curl -fsS https://www.evolve2digital.com/feed/es | grep -c "<title>de-atender" \
+  | awk '{print ($0>=1)?"OK":"FAIL — Ferdy no en RSS"}'
+curl -fsS https://www.evolve2digital.com/sitemap.xml | grep -c "de-atender" \
+  | awk '{print ($0>=1)?"OK":"FAIL — Ferdy no en sitemap"}'
+```
+
+### 9.3 — MCP tools de blog responden (BUG-12 / posts_delete confirm)
+
+Desde el cliente MCP (Claude.ai o curl con bearer):
+- `posts_search "ferdy"` → devuelve Ferdy en resultados.
+- `posts_get` con su slug → devuelve el body actual.
+- `posts_delete` SIN `confirm:true` → debe rechazar con error explícito (BUG-12).
+- `posts_list_media` → responde, no crashea.
+
+### 9.4 — Build lock activo (BUG-11)
+
+```bash
+ls /tmp/e2d-build.lock 2>/dev/null && echo "lock presente — esperado entre builds" \
+                                  || echo "no lock — esperado en idle"
+# Durante el build (§1.4) el lock existe; después de `pm2 restart` debería desaparecer.
+```
+
+### 9.5 — Auto-rebuild desactivado (commit dd7060d)
+
+Desde MCP, ejecuta `posts_create` con un slug canary y verifica:
+- El fichero aparece en `/var/lib/e2d-content/posts/canary-<stamp>.mdx`.
+- `pm2 list` muestra `e2d` con el mismo PID — **no** debe haber reiniciado.
+- `logs/fs-watchdog.log` registra el CREATE pero no eventos de build.
+
+Después borra el canary con `posts_delete confirm:true` para limpiar.
+
+### 9.6 — TEST_PROD_GUARD vivo
+
+```bash
+# Sin BLOG_POSTS_DIR — debe abortar:
+npx jest __tests__/api/register.test.ts --no-coverage 2>&1 | grep -c TEST_PROD_GUARD
+# debe imprimir "1" (el guard saltó)
+
+# Con BLOG_POSTS_DIR=tmpdir — debe pasar:
+BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverage 2>&1 | tail -3
+# debe imprimir resumen de jest con 0 fails
+```
+
+Si los seis bloques pasan, el merge no introdujo regresión sobre lo que ya funcionaba en develop.

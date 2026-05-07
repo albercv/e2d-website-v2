@@ -55,3 +55,22 @@ if (entry.isDirectory()) {
 - Duplicar lógica de write entre el lib (con env var correcta) y un route handler REST (con `process.cwd()` legacy). Resultado: la mitad de las llamadas escriben donde toca, la otra mitad las pierde el siguiente build. Solo se ve si el LLM elige sistemáticamente uno u otro endpoint.
 - Confiar en `process.cwd()` bajo PM2 standalone. `server.js` hace `process.chdir(__dirname)` antes de iniciar Next, así que el cwd siempre apunta a `.next/standalone/` en producción, sin importar dónde se haga `pm2 start`.
 - Audit logs de delete pero no de create: cuando un post desaparece sin entrada de delete en el log, no hay forma de saber si nunca se creó (cwd erróneo) o si lo borró otro path. Añadir audit log a create también ayudaría a diagnosticar bugs como BUG-13 más rápido.
+
+## 2026-05-07 — Jest TEST_PROD_GUARD: cómo correr tests en el servidor de producción
+
+**Contexto**: tras BUG-15 añadimos `jest.setup-prod-guard.js` como `globalSetup` en `jest.config.js` y `jest.config.api.js`. El guard aborta jest si:
+- `BLOG_POSTS_DIR` resuelve dentro de `/var/lib/e2d-content/`, **o**
+- (sin `BLOG_POSTS_DIR`) `process.cwd()/content/posts` resuelve allí vía symlink.
+
+**Regla**: el guard se activa **sólo** donde existe el symlink físico `content/posts → /var/lib/e2d-content/posts`. El symlink está en `.gitignore`, así que no viene del repo — sólo existe en el servidor de producción. CI, máquinas locales y worktrees recién creados ven `content/posts` como inexistente, el guard sale silencioso, y `npm test` corre transparentemente.
+
+**Para correr tests en el servidor de producción (sólo aquí)**:
+```bash
+BLOG_POSTS_DIR=$(mktemp -d) npm test
+# o para una suite concreta:
+BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverage
+```
+
+`mktemp -d` crea un directorio único por invocación, el guard valida que no apunta a prod, los tests lo usan vía la lógica de `resolveBlogPostsDir()`. No hace falta limpiar el tmpdir manualmente; tmpfs lo recicla.
+
+**No** modificar el script `"test": "jest"` de `package.json` para auto-mktemp: el comportamiento "aborta si no se setea" es deseable y obligatorio en este servidor — sin la fricción, alguien podría volver a ejecutar tests contra producción por descuido. La fricción aquí es la red de seguridad, no la incomodidad a quitar.
