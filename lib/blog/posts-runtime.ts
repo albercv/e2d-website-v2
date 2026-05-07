@@ -29,6 +29,7 @@ export interface RuntimePost {
   date: string
   published: boolean
   cover?: string
+  translationKey: string
   url: string
   body: { raw: string }
   wordCount: number
@@ -65,6 +66,22 @@ async function walkMdx(root: string): Promise<string[]> {
       out.push(...(await walkMdx(full)))
     } else if (entry.isFile() && entry.name.endsWith(".mdx")) {
       out.push(full)
+    } else if (entry.isSymbolicLink()) {
+      // Caso BLOG_POSTS_DIR: `content/posts` es symlink a un dir persistente
+      // fuera del proyecto. `Dirent.isDirectory()` devuelve false para symlinks
+      // (no resuelve), así que sin esta rama el subárbol queda invisible para
+      // posts-runtime y `posts_get`/`posts_search` devuelven 404 aunque el
+      // .mdx esté en disco. `fs.stat` resuelve el symlink y nos dice qué es.
+      try {
+        const s = await fs.stat(full)
+        if (s.isDirectory()) {
+          out.push(...(await walkMdx(full)))
+        } else if (s.isFile() && full.endsWith(".mdx")) {
+          out.push(full)
+        }
+      } catch {
+        // Symlink roto: lo ignoramos sin propagar.
+      }
     }
   }
   return out
@@ -110,6 +127,10 @@ function parseFile(filePath: string, contentDir: string, raw: string): RuntimePo
     date,
     published: fm.published !== false,
     cover: typeof fm.cover === "string" ? fm.cover : undefined,
+    translationKey:
+      typeof fm.translationKey === "string" && fm.translationKey.trim().length > 0
+        ? fm.translationKey
+        : slug,
     url: `/${locale}/blog/${slug}`,
     body: { raw: body },
     wordCount,
@@ -144,6 +165,29 @@ export function clearPostsRuntimeCache(): void {
   cache.clear()
 }
 
+// Reemplaza el `cover` slug-key (lo que escribe la LLM en frontmatter) por la
+// URL pública resuelta (`/uploads/<key>/<name>.<ext>`). Si el cover no existe
+// en _meta.json, devuelve undefined. Centraliza la resolución para BlogCard,
+// generateMetadata (OG/Twitter) y cualquier otro consumidor público que muestre
+// la portada — sin esto cada componente reimplementa el path resolver con su
+// propio sesgo y se pasa por alto en componentes nuevos (BUG histórico).
+export async function resolvePostCovers(posts: RuntimePost[]): Promise<RuntimePost[]> {
+  const { readMeta } = await import("./media-meta")
+  const { resolveCover } = await import("./media-markers")
+  return Promise.all(
+    posts.map(async (post) => {
+      if (!post.cover) return post
+      // Legacy: URL absoluta (https://, http://, //) o path absoluto (/x.png)
+      // precede a la convención de markers. Devolver tal cual; el resolver de
+      // _meta.json solo aplica a slug-keys (lowercase ASCII + _-).
+      if (/^(https?:)?\/\//.test(post.cover) || post.cover.startsWith("/")) return post
+      const meta = await readMeta(post.translationKey)
+      const cover = resolveCover(post.cover, meta, post.translationKey)
+      return { ...post, cover: cover.ok ? cover.url : undefined }
+    })
+  )
+}
+
 export interface CompiledPost extends RuntimePost {
   compiled: MDXRemoteSerializeResult
 }
@@ -155,6 +199,11 @@ export async function getCompiledPost(
   const all = await listPostsFromDisk()
   const post = all.find((p) => p.slug === slug && p.locale === locale && p.published)
   if (!post) return null
+  const { readMeta } = await import("./media-meta")
+  const { expandMarkers, resolveCover } = await import("./media-markers")
+  const meta = await readMeta(post.translationKey)
+  const expandedBody = expandMarkers(post.body.raw, meta, post.translationKey)
+  const cover = resolveCover(post.cover, meta, post.translationKey)
   // Lazy import: next-mdx-remote/serialize es ESM puro y Jest peta al cargarlo
   // en tests que no compilan MDX. Importar dentro de la función mantiene el
   // módulo cargable bajo CommonJS y solo paga el coste cuando es necesario.
@@ -163,9 +212,13 @@ export async function getCompiledPost(
   // pros={[...]} cons={[...]} />). El default `blockJS: true` está pensado
   // para MDX de origen no confiable; aquí el contenido es nuestro y vive
   // en content/ del repo.
-  const compiled = await serialize(post.body.raw, {
+  const compiled = await serialize(expandedBody, {
     parseFrontmatter: false,
     blockJS: false,
   })
-  return { ...post, compiled }
+  return {
+    ...post,
+    cover: cover.ok ? cover.url : undefined,
+    compiled,
+  }
 }

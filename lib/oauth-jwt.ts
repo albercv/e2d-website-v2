@@ -53,3 +53,34 @@ export function verifyAccessToken(token: string): AccessTokenClaims | null {
     return null
   }
 }
+
+export type UploadTokenClaims = {
+  purpose: 'media-upload'
+  translationKey: string
+  iat: number
+  exp: number
+  iss: string
+}
+
+export function signUploadToken(
+  payload: { translationKey: string },
+  ttlSeconds = 900
+): string {
+  const claims = {
+    purpose: 'media-upload' as const,
+    translationKey: payload.translationKey,
+    iss: getIssuer(),
+  }
+  return jwt.sign(claims, getJwtSecret(), { algorithm: 'HS256', expiresIn: ttlSeconds })
+}
+
+export function verifyUploadToken(token: string): UploadTokenClaims | null {
+  try {
+    const decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] }) as UploadTokenClaims
+    if (decoded.purpose !== 'media-upload') return null
+    if (typeof decoded.translationKey !== 'string' || decoded.translationKey.length === 0) return null
+    return decoded
+  } catch {
+    return null
+  }
+}

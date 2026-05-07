@@ -7,12 +7,18 @@ const createJestConfig = nextJest({
 
 // Custom config for API tests - no setup files that depend on browser environment
 const customJestConfig = {
+  globalSetup: '<rootDir>/jest.setup-prod-guard.js',
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
   testMatch: [
     '**/__tests__/api/**/*.(js|jsx|ts|tsx)',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.claude/worktrees/',
+    '/.next/',
   ],
   collectCoverageFrom: [
     'app/api/**/*.{js,jsx,ts,tsx}',

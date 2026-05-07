@@ -148,27 +148,31 @@ export class BuildIntegration {
 
   /**
    * Generate sitemap
+   *
+   * Sitemap generation is now async (post BUG-4: source switched from
+   * contentlayer build artifacts to runtime disk reader). `saveXMLSitemap`
+   * was removed; we serialize the entries here and write them directly.
    */
   private async generateSitemap(result: BuildResult): Promise<void> {
     try {
-      console.log("🗺️ Generating AI-optimized sitemap...")
-      
-      const sitemap = generateAISitemap()
+      console.log("Generating AI-optimized sitemap...")
+
+      const sitemap = await generateAISitemap()
       const sitemapPath = path.join(this.config.outputDir, "sitemap.xml")
-      
-      await defaultSitemapGenerator.saveXMLSitemap(sitemapPath)
-      
+      const xml = await defaultSitemapGenerator.generateXMLSitemap()
+      fs.writeFileSync(sitemapPath, xml, "utf-8")
+
       const stats = fs.statSync(sitemapPath)
-      
+
       result.files.sitemap = {
         generated: true,
         path: sitemapPath,
         size: stats.size,
         urls: sitemap.length,
       }
-      
-      console.log(`✅ Sitemap generated: ${sitemap.length} URLs, ${stats.size} bytes`)
-      
+
+      console.log(`Sitemap generated: ${sitemap.length} URLs, ${stats.size} bytes`)
+
     } catch (error) {
       result.errors.push(`Sitemap generation failed: ${error instanceof Error ? error.message : String(error)}`)
     }

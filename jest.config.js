@@ -7,6 +7,7 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
+  globalSetup: '<rootDir>/jest.setup-prod-guard.js',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom', // Volver a jsdom por defecto
   moduleNameMapper: {
@@ -15,6 +16,14 @@ const customJestConfig = {
   testMatch: [
     '**/__tests__/**/*.(js|jsx|ts|tsx)',
     '**/*.(test|spec).(js|jsx|ts|tsx)'
+  ],
+  // Ignora cualquier worktree de subagente. Sin esto, jest descubre y ejecuta
+  // tests viejos/duplicados de los worktrees, que pueden tocar producción
+  // (BUG-15) y romper aserciones de rama actual.
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.claude/worktrees/',
+    '/.next/',
   ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',

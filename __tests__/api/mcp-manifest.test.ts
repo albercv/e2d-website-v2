@@ -50,12 +50,10 @@ describe('/api/mcp/manifest', () => {
     expect(rebuild.endpoint).toContain('/api/mcp/tools/posts/rebuild')
   })
 
-  it('declares skip_rebuild in posts_create input_schema', async () => {
+  it('does not advertise skip_rebuild in posts_create input_schema (rebuild is not auto-triggered)', async () => {
     const tools = await getManifest()
     const create = tools.find((t: any) => t.name === 'posts_create')
     expect(create).toBeDefined()
-    expect(create.input_schema.properties.skip_rebuild).toBeDefined()
-    expect(create.input_schema.properties.skip_rebuild.type).toBe('boolean')
-    expect(create.input_schema.properties.skip_rebuild.default).toBe(false)
+    expect(create.input_schema.properties.skip_rebuild).toBeUndefined()
   })
 })

@@ -1,4 +1,4 @@
-import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
+import { listPostsFromDisk, resolvePostCovers } from "@/lib/blog/posts-runtime"
 import { BlogList } from "@/components/blog/blog-list"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -77,9 +77,10 @@ export default async function BlogPage({ params }: BlogPageProps) {
   }
 
   const all = await listPostsFromDisk()
-  const posts = all
+  const filtered = all
     .filter((post) => post.locale === locale && post.published)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const posts = await resolvePostCovers(filtered)
 
   return (
     <div className="min-h-screen bg-background">

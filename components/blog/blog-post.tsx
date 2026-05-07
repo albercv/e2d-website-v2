@@ -38,7 +38,7 @@ export function BlogPost({ post }: BlogPostProps) {
       />
       <BreadcrumbSchema items={breadcrumbItems} />
 
-      <article className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <article className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
             {breadcrumbItems.map((item, index) => (
@@ -93,7 +93,7 @@ export function BlogPost({ post }: BlogPostProps) {
             )}
 
             {post.cover && (
-              <div className="aspect-video overflow-hidden rounded-lg mb-8">
+              <figure className="aspect-video overflow-hidden rounded-xl mb-10 ring-1 ring-border shadow-2xl shadow-black/30">
                 <Image
                   src={post.cover || "/placeholder.svg"}
                   alt={post.title}
@@ -101,12 +101,16 @@ export function BlogPost({ post }: BlogPostProps) {
                   height={450}
                   className="w-full h-full object-cover"
                   unoptimized={post.cover.includes(".svg")}
+                  priority
                 />
-              </div>
+              </figure>
             )}
           </div>
 
-          <div className="prose prose-lg prose-invert max-w-none">
+          <div
+            className="prose prose-lg prose-invert max-w-none prose-headings:scroll-mt-24 prose-headings:font-semibold prose-h2:mt-12 prose-h2:mb-5 prose-h2:text-3xl prose-h3:mt-8 prose-h3:text-xl prose-p:text-foreground/90 prose-p:leading-[1.75] prose-strong:text-foreground prose-strong:font-semibold prose-a:text-[#05b4ba] prose-a:no-underline hover:prose-a:underline prose-li:my-1 prose-li:text-foreground/90 prose-img:rounded-xl prose-img:ring-1 prose-img:ring-border"
+            lang={post.locale}
+          >
             <MDXRemote {...post.compiled} components={MDXComponents} />
           </div>
 
