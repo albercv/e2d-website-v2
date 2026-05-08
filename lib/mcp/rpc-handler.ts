@@ -278,6 +278,11 @@ export async function handleRpcCall(
         "media llama primero a `posts_request_upload`, que devuelve una URL para que el " +
         "usuario complete la subida vía form. Después usa `posts_create` o `posts_update_body` " +
         "con los markers ya escritos. `posts_validate` hace pre-flight de markers rotos.\n\n" +
+        "CTA DE CONTACTO — el marker `[contact]` (sin slug, sin parámetros) renderiza un " +
+        "bloque CTA con botón que abre un modal con WhatsApp y email. Úsalo en el cierre " +
+        "de posts donde quieras invitar al lector a contactar. Una sola línea, en su propio " +
+        "párrafo. No requiere subida previa ni aparece en `posts_list_media`. Dentro de " +
+        "fenced code blocks o inline code se preserva tal cual.\n\n" +
         "REBUILD — `posts_rebuild` NO es necesario para publicar contenido. Las páginas del " +
         "blog, sitemap y RSS leen del disco en cada request, así que `posts_create`, " +
         "`posts_delete` y `posts_update_body` se reflejan instantáneamente. `posts_rebuild` " +
