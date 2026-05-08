@@ -1,5 +1,15 @@
 # Tarea Activa
 
+## `[contact]` MDX marker (2026-05-08)
+
+Marker `[contact]` que renderiza un CTA con modal WhatsApp/email. Plan en `docs/superpowers/plans/2026-05-08-contact-marker.md`.
+
+- ✅ Task 1 — `expandMarkers` substituye `[contact]` → `<ContactCTA />` (commit `cb8c832`).
+- ✅ Task 2 — `components/blog/ContactCTA.tsx` + smoke test (commit `91a79a8`).
+- ✅ Task 3 — registrado en `MDXComponents` (commit `cb1ac36`).
+- ✅ Task 4 — anunciado en `instructions` del MCP (commit `1afb848`).
+- ⏸ Task 5 — verificación visual diferida: requiere `npm run build` + `pm2 restart e2d` para que el bundle standalone incorpore los cambios. Pasos pendientes: crear canary post via MCP con `[contact]` en body, abrir en navegador, comprobar CTA + modal + preservación dentro de fenced code block, cleanup. No lanzo el build autónomamente por historial BUG-16.
+
 ## Bugs cerrados (2026-05-05)
 
 - **BUG-1** — cover selector en form. Cerrado en commit `d15dc4c`. `_meta.json` gana campo opcional top-level `cover`; form añade radio "Use as cover" por fila image; `posts_list_media` y `posts_request_upload` exponen el cover actual al LLM.
