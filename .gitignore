@@ -98,3 +98,7 @@ next.config.mjs
 docs/mcp-changelog.md
 docs/mcp-examples.md
 docs/mcp-usage.md
+# SQLite OAuth DB — runtime data, see CLAUDE.md (no borrar, no commitear)
+data/oauth.sqlite
+data/oauth.sqlite-shm
+data/oauth.sqlite-wal
