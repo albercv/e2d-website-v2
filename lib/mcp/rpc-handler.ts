@@ -287,6 +287,31 @@ export async function handleRpcCall(
         "de posts donde quieras invitar al lector a contactar. Una sola línea, en su propio " +
         "párrafo. No requiere subida previa ni aparece en `posts_list_media`. Dentro de " +
         "fenced code blocks o inline code se preserva tal cual.\n\n" +
+        "COMPONENTES MDX — el body MDX puede usar estos componentes JSX (registrados en " +
+        "components/blog/mdx-components.tsx). NO inventes otros: una etiqueta que no esté " +
+        "aquí MDX la renderiza como texto literal y el post sale roto.\n" +
+        "- `<Lead>texto</Lead>` — primer párrafo destacado. Uno solo, justo después del título.\n" +
+        "- `<Callout type=\"info|warning|success|error\" title=\"...\">texto</Callout>` — " +
+        "alert con icono. Para datos clave, advertencias, citas de fuentes.\n" +
+        "- `<PullQuote author=\"Nombre\">texto</PullQuote>` — cita editorial grande con barra " +
+        "teal. Para frases que quieres aislar visualmente.\n" +
+        "- `<ProsCons pros={[\"a\",\"b\"]} cons={[\"c\",\"d\"]} />` — dos columnas verde/rojo. " +
+        "<Pros> y <Cons> por separado NO existen, solo este componente combinado.\n" +
+        "- `<Stat value=\"40%\" label=\"aumento de leads\" />` — KPI grande. Para datos " +
+        "cuantificables.\n" +
+        "- `<Figure src=\"/uploads/slug/x.jpg\" alt=\"...\" caption=\"...\" />` — imagen con " +
+        "caption manual. Prefiere `[image:slug]` cuando NO necesites caption custom (el " +
+        "caption se autocompleta desde _meta.json).\n" +
+        "- `<CTAInline text=\"...\" href=\"/ruta\" />` — bloque CTA con botón \"Reservar demo\" " +
+        "linkeado. Para CTAs hacia rutas internas. Si lo que quieres es WhatsApp/email, usa " +
+        "el marker `[contact]`.\n" +
+        "- `<CodeBlock language=\"ts\">codigo</CodeBlock>` — bloque de código con label. Para " +
+        "snippets largos; para inline usa backticks Markdown.\n\n" +
+        "REGLA ANTI-PROSA-PLANA — un post bien construido lleva, como mínimo: 1 `<Lead>` al " +
+        "inicio + ≥1 imagen (`[image:x]` o `<Figure>`) + ≥1 elemento estructural " +
+        "(`<Callout>`, `<PullQuote>`, `<ProsCons>` o `<Stat>`) + 1 cierre con `[contact]` o " +
+        "`<CTAInline>`. Sin esos elementos el post sale como muro de texto y pierde " +
+        "retención.\n\n" +
         "REBUILD — `posts_rebuild` NO es necesario para publicar contenido. Las páginas del " +
         "blog, sitemap y RSS leen del disco en cada request, así que `posts_create`, " +
         "`posts_delete` y `posts_update_body` se reflejan instantáneamente. `posts_rebuild` " +
