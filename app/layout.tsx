@@ -66,9 +66,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.evolve2digital.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        {/* Favicon & App Icons */}
-        <link rel="icon" href="/e2dFavicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/e2d_logo.webp" />
       </head>
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <PreloadResources />

@@ -1,140 +1,80 @@
 import type { MetadataRoute } from "next"
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://evolve2digital.com"
+const BASE_URL = "https://evolve2digital.com"
 
+const COMMON_DISALLOW = [
+  "/api/",
+  "/admin/",
+  "/_next/",
+  "/private/",
+]
+
+const PUBLIC_ALLOW = [
+  "/",
+  "/es/",
+  "/en/",
+  "/it/",
+  "/es/blog/",
+  "/en/blog/",
+  "/it/blog/",
+  "/es/docs/",
+  "/en/docs/",
+  "/sitemap.xml",
+  "/rss.xml",
+  "/llms.txt",
+  "/llms-full.txt",
+]
+
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      // Configuración general para todos los crawlers
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/*.json$",
-          "/api/admin/*",
-          "/admin/login",
-          "/admin/edit/*",
-          "/admin/new",
-        ],
+        disallow: [...COMMON_DISALLOW, "/admin/login", "/admin/edit/*", "/admin/new"],
       },
-      // GPTBot - Acceso estratégico permitido
       {
-        userAgent: "GPTBot",
-        allow: [
-          "/",
-          "/es/",
-          "/en/",
-          "/es/blog/",
-          "/en/blog/",
-          "/es/docs/",
-          "/en/docs/",
-          "/sitemap.xml",
-          "/rss.xml",
-        ],
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/api/admin/*",
-          "/api/chat/*",
-          "/*.json$",
-        ],
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: [...COMMON_DISALLOW],
       },
-      // Google Extended (Gemini) - Acceso completo a contenido público
-      {
-        userAgent: "Google-Extended",
-        allow: [
-          "/",
-          "/es/",
-          "/en/",
-          "/es/blog/",
-          "/en/blog/",
-          "/es/docs/",
-          "/en/docs/",
-          "/sitemap.xml",
-          "/rss.xml",
-        ],
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/api/admin/*",
-          "/api/chat/*",
-        ],
-      },
-      // ClaudeBot - Acceso permitido a contenido público
-      {
-        userAgent: "ClaudeBot",
-        allow: [
-          "/",
-          "/es/",
-          "/en/",
-          "/es/blog/",
-          "/en/blog/",
-          "/es/docs/",
-          "/en/docs/",
-          "/sitemap.xml",
-        ],
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/api/admin/*",
-          "/api/chat/*",
-        ],
-      },
-      // ChatGPT-User - Acceso limitado (solo lectura de contenido)
-      {
-        userAgent: "ChatGPT-User",
-        allow: [
-          "/es/blog/",
-          "/en/blog/",
-          "/es/docs/",
-          "/en/docs/",
-          "/sitemap.xml",
-        ],
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/api/admin/*",
-          "/api/chat/*",
-          "/es/",
-          "/en/",
-        ],
-      },
-      // Bingbot - Acceso estándar
       {
         userAgent: "Bingbot",
-        allow: [
-          "/",
-          "/es/",
-          "/en/",
-          "/es/blog/",
-          "/en/blog/",
-          "/sitemap.xml",
-        ],
-        disallow: [
-          "/api/",
-          "/admin/",
-          "/_next/",
-          "/private/",
-          "/api/admin/*",
-          "/api/chat/*",
-          "/es/docs/",
-          "/en/docs/",
-        ],
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "GPTBot",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "Google-Extended",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "ClaudeBot",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "ChatGPT-User",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "PerplexityBot",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "Applebot-Extended",
+        allow: PUBLIC_ALLOW,
+        disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   }
 }
