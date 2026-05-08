@@ -110,7 +110,9 @@ describe("lib/mcp/rpc-handler", () => {
         "posts_rebuild",
         "posts_request_upload",
         "posts_search",
+        "posts_set_cover",
         "posts_update_body",
+        "posts_update_frontmatter",
         "posts_validate",
       ])
     })
@@ -563,6 +565,373 @@ Body
       )) as any
       const text = JSON.parse(res.result.content[0].text)
       expect(text.files.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe("rpc-handler — posts_set_cover", () => {
+    let coverTmp: string
+    const fsSync = require("fs") as typeof import("fs")
+    const previousContentRoot = process.env.CONTENT_ROOT
+    const previousMediaRoot = process.env.MEDIA_UPLOADS_ROOT
+
+    beforeEach(() => {
+      coverTmp = fsSync.mkdtempSync(path.join(os.tmpdir(), "rpc-set-cover-"))
+      fsSync.mkdirSync(path.join(coverTmp, "content", "posts"), { recursive: true })
+      fsSync.mkdirSync(path.join(coverTmp, "uploads"), { recursive: true })
+      process.env.CONTENT_ROOT = coverTmp
+      process.env.MEDIA_UPLOADS_ROOT = path.join(coverTmp, "uploads")
+      fsSync.writeFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.mdx"),
+        `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: es
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      const keyDir = path.join(coverTmp, "uploads", "ferdy-2026")
+      fsSync.mkdirSync(keyDir, { recursive: true })
+      fsSync.writeFileSync(
+        path.join(keyDir, "_meta.json"),
+        JSON.stringify({
+          version: 1,
+          files: {
+            hero: { ext: "jpg", kind: "image", alt: "", caption: "" },
+            reel: { ext: "mp4", kind: "video", alt: "", caption: "" },
+          },
+        })
+      )
+      runtimeMod.clearPostsRuntimeCache()
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+    })
+
+    afterEach(() => {
+      fsSync.rmSync(coverTmp, { recursive: true, force: true })
+      if (previousContentRoot === undefined) delete process.env.CONTENT_ROOT
+      else process.env.CONTENT_ROOT = previousContentRoot
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_UPLOADS_ROOT
+      else process.env.MEDIA_UPLOADS_ROOT = previousMediaRoot
+      runtimeMod.clearPostsRuntimeCache()
+    })
+
+    it("requires posts:write scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "hero" },
+          },
+        },
+        { claims: null }
+      )) as any
+      expect(res.error).toBeDefined()
+    })
+
+    it("sets the cover when the named image exists", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "hero" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.ok).toBe(true)
+      expect(text.cover).toBe("hero")
+      const meta = JSON.parse(
+        fsSync.readFileSync(
+          path.join(coverTmp, "uploads", "ferdy-2026", "_meta.json"),
+          "utf-8"
+        )
+      )
+      expect(meta.cover).toBe("hero")
+      // Frontmatter ripple: the post's own .mdx now carries cover: hero.
+      const matter = (await import("gray-matter")).default
+      const sourceEs = fsSync.readFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.mdx"),
+        "utf-8"
+      )
+      expect(matter(sourceEs).data.cover).toBe("hero")
+    })
+
+    it("ripples cover to all i18n siblings' frontmatter", async () => {
+      // Seed two more siblings sharing translationKey ferdy-2026.
+      fsSync.writeFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.en.mdx"),
+        `---
+slug: ferdy
+title: Ferdy case
+date: 2026-05-05
+locale: en
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      fsSync.writeFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.it.mdx"),
+        `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: it
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "hero" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.result).toBeDefined()
+
+      const matter = (await import("gray-matter")).default
+      const readCover = (file: string) =>
+        matter(fsSync.readFileSync(path.join(coverTmp, "content", "posts", file), "utf-8")).data.cover
+      expect(readCover("ferdy.mdx")).toBe("hero")
+      expect(readCover("ferdy.en.mdx")).toBe("hero")
+      expect(readCover("ferdy.it.mdx")).toBe("hero")
+    })
+
+    it("clears the cover when cover is null", async () => {
+      const keyDir = path.join(coverTmp, "uploads", "ferdy-2026")
+      fsSync.writeFileSync(
+        path.join(keyDir, "_meta.json"),
+        JSON.stringify({
+          version: 1,
+          cover: "hero",
+          files: { hero: { ext: "jpg", kind: "image", alt: "", caption: "" } },
+        })
+      )
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: null },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.ok).toBe(true)
+      expect(text.cover).toBeNull()
+      const meta = JSON.parse(
+        fsSync.readFileSync(path.join(keyDir, "_meta.json"), "utf-8")
+      )
+      expect(meta.cover).toBeUndefined()
+    })
+
+    it("returns error when the named image does not exist", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "missing" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("not_found")
+    })
+
+    it("returns kind_mismatch when the entry is a video", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "reel" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("kind_mismatch")
+    })
+
+    it("returns Not found when the post slug does not exist", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ghost", locale: "es", cover: "hero" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("Not found")
+    })
+
+    it("rejects invalid params (missing cover)", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("Invalid params")
+    })
+  })
+
+  describe("rpc-handler — posts_update_frontmatter", () => {
+    let upfTmp: string
+    const fsSync = require("fs") as typeof import("fs")
+    const previousContentRoot = process.env.CONTENT_ROOT
+    const previousMediaRoot = process.env.MEDIA_UPLOADS_ROOT
+
+    beforeEach(() => {
+      upfTmp = fsSync.mkdtempSync(path.join(os.tmpdir(), "rpc-upf-"))
+      fsSync.mkdirSync(path.join(upfTmp, "content", "posts"), { recursive: true })
+      fsSync.mkdirSync(path.join(upfTmp, "uploads"), { recursive: true })
+      process.env.CONTENT_ROOT = upfTmp
+      process.env.MEDIA_UPLOADS_ROOT = path.join(upfTmp, "uploads")
+      fsSync.writeFileSync(
+        path.join(upfTmp, "content", "posts", "draft-x.es.mdx"),
+        `---
+title: Borrador
+description: Descripción suficientemente larga
+date: 2026-05-01
+locale: es
+slug: draft-x
+tags: []
+author: Alberto
+published: false
+translationKey: draft-x
+---
+
+body body body body body body body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+    })
+
+    afterEach(() => {
+      fsSync.rmSync(upfTmp, { recursive: true, force: true })
+      if (previousContentRoot === undefined) delete process.env.CONTENT_ROOT
+      else process.env.CONTENT_ROOT = previousContentRoot
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_UPLOADS_ROOT
+      else process.env.MEDIA_UPLOADS_ROOT = previousMediaRoot
+      runtimeMod.clearPostsRuntimeCache()
+    })
+
+    it("requires posts:write scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:read" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+    })
+
+    it("flips published with valid scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.result).toBeDefined()
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.ok).toBe(true)
+      expect(text.updated).toEqual(["published"])
+      expect(text.coverSyncedToMeta).toBe(false)
+    })
+
+    it("returns not_found when post does not exist", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "ghost", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("not_found")
+    })
+
+    it("rejects invalid date with -32602", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", date: "2025-13-99" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.code).toBe(-32602)
     })
   })
 })

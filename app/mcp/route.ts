@@ -4,6 +4,7 @@ import {
   errorResponse,
   handleRpcCall,
 } from "@/lib/mcp/rpc-handler"
+import { requireOAuthScopes } from "@/lib/mcp-oauth"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -75,6 +76,14 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin")
   const cors = getCorsHeaders(origin)
 
+  // Bearer obligatorio. Sin scopes específicos en el handshake (initialize /
+  // tools/list); cada tool en el handler enforce su propio scope. Sin esto
+  // los write tools rechazaban con `provided: []` aunque el token tuviera
+  // posts:write — el handler nunca veía las claims (memoria 807, BUG-17).
+  const auth = requireOAuthScopes(request, [])
+  if (auth.error) return auth.error
+  const ctx = { claims: auth.claims }
+
   let body: unknown
   try {
     body = await request.json()
@@ -90,7 +99,7 @@ export async function POST(request: NextRequest) {
       body.map(async (item) => {
         const req = asJsonRpcRequest(item)
         if (!req) return errorResponse(null, -32600, "Invalid Request")
-        return handleRpcCall(req)
+        return handleRpcCall(req, ctx)
       })
     )
     return NextResponse.json(responses, { status: 200, headers: cors })
@@ -104,6 +113,6 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  const response = await handleRpcCall(rpcRequest)
+  const response = await handleRpcCall(rpcRequest, ctx)
   return NextResponse.json(response, { status: 200, headers: cors })
 }

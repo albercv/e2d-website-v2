@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node scripts/pull-content.js && next build && npm run build:ai-indexing:advanced && node scripts/sync-static-files.js",
+    "prebuild": "rm -rf .next/standalone/content/posts",
+    "build": "rm -rf .next/standalone/content/posts && node scripts/pull-content.js && next build && npm run build:ai-indexing:advanced && node scripts/sync-static-files.js",
     "build:next": "next build",
     "build:analyze": "ANALYZE=true npm run build:next",
     "build:ai-indexing": "node scripts/build-ai-indexing-simple.js",

@@ -8,11 +8,37 @@ import type { Readable } from "stream"
 import { slugifyMediaName } from "./media-naming"
 import type { MediaKind } from "./media-meta"
 
+export interface MediaStorageErrorDetails {
+  /** Existing file path inside the translation-key directory. */
+  path?: string
+  /** Slug-key in conflict (the basename without extension). */
+  name?: string
+  /** Existing file extension (jpg, png, mp4, ...). */
+  ext?: string
+  /** Existing file kind, when derivable from the extension. */
+  kind?: MediaKind
+}
+
 export class MediaStorageError extends Error {
-  constructor(public code: "mime" | "name" | "exists" | "io", message: string) {
+  constructor(
+    public code: "mime" | "name" | "exists" | "io",
+    message: string,
+    public details?: MediaStorageErrorDetails
+  ) {
     super(message)
     this.name = "MediaStorageError"
   }
+}
+
+const EXT_TO_KIND: Record<string, MediaKind> = {
+  jpg: "image",
+  jpeg: "image",
+  png: "image",
+  webp: "image",
+  gif: "image",
+  mp4: "video",
+  mov: "video",
+  webm: "video",
 }
 
 export const ALLOWED_MIME = [
@@ -98,9 +124,16 @@ export async function saveMediaFile(input: SaveMediaInput): Promise<SaveMediaRes
     if (f === "_meta.json" || f === ".lock") continue
     const base = f.replace(/\.[^.]+$/, "")
     if (base === input.name) {
+      const existingExt = (f.match(/\.([^.]+)$/)?.[1] ?? "").toLowerCase()
       throw new MediaStorageError(
         "exists",
-        `file ${input.name} already exists in ${input.translationKey}`
+        `file ${input.name} already exists in ${input.translationKey}`,
+        {
+          path: `/uploads/${input.translationKey}/${f}`,
+          name: input.name,
+          ext: existingExt,
+          kind: EXT_TO_KIND[existingExt],
+        }
       )
     }
   }

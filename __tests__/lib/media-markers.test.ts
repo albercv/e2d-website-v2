@@ -69,6 +69,38 @@ describe("expandMarkers — body substitution", () => {
   })
 })
 
+describe("expandMarkers — [contact] marker", () => {
+  it("replaces a [contact] token with <ContactCTA />", () => {
+    const out = expandMarkers("Antes [contact] después", META, "ferdy")
+    expect(out).toContain("<ContactCTA />")
+    expect(out).not.toContain("[contact]")
+  })
+
+  it("replaces multiple [contact] tokens in the same body", () => {
+    const out = expandMarkers("[contact] y luego [contact]", META, "ferdy")
+    expect(out.match(/<ContactCTA \/>/g)?.length).toBe(2)
+  })
+
+  it("does not substitute [contact] inside a fenced code block", () => {
+    const src = "Texto.\n\n```\n[contact]\n```\n\nMás texto."
+    const out = expandMarkers(src, META, "ferdy")
+    expect(out).toContain("[contact]")
+    expect(out).not.toContain("<ContactCTA />")
+  })
+
+  it("does not substitute [contact] inside inline code", () => {
+    const out = expandMarkers("Como `[contact]` aquí.", META, "ferdy")
+    expect(out).toContain("`[contact]`")
+    expect(out).not.toContain("<ContactCTA />")
+  })
+
+  it("substitutes media markers and [contact] in the same body", () => {
+    const out = expandMarkers("[image:fachada] y [contact]", META, "ferdy")
+    expect(out).toContain('src="/uploads/ferdy/fachada.jpg"')
+    expect(out).toContain("<ContactCTA />")
+  })
+})
+
 describe("resolveCover", () => {
   it("returns the URL for a known image cover", () => {
     expect(resolveCover("fachada", META, "ferdy")).toEqual({

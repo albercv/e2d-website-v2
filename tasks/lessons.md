@@ -55,3 +55,45 @@ if (entry.isDirectory()) {
 - Duplicar lógica de write entre el lib (con env var correcta) y un route handler REST (con `process.cwd()` legacy). Resultado: la mitad de las llamadas escriben donde toca, la otra mitad las pierde el siguiente build. Solo se ve si el LLM elige sistemáticamente uno u otro endpoint.
 - Confiar en `process.cwd()` bajo PM2 standalone. `server.js` hace `process.chdir(__dirname)` antes de iniciar Next, así que el cwd siempre apunta a `.next/standalone/` en producción, sin importar dónde se haga `pm2 start`.
 - Audit logs de delete pero no de create: cuando un post desaparece sin entrada de delete en el log, no hay forma de saber si nunca se creó (cwd erróneo) o si lo borró otro path. Añadir audit log a create también ayudaría a diagnosticar bugs como BUG-13 más rápido.
+
+## 2026-05-07 — Jest TEST_PROD_GUARD: cómo correr tests en el servidor de producción
+
+**Contexto**: tras BUG-15 añadimos `jest.setup-prod-guard.js` como `globalSetup` en `jest.config.js` y `jest.config.api.js`. El guard aborta jest si:
+- `BLOG_POSTS_DIR` resuelve dentro de `/var/lib/e2d-content/`, **o**
+- (sin `BLOG_POSTS_DIR`) `process.cwd()/content/posts` resuelve allí vía symlink.
+
+**Regla**: el guard se activa **sólo** donde existe el symlink físico `content/posts → /var/lib/e2d-content/posts`. El symlink está en `.gitignore`, así que no viene del repo — sólo existe en el servidor de producción. CI, máquinas locales y worktrees recién creados ven `content/posts` como inexistente, el guard sale silencioso, y `npm test` corre transparentemente.
+
+**Para correr tests en el servidor de producción (sólo aquí)**:
+```bash
+BLOG_POSTS_DIR=$(mktemp -d) npm test
+# o para una suite concreta:
+BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverage
+```
+
+`mktemp -d` crea un directorio único por invocación, el guard valida que no apunta a prod, los tests lo usan vía la lógica de `resolveBlogPostsDir()`. No hace falta limpiar el tmpdir manualmente; tmpfs lo recicla.
+
+**No** modificar el script `"test": "jest"` de `package.json` para auto-mktemp: el comportamiento "aborta si no se setea" es deseable y obligatorio en este servidor — sin la fricción, alguien podría volver a ejecutar tests contra producción por descuido. La fricción aquí es la red de seguridad, no la incomodidad a quitar.
+
+## 2026-05-07 — BUG-16: `next build` borra producción atravesando el symlink content/posts
+
+**Síntoma**: a los ~2 min de lanzar `npm run build`, todos los `.mdx` de `/var/lib/e2d-content/posts/` desaparecen — incluido el post real de un cliente (Ferdy). El blog público sigue sirviendo si quedaba algo en caché, pero las próximas requests dan 404.
+
+**Atribución (capturada por la vigilancia desplegada el 2026-05-06)**:
+- `auditd` con regla `e2d_posts`: `syscall=87 (unlink)`, `comm="libuv-worker"`, `exe="/usr/bin/node"`, `ppid=748739`, `pid=748748`, proctitle = `node /root/e2dProject/e2d-website-v2/node_modules/.bin/next build`, target inode 1054409, path nominal `/root/e2dProject/e2d-website-v2/.next/standalone/content/posts/de-atender-...-ferdy.mdx`. La regla disparó porque el inode 1054409 está dentro del directorio vigilado, aunque el syscall use el path del symlink.
+- `posts-watchdog` (inotifywait): registró el DELETE en tiempo real con timestamp UTC.
+- `ferdy-tripwire` (PM2, 180 s): disparó 4 dumps consecutivos durante la ausencia con `ps auxf`, `ausearch`, `journalctl`.
+
+**Causa raíz**: `next.config.mjs` tiene `output: 'standalone'`. next-tracer escanea las dependencias y copia `content/` al directorio `.next/standalone/`. Como `content/posts` es un symlink a `/var/lib/e2d-content/posts/` (necesario por diseño para que `posts-runtime.ts:walkMdx` descubra los posts persistentes — ver línea 70 del comment), el tracer atraviesa el symlink y trata el target como contenido del proyecto. Cuando el build ejecuta el cleanup pre-copy de `.next/standalone/content/posts/` (que de un build previo era a su vez un symlink heredado), el `rm -rf` recursivo del cleanup atraviesa el symlink y borra todo en el target — producción real.
+
+**Esto NO es BUG-13/14 reaparecido**: BUG-13/14 arregló `walkMdx` (lectura runtime) para seguir symlinks bien. BUG-16 ocurre en una capa distinta — el pipeline interno de next-tracer y el cleanup del standalone, donde `walkMdx` no participa. La fix de BUG-13/14 es necesaria pero no suficiente.
+
+**Reglas que sacar de aquí**:
+
+1. **`outputFileTracingExcludes` para cualquier path que sea un symlink hacia un volumen persistente fuera del repo**. En este caso `'*': ['content/posts/**', 'content/posts']`. Sin esto, cualquier `next build` con `output: 'standalone'` que vea un symlink de directorio lo va a copiar atravesándolo, y los cleanups posteriores son una mina.
+2. **Mismo patrón se aplica a `MEDIA_UPLOADS_ROOT` si en algún momento se symlinkea desde dentro del repo**. Hoy no es el caso (el media handler usa el path absoluto via env var, no symlink), pero si alguien añadiera `public/uploads → /var/lib/e2d-uploads` por conveniencia, repetiría exactamente la trampa.
+3. **El reader del blog (`posts-runtime.ts`) lee del symlink por diseño** — el comment de la línea 70 lo documenta. No tocarlo. El writer (`posts-write.ts`) ya usa `BLOG_POSTS_DIR` directamente, así que puedes quitar el symlink del repo SI Y SOLO SI antes refactorizas el reader para que también use `BLOG_POSTS_DIR` o un path absoluto. Hasta entonces, el symlink debe quedarse y la fix vive en la config de Next, no en el repo.
+4. **PM2 no carga `.env` automáticamente**. Las env vars que el runtime necesita deben estar en `ecosystem.config.js > apps[].env_production`. `.env` solo lo leen scripts puntuales que invoquen `dotenv.config()` manualmente. Caso real: `BLOG_POSTS_DIR` estaba en `.env` pero el runtime de PM2 no la veía porque no estaba en `env_production`. Auditarlo: `cat /proc/$PID/environ | tr '\0' '\n' | grep VAR_NAME`.
+5. **`pm2 reload --update-env` no relee `ecosystem.config.js`**. Solo refresca las vars del shell padre. Para tomar cambios en el ecosystem hay que usar `pm2 startOrReload ecosystem.config.js --env production --update-env --only <name>`.
+
+**La vigilancia desplegada el 6/may funcionó perfecto**: el watchdog detectó, el tripwire dumpeó contexto en 180 s, y auditd dio atribución kernel-level (PID + exe + syscall + cwd) sin race con `ps`. Sin esa stack habríamos vuelto a perder horas haciendo arqueología. Mantener auditd activo, el tripwire en PM2, y los baselines copiados a `logs/ferdy-baseline.{txt,mdx}`.

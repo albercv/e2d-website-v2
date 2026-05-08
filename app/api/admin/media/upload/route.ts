@@ -51,7 +51,14 @@ export async function POST(req: NextRequest) {
             : err.code === "exists"
               ? 409
               : 500
-      return NextResponse.json({ error: err.code, message: err.message }, { status })
+      return NextResponse.json(
+        {
+          error: err.code,
+          message: err.message,
+          ...(err.details ? { details: err.details } : {}),
+        },
+        { status }
+      )
     }
     return NextResponse.json({ error: "io_error", message: String(err) }, { status: 500 })
   }

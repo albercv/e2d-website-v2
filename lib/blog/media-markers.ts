@@ -2,6 +2,7 @@
 import type { MediaMeta, MediaKind } from "./media-meta"
 
 const MARKER_RE = /\[(image|video):([a-z0-9_]+)\]/g
+const CONTACT_RE = /\[contact\]/g
 
 function escapeHtml(s: string): string {
   return s
@@ -107,7 +108,7 @@ export function expandMarkers(
   return segs
     .map((seg) => {
       if (seg.type === "code") return seg.value
-      return seg.value.replace(MARKER_RE, (_full, kindStr: string, name: string) => {
+      const withMedia = seg.value.replace(MARKER_RE, (_full, kindStr: string, name: string) => {
         const kind = kindStr as MediaKind
         const entry = meta.files[name]
         if (!entry) return buildMissing(kind, name, "not_found")
@@ -115,6 +116,7 @@ export function expandMarkers(
         const url = `/uploads/${translationKey}/${name}.${entry.ext}`
         return buildFigure(kind, url, entry.alt, entry.caption)
       })
+      return withMedia.replace(CONTACT_RE, "<ContactCTA />")
     })
     .join("")
 }

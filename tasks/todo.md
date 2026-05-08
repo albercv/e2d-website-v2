@@ -1,5 +1,15 @@
 # Tarea Activa
 
+## `[contact]` MDX marker (2026-05-08)
+
+Marker `[contact]` que renderiza un CTA con modal WhatsApp/email. Plan en `docs/superpowers/plans/2026-05-08-contact-marker.md`.
+
+- ✅ Task 1 — `expandMarkers` substituye `[contact]` → `<ContactCTA />` (commit `cb8c832`).
+- ✅ Task 2 — `components/blog/ContactCTA.tsx` + smoke test (commit `91a79a8`).
+- ✅ Task 3 — registrado en `MDXComponents` (commit `cb1ac36`).
+- ✅ Task 4 — anunciado en `instructions` del MCP (commit `1afb848`).
+- ⏸ Task 5 — verificación visual diferida: requiere `npm run build` + `pm2 restart e2d` para que el bundle standalone incorpore los cambios. Pasos pendientes: crear canary post via MCP con `[contact]` en body, abrir en navegador, comprobar CTA + modal + preservación dentro de fenced code block, cleanup. No lanzo el build autónomamente por historial BUG-16.
+
 ## Bugs cerrados (2026-05-05)
 
 - **BUG-1** — cover selector en form. Cerrado en commit `d15dc4c`. `_meta.json` gana campo opcional top-level `cover`; form añade radio "Use as cover" por fila image; `posts_list_media` y `posts_request_upload` exponen el cover actual al LLM.
@@ -497,3 +507,48 @@ Contexto: Ferdy desapareció por segunda vez (jest pre-fix BUG-15 corriendo a la
 Si mañana Ferdy no está, los tres puntos de evidencia son: `ausearch -k e2d_posts -ts today` (atribución kernel), `logs/ferdy-disappeared-*.txt` (contexto sistema en t+0…180 s), `logs/fs-watchdog.log` + snapshot (evento real-time).
 
 Pendiente (no bloqueante): commitear `jest.setup-prod-guard.js` + edits de `jest.config.*` + `scripts/ferdy-tripwire.sh`. Fuera del repo: `/etc/audit/rules.d/e2d-posts.rules`, `pm2 dump`.
+
+## BUG-16 cerrado (2026-05-07)
+
+`next build` borraba `/var/lib/e2d-content/posts/*.mdx` atravesando el symlink `content/posts → /var/lib/...` durante el cleanup del standalone. Atribución capturada por la vigilancia (auditd `e2d_posts`, watchdog, tripwire).
+
+- [x] Diagnóstico: `auditd` confirmó `next build` PID 748748 ejecutó `unlink` sobre el inode de Ferdy a las 07:27:08Z.
+- [x] Restauración: `cp logs/ferdy-baseline.mdx → /var/lib/e2d-content/posts/...ferdy.mdx`. sha256 idéntico al baseline. Blog HTTP 200 sin necesidad de rebuild (runtime reader desde disco).
+- [x] Fix A (next.config.mjs): `outputFileTracingExcludes: { '*': ['content/posts/**', 'content/posts'] }`. Previene que el próximo `npm run build` atraviese el symlink.
+- [x] Mejora colateral (ecosystem.config.js): añadido `BLOG_POSTS_DIR=/var/lib/e2d-content/posts` a `env_production` para que el writer use el path explícito (PM2 no carga `.env`). El reader sigue dependiendo del symlink por diseño — documentado en `posts-runtime.ts` línea 70.
+- [ ] Fix B (quitar symlink del repo): NO viable hasta refactorizar `posts-runtime.ts` para que use `BLOG_POSTS_DIR`/path absoluto. Pendiente como tarea separada.
+- [ ] Investigar: `lib/oauth-db.ts:167` referencia columna `disabled` que no existe en el schema (incidente paralelo, no bloqueante).
+- [ ] Sitemap no se ha refrescado tras restaurar Ferdy (caché de Next 14 metadata). Probablemente se renueva al próximo restart/build.
+- [ ] Commit pendiente con todo lo arreglado: `app/register/route.ts` (OAuth scope fix), `next.config.mjs` (BUG-16 A), `ecosystem.config.js` (BLOG_POSTS_DIR), `app/mcp/route.ts` (BUG-17 ChatGPT scopes), `package.json` (prebuild hook), `scripts/pull-content.js` (symlink guard), updates a `tasks/lessons.md` y `tasks/todo.md`.
+
+## BUG-17 (ChatGPT /mcp insufficient_scope) — fix aplicada (2026-05-07)
+
+`app/mcp/route.ts` llamaba a `handleRpcCall(rpcRequest)` sin pasar `ctx`, así que el rpc-handler veía `ctx.claims?.scope ?? []` → `[]` y rechazaba toda tool-call con scope con `provided: []`. Solo afectaba a ChatGPT (el endpoint específico para él); Claude.ai usa `/sse` que sí propaga ctx.
+
+- [x] Añadir `requireOAuthScopes(request, [])` y propagar `ctx = { claims: auth.claims }` a `handleRpcCall`. Verificado en bundle compilado (`.next/standalone/.next/server/app/mcp/route.js`, mtime 09:41:59).
+- [x] Smoke con token sintético HS256 firmado con `JWT_SECRET` real: `tools/list` devuelve 9 tools, `tools/call posts_search` con read scope devuelve `result:true`, sin Bearer 401.
+- [ ] Validar end-to-end con request real de ChatGPT (cuando OpenAI safety check no bloquee el payload). Sin esa request real post-09:41 no podemos afirmar 100% que la cadena Bearer→/mcp→handler funciona en el flow nativo del openai-mcp/1.0.0.
+
+## BUG-16 (next build wipea symlink content/posts) — fixes en capas
+
+- [x] `next.config.mjs` `outputFileTracingExcludes: { '*': ['content/posts/**', 'content/posts'] }` (capa 1: evita que next-tracer copie el symlink al standalone).
+- [x] `package.json` `build` empieza con `rm -rf .next/standalone/content/posts` (capa 2: elimina el symlink heredado antes de cada build, rompiendo el ciclo de wipe).
+- [x] `package.json` `prebuild` script con el mismo `rm -rf` (capa 3: npm lo ejecuta automáticamente antes de cualquier `npm run build`, captura el caso de que alguien edite el `build` y olvide el prefijo).
+- [x] `scripts/pull-content.js` `cleanDestDir()` ahora aborta con error explícito si `DEST_DIR` es symlink (capa 4: red de seguridad si en el futuro alguien activa `CONTENT_ARCHIVE_URL` o `GITHUB_CONTENT_OWNER`, evita que `pull-content` arrase prod atravesando el symlink).
+- [x] Baseline copia inmutable de Colossus (sha256 `c99f8d6f...`, 7579 B) en `logs/colossus-baseline.{txt,mdx}`. Igual que para Ferdy (`f6b4e769...`, 6864 B).
+- [ ] **Pendiente — fix definitiva**: refactorizar `lib/blog/posts-runtime.ts:listPostsFromDisk()` para que use `BLOG_POSTS_DIR` directamente en lugar de resolver vía `${CONTENT_ROOT}/content/posts`. Una vez hecho, el symlink puede eliminarse del repo y todas las trampas anteriores dejan de existir. Tocará: `posts-runtime.ts`, `posts-write.ts` (ya usa `BLOG_POSTS_DIR`), `sitemap-generator.ts`, `ai-answers-service.ts`, `posts.ts`, `translation-key.ts` (todos importan `listPostsFromDisk`). Tests existentes ya soportan `BLOG_POSTS_DIR=mktemp` (post-BUG-15). Riesgo: bajo si se mantiene fallback al path legacy para dev. Beneficio: cierra BUG-16 estructuralmente, no por capas.
+
+## Resolved 2026-05-08 — `posts_update_frontmatter` shipped
+
+Replaces the speculative `posts_set_published` design with the more general partial-frontmatter editor described in `docs/superpowers/specs/2026-05-08-posts-update-frontmatter-design.md` and implemented per `docs/superpowers/plans/2026-05-08-posts-update-frontmatter.md`.
+
+Commits in `feature/chatgpt-custom-connector`:
+
+- `3f9ae49` — `updatePostFrontmatter` helper for partial frontmatter edits.
+- `867ae9b` — `syncCoverToFrontmatter` + cover handling in `updatePostFrontmatter`.
+- `666c7e7` — `posts_update_frontmatter` MCP tool registration + dispatch.
+- `ef38ce2` — `posts_set_cover` now ripples cover to all i18n siblings' frontmatter.
+- `128e0b7` — GESTIÓN DE FRONTMATTER section in `initialize.instructions`.
+- `63661b2` — Claude.ai playbook updated to use `posts_update_frontmatter`.
+
+Verification pending: `npm run build && pm2 restart e2d` (operator step). Once deployed, `tools/list` exposes the new tool, and flipping `published: false → true` no longer requires `posts_delete + posts_create`.

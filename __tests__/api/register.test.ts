@@ -31,7 +31,9 @@ const mkPost = (body: unknown) =>
     body: JSON.stringify(body),
   })
 
-const ALL_SCOPES = [
+const READONLY_DEFAULT_SCOPES = ['posts:read', 'search:read', 'fetch:read']
+
+const ALL_KNOWN_SCOPES = [
   'posts:read',
   'search:read',
   'fetch:read',
@@ -58,37 +60,71 @@ describe('POST /register (RFC 7591 Dynamic Client Registration)', () => {
     expect(body.response_types).toEqual(['code'])
     expect(typeof body.client_id_issued_at).toBe('number')
     expect(mockCreateClient).toHaveBeenCalledTimes(1)
+    // Default scopes for dynamic registration are readonly only.
     expect(mockCreateClient).toHaveBeenCalledWith({
       client_id: 'e2d_dcrtest_abcdef0123456789',
       client_type: 'public',
       redirect_uris: ['https://claude.ai/api/mcp/auth_callback'],
-      allowed_scopes: ALL_SCOPES,
+      allowed_scopes: READONLY_DEFAULT_SCOPES,
     })
   })
 
-  it('exposes every documented scope in the response', async () => {
+  it('returns 201 for ChatGPT custom-connector redirect (chatgpt.com/connector/oauth/...)', async () => {
+    const res = await route.POST(
+      mkPost({
+        client_name: 'ChatGPT Connector',
+        redirect_uris: ['https://chatgpt.com/connector/oauth/abc123'],
+      })
+    )
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.client_id).toBe('e2d_dcrtest_abcdef0123456789')
+    expect(body.redirect_uris).toEqual(['https://chatgpt.com/connector/oauth/abc123'])
+    expect(mockCreateClient).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirect_uris: ['https://chatgpt.com/connector/oauth/abc123'],
+        allowed_scopes: READONLY_DEFAULT_SCOPES,
+      })
+    )
+  })
+
+  it('returns 201 for ChatGPT platform redirect (connector_platform_oauth_redirect)', async () => {
+    const res = await route.POST(
+      mkPost({
+        client_name: 'ChatGPT Platform',
+        redirect_uris: ['https://chatgpt.com/connector_platform_oauth_redirect'],
+      })
+    )
+    expect(res.status).toBe(201)
+  })
+
+  it('returns 201 for chat.openai.com legacy redirect', async () => {
+    const res = await route.POST(
+      mkPost({ redirect_uris: ['https://chat.openai.com/aip/connector/cb'] })
+    )
+    expect(res.status).toBe(201)
+  })
+
+  it('exposes every documented scope in the response (discovery)', async () => {
     const res = await route.POST(
       mkPost({ redirect_uris: ['https://claude.ai/api/mcp/auth_callback'] })
     )
     const body = await res.json()
     const scopes = String(body.scope).split(' ')
-    for (const s of ALL_SCOPES) {
+    for (const s of ALL_KNOWN_SCOPES) {
       expect(scopes).toContain(s)
     }
   })
 
-  it('accepts http://localhost redirect_uris (dev)', async () => {
+  it('rejects http://localhost (no longer in the strict allowlist)', async () => {
+    // Local-dev clients are seeded statically (see lib/oauth-db.ts seedClients);
+    // dynamic registration is reserved for documented MCP hosts only.
     const res = await route.POST(
       mkPost({ redirect_uris: ['http://localhost:3000/oauth/callback'] })
     )
-    expect(res.status).toBe(201)
-  })
-
-  it('accepts http://127.0.0.1 redirect_uris (dev)', async () => {
-    const res = await route.POST(
-      mkPost({ redirect_uris: ['http://127.0.0.1:8080/cb'] })
-    )
-    expect(res.status).toBe(201)
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toBe('invalid_redirect_uri')
   })
 
   it('rejects redirect_uri outside the allowlist with 400', async () => {
@@ -101,9 +137,35 @@ describe('POST /register (RFC 7591 Dynamic Client Registration)', () => {
     expect(mockCreateClient).not.toHaveBeenCalled()
   })
 
+  it('rejects subdomain spoofing (claude.ai.attacker.com)', async () => {
+    const res = await route.POST(
+      mkPost({
+        redirect_uris: ['https://claude.ai.attacker.com/api/mcp/auth_callback'],
+      })
+    )
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toBe('invalid_redirect_uri')
+    expect(mockCreateClient).not.toHaveBeenCalled()
+  })
+
   it('rejects http (non-localhost) with 400', async () => {
     const res = await route.POST(
       mkPost({ redirect_uris: ['http://claude.ai/api/mcp/auth_callback'] })
+    )
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects redirect_uri that contains a fragment', async () => {
+    const res = await route.POST(
+      mkPost({ redirect_uris: ['https://claude.ai/cb#fragment'] })
+    )
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects redirect_uri that contains userinfo', async () => {
+    const res = await route.POST(
+      mkPost({ redirect_uris: ['https://user:pw@claude.ai/cb'] })
     )
     expect(res.status).toBe(400)
   })
@@ -141,7 +203,7 @@ describe('POST /register (RFC 7591 Dynamic Client Registration)', () => {
     expect(res.status).toBe(400)
   })
 
-  it('exposes CORS so cross-origin browsers (Claude.ai) can register', async () => {
+  it('exposes CORS so cross-origin browsers (Claude.ai, ChatGPT) can register', async () => {
     const res = await route.POST(
       mkPost({ redirect_uris: ['https://claude.ai/api/mcp/auth_callback'] })
     )
