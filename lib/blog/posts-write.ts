@@ -365,6 +365,178 @@ export async function updatePostBody(input: UpdatePostBodyInput): Promise<void> 
   clearPostsRuntimeCache()
 }
 
+export interface UpdatePostFrontmatterInput {
+  slug: string
+  locale: Locale
+  title?: string
+  description?: string
+  tags?: string[]
+  author?: string
+  published?: boolean
+  date?: string
+  cover?: string | null
+}
+
+export interface UpdatePostFrontmatterResult {
+  ok: true
+  slug: string
+  locale: Locale
+  updated: string[]
+  coverSyncedToMeta: boolean
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+function isValidDateString(value: string): boolean {
+  if (!DATE_RE.test(value)) return false
+  const d = new Date(value + "T00:00:00Z")
+  if (Number.isNaN(d.getTime())) return false
+  return d.toISOString().slice(0, 10) === value
+}
+
+function arraysEqual(a: unknown[], b: unknown[]): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+  return true
+}
+
+export async function updatePostFrontmatter(
+  input: UpdatePostFrontmatterInput
+): Promise<UpdatePostFrontmatterResult> {
+  const slug = (input.slug || "").trim()
+  const locale = input.locale
+
+  if (!slug) {
+    throw new PostsWriteError("invalid_params", 400, "slug is required", { field: "slug" })
+  }
+  if (!isValidLocale(locale)) {
+    throw new PostsWriteError(
+      "unsupported_locale",
+      400,
+      "locale is required and must be one of es,en,it",
+      { supported: SUPPORTED_LOCALES }
+    )
+  }
+
+  if (input.title !== undefined && input.title.trim().length < 3) {
+    throw new PostsWriteError("invalid_params", 400, "title must be at least 3 characters", { field: "title" })
+  }
+  if (input.description !== undefined && input.description.trim().length < 10) {
+    throw new PostsWriteError("invalid_params", 400, "description must be at least 10 characters", { field: "description" })
+  }
+  if (input.tags !== undefined) {
+    if (
+      !Array.isArray(input.tags) ||
+      input.tags.some((t) => typeof t !== "string" || t.trim().length === 0)
+    ) {
+      throw new PostsWriteError("invalid_params", 400, "tags must be an array of non-empty strings", { field: "tags" })
+    }
+  }
+  if (input.author !== undefined && input.author.trim().length < 1) {
+    throw new PostsWriteError("invalid_params", 400, "author must be non-empty", { field: "author" })
+  }
+  if (input.published !== undefined && typeof input.published !== "boolean") {
+    throw new PostsWriteError("invalid_params", 400, "published must be a boolean", { field: "published" })
+  }
+  if (input.date !== undefined && !isValidDateString(input.date)) {
+    throw new PostsWriteError("invalid_params", 400, "date must be a valid YYYY-MM-DD string", { field: "date" })
+  }
+  if (input.cover !== undefined && input.cover !== null) {
+    if (typeof input.cover !== "string" || input.cover.trim().length === 0) {
+      throw new PostsWriteError("invalid_params", 400, "cover must be a non-empty string or null", { field: "cover" })
+    }
+  }
+
+  const all = await listPostsFromDisk()
+  const post = all.find((p) => p.slug === slug && p.locale === locale)
+  if (!post) {
+    throw new PostsWriteError("not_found", 404, `Post ${slug}/${locale} not found`, { slug, locale })
+  }
+
+  // Pre-write cover-kind check: refuse kind_mismatch BEFORE touching disk so
+  // the post stays untouched on rejection.
+  if (typeof input.cover === "string") {
+    const { readMeta } = await import("./media-meta")
+    const meta = await readMeta(post.translationKey)
+    const entry = meta.files[input.cover]
+    if (entry && entry.kind !== "image") {
+      throw new PostsWriteError(
+        "kind_mismatch",
+        400,
+        `media "${input.cover}" is a ${entry.kind}, only images can be covers`,
+        { field: "cover", kind: entry.kind }
+      )
+    }
+  }
+
+  const filePath = path.join(getContentRoot(), "content", post._raw.sourceFilePath)
+  let raw: string
+  try {
+    raw = await fs.readFile(filePath, "utf-8")
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to read file", { details })
+  }
+  const parsed = matter(raw)
+  const data: Record<string, unknown> = { ...parsed.data }
+  const updated: string[] = []
+
+  if (input.title !== undefined && input.title !== data.title) {
+    data.title = input.title
+    updated.push("title")
+  }
+  if (input.description !== undefined && input.description !== data.description) {
+    data.description = input.description
+    updated.push("description")
+  }
+  if (input.author !== undefined && input.author !== data.author) {
+    data.author = input.author
+    updated.push("author")
+  }
+  if (input.published !== undefined && input.published !== data.published) {
+    data.published = input.published
+    updated.push("published")
+  }
+  if (input.date !== undefined && input.date !== data.date) {
+    data.date = input.date
+    updated.push("date")
+  }
+  if (input.tags !== undefined) {
+    const cur = Array.isArray(data.tags) ? (data.tags as unknown[]) : []
+    if (!arraysEqual(cur, input.tags)) {
+      data.tags = input.tags
+      updated.push("tags")
+    }
+  }
+  if (input.cover !== undefined) {
+    if (input.cover === null) {
+      if (data.cover !== undefined) {
+        delete data.cover
+        updated.push("cover")
+      }
+    } else if (input.cover !== data.cover) {
+      data.cover = input.cover
+      updated.push("cover")
+    }
+  }
+
+  if (updated.length === 0) {
+    return { ok: true, slug, locale, updated: [], coverSyncedToMeta: false }
+  }
+
+  const next = matter.stringify(parsed.content, data)
+  try {
+    await fs.writeFile(filePath, next, { encoding: "utf-8" })
+  } catch (err) {
+    const details = err instanceof Error ? err.message : String(err)
+    throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
+  }
+  clearPostsRuntimeCache()
+
+  // Cover sync to _meta.json + i18n siblings is wired in Task 2.
+  return { ok: true, slug, locale, updated, coverSyncedToMeta: false }
+}
+
 export function isPostsWriteError(err: unknown): err is PostsWriteError {
   return err instanceof PostsWriteError
 }
