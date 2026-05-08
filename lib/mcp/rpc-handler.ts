@@ -254,6 +254,27 @@ export function toolsList() {
           required: ["slug", "locale"],
         },
       },
+      {
+        name: "posts_set_cover",
+        description:
+          "Marca cuál de las imágenes ya subidas al post es la portada (la \"starred\"). " +
+          "Requiere scope posts:write. `cover` debe ser el slug-key de una imagen ya " +
+          "presente en `posts_list_media` (o `posts_request_upload`). Pasa `cover: null` " +
+          "para limpiar la portada y dejar que prevalezca la del frontmatter. Idempotente. " +
+          "No reescribe el body ni el frontmatter del post — solo toca `_meta.json.cover`.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+            cover: {
+              type: ["string", "null"],
+              description: "slug-key de la imagen, o null para limpiar.",
+            },
+          },
+          required: ["slug", "locale", "cover"],
+        },
+      },
     ],
   }
 }
@@ -573,6 +594,43 @@ export async function handleRpcCall(
       const { validatePost } = await import("@/lib/blog/posts-validate")
       const result = await validatePost(slug, locale)
       return successResponse(id, { content: [{ type: "text", text: JSON.stringify(result) }] })
+    }
+
+    if (toolName === "posts_set_cover") {
+      const scopeErr = requireScope(ctx, "posts:write", id)
+      if (scopeErr) return scopeErr
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      const coverArg = args.cover
+      const coverIsValid =
+        coverArg === null || (typeof coverArg === "string" && coverArg.length > 0)
+      if (!slug.trim() || !locale || !coverIsValid) {
+        return errorResponse(id, -32602, "Invalid params")
+      }
+      const { getTranslationKeyForSlug } = await import("@/lib/blog/translation-key")
+      const key = await getTranslationKeyForSlug(slug, locale)
+      if (!key) return errorResponse(id, -32004, "Not found", { slug, locale })
+      const { setCover, SetCoverError } = await import("@/lib/blog/media-cover")
+      try {
+        await setCover(key, coverArg as string | null)
+        return successResponse(id, {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                ok: true,
+                translationKey: key,
+                cover: coverArg,
+              }),
+            },
+          ],
+        })
+      } catch (err) {
+        if (err instanceof SetCoverError) {
+          return errorResponse(id, -32001, err.code, { message: err.message })
+        }
+        return errorResponse(id, -32603, "Internal error", { message: String(err) })
+      }
     }
 
     if (toolName === "posts_rebuild") {
