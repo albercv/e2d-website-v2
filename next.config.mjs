@@ -10,6 +10,23 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // BUG-16: `content/posts` es por diseño un symlink a /var/lib/e2d-content/
+  // posts (el reader de posts-runtime.ts atraviesa el symlink en walkMdx,
+  // ver línea 70). next-tracer copia `content/` al standalone siguiendo el
+  // symlink, y el cleanup pre-build de .next/standalone/content/posts/
+  // hereda esa naturaleza — los rm recursivos atraviesan el symlink y
+  // wipean producción. Excluimos del tracing para que el standalone no
+  // tenga ningún rastro del symlink. El runtime sigue leyendo del symlink
+  // del repo (CONTENT_ROOT/content/posts), no del standalone.
+  // BUG-16: ver bloque anterior. BUG-18: cada next build copiaba data/oauth.sqlite
+  // del repo al standalone, pisando los DCR clients (e2d_xxx) y refresh_tokens
+  // creados en runtime. Resultado: tras cada deploy ChatGPT y Claude.ai recibían
+  // 400 al refrescar token y tenían que reconectar. Excluir data/** del tracing
+  // mantiene la BD persistente entre builds. Fix definitiva: mover la BD a
+  // /var/lib/e2d-content/data/ con env var OAUTH_DB_PATH (pendiente).
+  outputFileTracingExcludes: {
+    '*': ['content/posts/**', 'content/posts', 'data/**', 'data'],
+  },
   // next-mdx-remote es ESM puro: hay que transpilarlo para que funcione en
   // server components (CJS) y en build standalone.
   transpilePackages: ['next-mdx-remote'],

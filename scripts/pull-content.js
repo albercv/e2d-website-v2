@@ -32,15 +32,30 @@ function ensureDestDir() {
 }
 
 function cleanDestDir() {
-  if (fs.existsSync(DEST_DIR)) {
-    const files = fs.readdirSync(DEST_DIR)
-    for (const file of files) {
-      const p = path.join(DEST_DIR, file)
-      try {
-        fs.rmSync(p, { recursive: true, force: true })
-      } catch (err) {
-        console.warn(`[pull-content] No se pudo eliminar ${p}:`, err.message)
-      }
+  if (!fs.existsSync(DEST_DIR)) return
+  // BUG-16 guard: si DEST_DIR es un symlink (apunta a /var/lib/e2d-content/
+  // posts en este servidor), un readdir+rmSync atravesaría el symlink y
+  // borraría los archivos del volumen persistente. Abortar antes de tocar
+  // nada. Este script se diseñó para CI/build hosts donde content/posts es
+  // un dir local efímero; un symlink hacia un volumen externo invalida la
+  // premisa del clean.
+  const stat = fs.lstatSync(DEST_DIR)
+  if (stat.isSymbolicLink()) {
+    const target = fs.readlinkSync(DEST_DIR)
+    throw new Error(
+      `[pull-content] REFUSING to clean ${DEST_DIR}: it is a symlink to ${target}. ` +
+      `Cleaning would traverse the symlink and delete files in the target volume. ` +
+      `Either remove the symlink before running pull-content, or refactor the ` +
+      `reader so the symlink is not needed (BUG-16 follow-up).`
+    )
+  }
+  const files = fs.readdirSync(DEST_DIR)
+  for (const file of files) {
+    const p = path.join(DEST_DIR, file)
+    try {
+      fs.rmSync(p, { recursive: true, force: true })
+    } catch (err) {
+      console.warn(`[pull-content] No se pudo eliminar ${p}:`, err.message)
     }
   }
 }
