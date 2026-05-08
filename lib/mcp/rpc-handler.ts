@@ -124,6 +124,13 @@ export function toolsList() {
           },
           required: ["query"],
         },
+        annotations: {
+          title: "Buscar posts",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       {
         name: "posts_get",
@@ -136,6 +143,13 @@ export function toolsList() {
             locale: { type: "string", enum: ["es", "en", "it"], default: "es" },
           },
           required: ["id"],
+        },
+        annotations: {
+          title: "Obtener post",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       {
@@ -162,6 +176,13 @@ export function toolsList() {
           },
           required: ["title", "description", "content"],
         },
+        annotations: {
+          title: "Crear post",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       {
         name: "posts_delete",
@@ -184,6 +205,13 @@ export function toolsList() {
           },
           required: ["slug", "locale", "confirm"],
         },
+        annotations: {
+          title: "Borrar post",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       {
         name: "posts_rebuild",
@@ -192,6 +220,13 @@ export function toolsList() {
         inputSchema: {
           type: "object",
           properties: {},
+        },
+        annotations: {
+          title: "Reconstruir blog",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       {
@@ -207,6 +242,13 @@ export function toolsList() {
             locale: { type: "string", enum: ["es", "en", "it"] },
           },
           required: ["slug", "locale"],
+        },
+        annotations: {
+          title: "Solicitar URL de subida",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false,
         },
       },
       {
@@ -225,6 +267,13 @@ export function toolsList() {
           },
           required: ["slug", "locale", "content"],
         },
+        annotations: {
+          title: "Actualizar cuerpo del post",
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false,
+        },
       },
       {
         name: "posts_list_media",
@@ -238,6 +287,13 @@ export function toolsList() {
             locale: { type: "string", enum: ["es", "en", "it"] },
           },
           required: ["slug", "locale"],
+        },
+        annotations: {
+          title: "Listar media del post",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       {
@@ -254,6 +310,13 @@ export function toolsList() {
           },
           required: ["slug", "locale"],
         },
+        annotations: {
+          title: "Validar markers del post",
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       {
         name: "posts_set_cover",
@@ -261,8 +324,9 @@ export function toolsList() {
           "Marca cuál de las imágenes ya subidas al post es la portada (la \"starred\"). " +
           "Requiere scope posts:write. `cover` debe ser el slug-key de una imagen ya " +
           "presente en `posts_list_media` (o `posts_request_upload`). Pasa `cover: null` " +
-          "para limpiar la portada y dejar que prevalezca la del frontmatter. Idempotente. " +
-          "No reescribe el body ni el frontmatter del post — solo toca `_meta.json.cover`.",
+          "para limpiar la portada. Sincroniza `_meta.json.cover` y el campo `cover:` del " +
+          "frontmatter de TODOS los siblings i18n del translationKey. Idempotente. No " +
+          "reescribe el body.",
         inputSchema: {
           type: "object",
           properties: {
@@ -274,6 +338,42 @@ export function toolsList() {
             },
           },
           required: ["slug", "locale", "cover"],
+        },
+      },
+      {
+        name: "posts_update_frontmatter",
+        description:
+          "Edita campos del frontmatter de un post sin tocar el body. Acepta `title`, " +
+          "`description`, `tags`, `author`, `published`, `date`, `cover` como partial " +
+          "update — solo los campos presentes se modifican. NO permite cambiar `slug`, " +
+          "`locale` ni `translationKey` (eso requeriría renombrar el fichero o " +
+          "desincronizar siblings i18n). Para cambiar el cover, ambos sitios " +
+          "(frontmatter y `_meta.json.cover`) se sincronizan automáticamente y los " +
+          "siblings i18n del translationKey reciben el mismo `cover:` en su frontmatter. " +
+          "Pasa `cover: null` para limpiar. Idempotente: una llamada con los mismos " +
+          "valores actuales devuelve `updated: []` y no escribe a disco. Requiere " +
+          "scope posts:write.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            slug: { type: "string", minLength: 1 },
+            locale: { type: "string", enum: ["es", "en", "it"] },
+            title: { type: "string", minLength: 3 },
+            description: { type: "string", minLength: 10 },
+            tags: { type: "array", items: { type: "string", minLength: 1 } },
+            author: { type: "string", minLength: 1 },
+            published: { type: "boolean" },
+            date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+            cover: { type: ["string", "null"] },
+          },
+          required: ["slug", "locale"],
+        },
+        annotations: {
+          title: "Editar frontmatter del post",
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
     ],
@@ -636,6 +736,46 @@ export async function handleRpcCall(
       } catch (err) {
         if (err instanceof SetCoverError) {
           return errorResponse(id, -32001, err.code, { message: err.message })
+        }
+        return errorResponse(id, -32603, "Internal error", { message: String(err) })
+      }
+    }
+
+    if (toolName === "posts_update_frontmatter") {
+      const scopeErr = requireScope(ctx, "posts:write", id)
+      if (scopeErr) return scopeErr
+      const slug = typeof args.slug === "string" ? args.slug : ""
+      const locale = parseLocale(args.locale)
+      if (!slug.trim() || !locale) {
+        return errorResponse(id, -32602, "Invalid params")
+      }
+      const { updatePostFrontmatter } = await import("@/lib/blog/posts-write")
+      try {
+        const result = await updatePostFrontmatter({
+          slug,
+          locale,
+          ...(args.title !== undefined ? { title: args.title as string } : {}),
+          ...(args.description !== undefined ? { description: args.description as string } : {}),
+          ...(args.tags !== undefined ? { tags: args.tags as string[] } : {}),
+          ...(args.author !== undefined ? { author: args.author as string } : {}),
+          ...(args.published !== undefined ? { published: args.published as boolean } : {}),
+          ...(args.date !== undefined ? { date: args.date as string } : {}),
+          ...(args.cover !== undefined ? { cover: args.cover as string | null } : {}),
+        })
+        return successResponse(id, {
+          content: [{ type: "text", text: JSON.stringify(result) }],
+        })
+      } catch (err) {
+        if (isPostsWriteError(err)) {
+          const code =
+            err.code === "not_found"
+              ? -32004
+              : err.code === "invalid_params" || err.code === "unsupported_locale"
+                ? -32602
+                : err.code === "kind_mismatch"
+                  ? -32001
+                  : -32000
+          return errorResponse(id, code, err.code, err.details)
         }
         return errorResponse(id, -32603, "Internal error", { message: String(err) })
       }

@@ -112,6 +112,7 @@ describe("lib/mcp/rpc-handler", () => {
         "posts_search",
         "posts_set_cover",
         "posts_update_body",
+        "posts_update_frontmatter",
         "posts_validate",
       ])
     })
@@ -758,6 +759,120 @@ Body
       )) as any
       expect(res.error).toBeDefined()
       expect(res.error.message).toBe("Invalid params")
+    })
+  })
+
+  describe("rpc-handler — posts_update_frontmatter", () => {
+    let upfTmp: string
+    const fsSync = require("fs") as typeof import("fs")
+    const previousContentRoot = process.env.CONTENT_ROOT
+    const previousMediaRoot = process.env.MEDIA_UPLOADS_ROOT
+
+    beforeEach(() => {
+      upfTmp = fsSync.mkdtempSync(path.join(os.tmpdir(), "rpc-upf-"))
+      fsSync.mkdirSync(path.join(upfTmp, "content", "posts"), { recursive: true })
+      fsSync.mkdirSync(path.join(upfTmp, "uploads"), { recursive: true })
+      process.env.CONTENT_ROOT = upfTmp
+      process.env.MEDIA_UPLOADS_ROOT = path.join(upfTmp, "uploads")
+      fsSync.writeFileSync(
+        path.join(upfTmp, "content", "posts", "draft-x.es.mdx"),
+        `---
+title: Borrador
+description: Descripción suficientemente larga
+date: 2026-05-01
+locale: es
+slug: draft-x
+tags: []
+author: Alberto
+published: false
+translationKey: draft-x
+---
+
+body body body body body body body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+      const mediaMeta = require("../../lib/blog/media-meta") as typeof import("../../lib/blog/media-meta")
+      mediaMeta.clearMediaMetaCache()
+    })
+
+    afterEach(() => {
+      fsSync.rmSync(upfTmp, { recursive: true, force: true })
+      if (previousContentRoot === undefined) delete process.env.CONTENT_ROOT
+      else process.env.CONTENT_ROOT = previousContentRoot
+      if (previousMediaRoot === undefined) delete process.env.MEDIA_UPLOADS_ROOT
+      else process.env.MEDIA_UPLOADS_ROOT = previousMediaRoot
+      runtimeMod.clearPostsRuntimeCache()
+    })
+
+    it("requires posts:write scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:read" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+    })
+
+    it("flips published with valid scope", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.result).toBeDefined()
+      const text = JSON.parse(res.result.content[0].text)
+      expect(text.ok).toBe(true)
+      expect(text.updated).toEqual(["published"])
+      expect(text.coverSyncedToMeta).toBe(false)
+    })
+
+    it("returns not_found when post does not exist", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "ghost", locale: "es", published: true },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.message).toBe("not_found")
+    })
+
+    it("rejects invalid date with -32602", async () => {
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_update_frontmatter",
+            arguments: { slug: "draft-x", locale: "es", date: "2025-13-99" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.error).toBeDefined()
+      expect(res.error.code).toBe(-32602)
     })
   })
 })
