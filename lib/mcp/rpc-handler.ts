@@ -197,8 +197,9 @@ export function toolsList() {
       {
         name: "posts_request_upload",
         description:
-          "Pide una URL de subida de fotos/vídeos para un post. Devuelve también la lista " +
-          "de media ya subida a ese post (mismo translationKey en es/en/it).",
+          "Pide una URL de subida de fotos/vídeos para un post. La URL caduca en 1 hora " +
+          "(antes 15 min). Devuelve también la lista de media ya subida a ese post " +
+          "(mismo translationKey en es/en/it).",
         inputSchema: {
           type: "object",
           properties: {
@@ -308,6 +309,13 @@ export async function handleRpcCall(
         "de posts donde quieras invitar al lector a contactar. Una sola línea, en su propio " +
         "párrafo. No requiere subida previa ni aparece en `posts_list_media`. Dentro de " +
         "fenced code blocks o inline code se preserva tal cual.\n\n" +
+        "GESTIÓN DE PORTADA (\"starred\") — para fijar qué imagen es la portada del post, " +
+        "llama a `posts_set_cover` con `{ slug, locale, cover: <slug-key> }`. La imagen " +
+        "tiene que estar ya subida (compruébalo con `posts_list_media`). Pasa `cover: null` " +
+        "para limpiar y dejar que prevalezca el `cover:` del frontmatter. Es idempotente y " +
+        "no toca ni el body ni el resto del frontmatter — usa esto en vez de borrar+recrear " +
+        "el post. Si el slug-key apunta a un vídeo o no existe, devuelve error tipado " +
+        "(`kind_mismatch` / `not_found`).\n\n" +
         "COMPONENTES MDX — el body MDX puede usar estos componentes JSX (registrados en " +
         "components/blog/mdx-components.tsx). NO inventes otros: una etiqueta que no esté " +
         "aquí MDX la renderiza como texto literal y el post sale roto.\n" +
@@ -501,7 +509,7 @@ export async function handleRpcCall(
       const key = await getTranslationKeyForSlug(slug, locale)
       if (!key) return errorResponse(id, -32004, "Not found")
       const { signUploadToken } = await import("@/lib/oauth-jwt")
-      const ttl = 900
+      const ttl = 3600
       const token = signUploadToken({ translationKey: key }, ttl)
       const base = process.env.NEXT_PUBLIC_BASE_URL || "https://evolve2digital.com"
       const { readMeta } = await import("@/lib/blog/media-meta")
