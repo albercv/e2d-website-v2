@@ -77,11 +77,15 @@ export async function POST(request: NextRequest) {
   }
 
   const client_id = generateClientId()
+  // Granted scopes mirror the full set the server understands. The redirect-URI
+  // allowlist is the actual security boundary for DCR; restricting scopes here
+  // without a consent-time elevation flow only locks legitimate clients
+  // (Claude.ai, ChatGPT) out of write tools they negotiate at /authorize.
   createClient({
     client_id,
     client_type: 'public',
     redirect_uris,
-    allowed_scopes: [...READONLY_DEFAULT_SCOPES],
+    allowed_scopes: [...ALL_KNOWN_SCOPES],
   })
 
   const response: Record<string, unknown> = {
