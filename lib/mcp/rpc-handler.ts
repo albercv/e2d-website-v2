@@ -721,6 +721,8 @@ export async function handleRpcCall(
       const { setCover, SetCoverError } = await import("@/lib/blog/media-cover")
       try {
         await setCover(key, coverArg as string | null)
+        const { syncCoverToFrontmatter } = await import("@/lib/blog/posts-write")
+        const ripple = await syncCoverToFrontmatter(key, coverArg as string | null)
         return successResponse(id, {
           content: [
             {
@@ -729,6 +731,8 @@ export async function handleRpcCall(
                 ok: true,
                 translationKey: key,
                 cover: coverArg,
+                frontmatterSynced: ripple.synced,
+                frontmatterFailed: ripple.failed,
               }),
             },
           ],

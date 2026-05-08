@@ -658,6 +658,65 @@ Body
         )
       )
       expect(meta.cover).toBe("hero")
+      // Frontmatter ripple: the post's own .mdx now carries cover: hero.
+      const matter = (await import("gray-matter")).default
+      const sourceEs = fsSync.readFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.mdx"),
+        "utf-8"
+      )
+      expect(matter(sourceEs).data.cover).toBe("hero")
+    })
+
+    it("ripples cover to all i18n siblings' frontmatter", async () => {
+      // Seed two more siblings sharing translationKey ferdy-2026.
+      fsSync.writeFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.en.mdx"),
+        `---
+slug: ferdy
+title: Ferdy case
+date: 2026-05-05
+locale: en
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      fsSync.writeFileSync(
+        path.join(coverTmp, "content", "posts", "ferdy.it.mdx"),
+        `---
+slug: ferdy
+title: Caso Ferdy
+date: 2026-05-05
+locale: it
+translationKey: ferdy-2026
+---
+
+Body
+`
+      )
+      runtimeMod.clearPostsRuntimeCache()
+
+      const res = (await mod.handleRpcCall(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "posts_set_cover",
+            arguments: { slug: "ferdy", locale: "es", cover: "hero" },
+          },
+        },
+        { claims: { sub: "u", scope: "posts:write" } as any }
+      )) as any
+      expect(res.result).toBeDefined()
+
+      const matter = (await import("gray-matter")).default
+      const readCover = (file: string) =>
+        matter(fsSync.readFileSync(path.join(coverTmp, "content", "posts", file), "utf-8")).data.cover
+      expect(readCover("ferdy.mdx")).toBe("hero")
+      expect(readCover("ferdy.en.mdx")).toBe("hero")
+      expect(readCover("ferdy.it.mdx")).toBe("hero")
     })
 
     it("clears the cover when cover is null", async () => {
