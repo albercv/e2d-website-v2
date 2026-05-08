@@ -179,4 +179,70 @@ describe("updatePostFrontmatter", () => {
       expect(isPostsWriteError(err)).toBe(true)
     }
   })
+
+  it("sets cover in frontmatter and meta when meta has the slug-key as image", async () => {
+    seedPost(postsDir, "p", "es", {
+      title: "Una", description: "descripción suficientemente larga", date: "2026-01-01",
+      locale: "es", slug: "p", tags: [], author: "A", published: true, translationKey: "p",
+    }, "body body body body body body body")
+    const { writeMeta, readMeta } = await import("@/lib/blog/media-meta")
+    await writeMeta("p", { hero: { ext: "jpg", kind: "image", alt: "", caption: "" } })
+    clearPostsRuntimeCache()
+
+    const r = await updatePostFrontmatter({ slug: "p", locale: "es", cover: "hero" })
+
+    expect(r.updated).toEqual(["cover"])
+    expect(r.coverSyncedToMeta).toBe(true)
+    const parsed = readPost("p", "es")
+    expect(parsed.data.cover).toBe("hero")
+    expect((await readMeta("p")).cover).toBe("hero")
+  })
+
+  it("sets cover in frontmatter only when meta has no entry yet", async () => {
+    seedPost(postsDir, "p", "es", {
+      title: "Una", description: "descripción suficientemente larga", date: "2026-01-01",
+      locale: "es", slug: "p", tags: [], author: "A", published: true, translationKey: "p",
+    }, "body body body body body body body")
+    clearPostsRuntimeCache()
+
+    const r = await updatePostFrontmatter({ slug: "p", locale: "es", cover: "future-hero" })
+
+    expect(r.updated).toEqual(["cover"])
+    expect(r.coverSyncedToMeta).toBe(false)
+    expect(readPost("p", "es").data.cover).toBe("future-hero")
+  })
+
+  it("rejects cover when meta entry exists but is a video", async () => {
+    seedPost(postsDir, "p", "es", {
+      title: "Una", description: "descripción suficientemente larga", date: "2026-01-01",
+      locale: "es", slug: "p", tags: [], author: "A", published: true, translationKey: "p",
+    }, "body body body body body body body")
+    const { writeMeta } = await import("@/lib/blog/media-meta")
+    await writeMeta("p", { reel: { ext: "mp4", kind: "video", alt: "", caption: "" } })
+    clearPostsRuntimeCache()
+
+    await expect(
+      updatePostFrontmatter({ slug: "p", locale: "es", cover: "reel" })
+    ).rejects.toMatchObject({ code: "kind_mismatch", details: { field: "cover" } })
+
+    expect(readPost("p", "es").data.cover).toBeUndefined()
+  })
+
+  it("clears cover from frontmatter and meta when given null", async () => {
+    seedPost(postsDir, "p", "es", {
+      title: "Una", description: "descripción suficientemente larga", date: "2026-01-01",
+      locale: "es", slug: "p", tags: [], author: "A", published: true, translationKey: "p",
+      cover: "old",
+    }, "body body body body body body body")
+    const { writeMeta, readMeta } = await import("@/lib/blog/media-meta")
+    await writeMeta("p", { old: { ext: "jpg", kind: "image", alt: "", caption: "" } }, { cover: "old" })
+    clearPostsRuntimeCache()
+
+    const r = await updatePostFrontmatter({ slug: "p", locale: "es", cover: null })
+
+    expect(r.updated).toEqual(["cover"])
+    expect(r.coverSyncedToMeta).toBe(true)
+    expect(readPost("p", "es").data.cover).toBeUndefined()
+    expect((await readMeta("p")).cover).toBeUndefined()
+  })
 })

@@ -533,8 +533,86 @@ export async function updatePostFrontmatter(
   }
   clearPostsRuntimeCache()
 
-  // Cover sync to _meta.json + i18n siblings is wired in Task 2.
-  return { ok: true, slug, locale, updated, coverSyncedToMeta: false }
+  // Cover sync to _meta.json. The kind_mismatch case was already filtered out
+  // above the write, so SetCoverError("kind_mismatch") cannot happen here.
+  // SetCoverError("not_found") just means the slug-key isn't in meta yet —
+  // tolerate it; frontmatter alone is fine for pre-upload placeholders.
+  let coverSyncedToMeta = false
+  if (input.cover !== undefined) {
+    const { setCover, SetCoverError } = await import("./media-cover")
+    try {
+      await setCover(post.translationKey, input.cover)
+      coverSyncedToMeta = true
+    } catch (err) {
+      if (!(err instanceof SetCoverError) || err.code !== "not_found") throw err
+    }
+    await syncCoverToFrontmatter(post.translationKey, input.cover)
+  }
+
+  return { ok: true, slug, locale, updated, coverSyncedToMeta }
+}
+
+export interface SyncCoverResult {
+  synced: string[]
+  skipped: string[]
+  failed: { file: string; error: string }[]
+}
+
+export async function syncCoverToFrontmatter(
+  translationKey: string,
+  cover: string | null
+): Promise<SyncCoverResult> {
+  const { findPostsByTranslationKey } = await import("./translation-key")
+  const siblings = await findPostsByTranslationKey(translationKey)
+
+  const synced: string[] = []
+  const skipped: string[] = []
+  const failed: { file: string; error: string }[] = []
+
+  for (const sib of siblings) {
+    const filePath = path.join(getContentRoot(), "content", sib._raw.sourceFilePath)
+    let raw: string
+    try {
+      raw = await fs.readFile(filePath, "utf-8")
+    } catch (err) {
+      failed.push({
+        file: sib._raw.sourceFilePath,
+        error: err instanceof Error ? err.message : String(err),
+      })
+      continue
+    }
+    const parsed = matter(raw)
+    const data: Record<string, unknown> = { ...parsed.data }
+    const current = data.cover
+
+    if (cover === null) {
+      if (current === undefined) {
+        skipped.push(sib._raw.sourceFilePath)
+        continue
+      }
+      delete data.cover
+    } else {
+      if (current === cover) {
+        skipped.push(sib._raw.sourceFilePath)
+        continue
+      }
+      data.cover = cover
+    }
+
+    const next = matter.stringify(parsed.content, data)
+    try {
+      await fs.writeFile(filePath, next, "utf-8")
+      synced.push(sib._raw.sourceFilePath)
+    } catch (err) {
+      failed.push({
+        file: sib._raw.sourceFilePath,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  if (synced.length > 0) clearPostsRuntimeCache()
+  return { synced, skipped, failed }
 }
 
 export function isPostsWriteError(err: unknown): err is PostsWriteError {
