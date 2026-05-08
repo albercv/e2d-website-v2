@@ -95,6 +95,9 @@ export class SitemapGenerator {
       lastModified: entry.lastModified,
       changeFrequency: entry.changeFrequency,
       priority: entry.priority,
+      alternates: entry.alternateLanguages
+        ? { languages: entry.alternateLanguages }
+        : undefined,
     }))
   }
 
@@ -108,7 +111,7 @@ export class SitemapGenerator {
     this.config.supportedLocales.forEach(locale => {
       const url = `${this.config.baseUrl}/${locale}`
       const alternateUrls = this.config.includeAlternateLanguages
-        ? this.generateAlternateLanguages("/", locale)
+        ? this.generateAlternateLanguages("", locale)
         : undefined
 
       pages.push({
@@ -269,14 +272,15 @@ export class SitemapGenerator {
   /**
    * Generate alternate language URLs
    */
-  private generateAlternateLanguages(path: string, currentLocale: string): { [key: string]: string } {
+  private generateAlternateLanguages(path: string, _currentLocale: string): { [key: string]: string } {
     const alternates: { [key: string]: string } = {}
 
     this.config.supportedLocales.forEach(locale => {
-      if (locale !== currentLocale) {
-        alternates[locale] = `${this.config.baseUrl}/${locale}${path}`
-      }
+      alternates[locale] = `${this.config.baseUrl}/${locale}${path}`
     })
+
+    // x-default points to Spanish, the primary locale for E2D.
+    alternates["x-default"] = `${this.config.baseUrl}/es${path}`
 
     return alternates
   }

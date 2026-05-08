@@ -138,4 +138,51 @@ body
       .filter((u: string) => /\/blog\/[a-z0-9-]+$/.test(u))
     expect(blogPostUrls).toEqual([])
   })
+
+  it("emits alternates.languages with all locales for the homepage", async () => {
+    const entries = await mod.generateAISitemap()
+    const home = entries.find(e => e.url === "https://evolve2digital.com/es")
+    expect(home).toBeDefined()
+    const langs = (home as any).alternates?.languages as Record<string, string>
+    expect(langs).toBeDefined()
+    expect(langs.es).toBe("https://evolve2digital.com/es")
+    expect(langs.en).toBe("https://evolve2digital.com/en")
+    expect(langs.it).toBe("https://evolve2digital.com/it")
+    expect(langs["x-default"]).toBe("https://evolve2digital.com/es")
+  })
+
+  it("emits alternates.languages for blog index pages", async () => {
+    const entries = await mod.generateAISitemap()
+    const blog = entries.find(e => e.url === "https://evolve2digital.com/en/blog")
+    expect(blog).toBeDefined()
+    const langs = (blog as any).alternates?.languages as Record<string, string>
+    expect(langs?.es).toBe("https://evolve2digital.com/es/blog")
+    expect(langs?.en).toBe("https://evolve2digital.com/en/blog")
+    expect(langs?.it).toBe("https://evolve2digital.com/it/blog")
+    expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog")
+  })
+
+  it("emits alternates.languages for blog posts", async () => {
+    writeMdx(
+      "posts/llm.mdx",
+      `---
+title: LLM
+date: 2026-05-01
+locale: es
+slug: llm
+published: true
+---
+body`
+    )
+    const entries = await mod.generateAISitemap()
+    const post = entries.find(e =>
+      e.url === "https://evolve2digital.com/es/blog/llm"
+    )
+    expect(post).toBeDefined()
+    const langs = (post as any).alternates?.languages as Record<string, string>
+    expect(langs?.es).toBe("https://evolve2digital.com/es/blog/llm")
+    expect(langs?.en).toBe("https://evolve2digital.com/en/blog/llm")
+    expect(langs?.it).toBe("https://evolve2digital.com/it/blog/llm")
+    expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog/llm")
+  })
 })
