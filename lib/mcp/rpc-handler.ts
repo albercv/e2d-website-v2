@@ -412,10 +412,18 @@ export async function handleRpcCall(
         "GESTIÓN DE PORTADA (\"starred\") — para fijar qué imagen es la portada del post, " +
         "llama a `posts_set_cover` con `{ slug, locale, cover: <slug-key> }`. La imagen " +
         "tiene que estar ya subida (compruébalo con `posts_list_media`). Pasa `cover: null` " +
-        "para limpiar y dejar que prevalezca el `cover:` del frontmatter. Es idempotente y " +
-        "no toca ni el body ni el resto del frontmatter — usa esto en vez de borrar+recrear " +
-        "el post. Si el slug-key apunta a un vídeo o no existe, devuelve error tipado " +
-        "(`kind_mismatch` / `not_found`).\n\n" +
+        "para limpiar. Sincroniza `_meta.json.cover` y el `cover:` del frontmatter de TODOS " +
+        "los siblings i18n. Es idempotente y no toca el body. Si el slug-key apunta a un " +
+        "vídeo o no existe, devuelve error tipado (`kind_mismatch` / `not_found`).\n\n" +
+        "GESTIÓN DE FRONTMATTER — para cualquier edit del frontmatter de un post " +
+        "(publicar un borrador, arreglar typo en title/description, retag, cambiar fecha, " +
+        "fijar cover) usa `posts_update_frontmatter` con un partial: solo los campos que " +
+        "envíes se modifican. NUNCA uses delete+create para cambiar metadatos — perderías " +
+        "slug, translationKey y links externos. Reglas: `published: true` SIEMPRE bajo " +
+        "confirmación explícita del usuario; cover via este tool sincroniza también " +
+        "`_meta.json.cover` y todos los siblings i18n; null limpia. Lo que este tool NO " +
+        "hace: no renombra slug, no cambia locale, no edita el body (eso es " +
+        "`posts_update_body`).\n\n" +
         "COMPONENTES MDX — el body MDX puede usar estos componentes JSX (registrados en " +
         "components/blog/mdx-components.tsx). NO inventes otros: una etiqueta que no esté " +
         "aquí MDX la renderiza como texto literal y el post sale roto.\n" +
