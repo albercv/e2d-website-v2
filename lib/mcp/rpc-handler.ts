@@ -142,8 +142,10 @@ export function toolsList() {
         name: "posts_create",
         description:
           "Crea un post nuevo en el blog (requiere scope posts:write). El `content` puede contener " +
-          "markers `[image:nombre]`/`[video:nombre]`. `cover` apunta a un nombre de marker " +
-          "(imagen) usado como portada. `translationKey` agrupa hermanos i18n; default = slug.",
+          "markers `[image:nombre]`/`[video:nombre]` y `[contact]` (CTA con modal WhatsApp/email; " +
+          "sin parámetros, en su propia línea, ideal al cierre del post). `cover` apunta a un " +
+          "nombre de marker (imagen) usado como portada. `translationKey` agrupa hermanos i18n; " +
+          "default = slug.",
         inputSchema: {
           type: "object",
           properties: {
@@ -210,7 +212,8 @@ export function toolsList() {
         name: "posts_update_body",
         description:
           "Reescribe el cuerpo MDX de un post existente. El frontmatter se mantiene. " +
-          "El `content` puede contener markers `[image:nombre]`/`[video:nombre]`. " +
+          "El `content` puede contener markers `[image:nombre]`/`[video:nombre]` y " +
+          "`[contact]` (CTA con modal WhatsApp/email; sin parámetros, en su propia línea). " +
           "Operación destructiva — revierte con git si hace falta.",
         inputSchema: {
           type: "object",
@@ -240,7 +243,8 @@ export function toolsList() {
         name: "posts_validate",
         description:
           "Comprueba que todos los markers `[image:X]`/`[video:X]` y el `cover` " +
-          "del post existan en _meta.json. Sin side effects. Útil antes de `posts_rebuild`.",
+          "del post existan en _meta.json. El marker `[contact]` no requiere validación " +
+          "(no apunta a recursos externos). Sin side effects. Útil antes de `posts_rebuild`.",
         inputSchema: {
           type: "object",
           properties: {
