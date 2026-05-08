@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react"
 import type { MDXComponents as MDXComponentsType } from "mdx/types"
 import { MediaMissing } from "./MediaMissing"
+import { ContactCTA } from "./ContactCTA"
 
 // Pros/Cons Component
 function ProsConsComponent({ pros, cons }: { pros: string[]; cons: string[] }) {
@@ -184,6 +185,7 @@ export const MDXComponents: MDXComponentsType = {
   Figure: FigureComponent,
   Stat: StatComponent,
   MediaMissing,
+  ContactCTA,
 
   // Override default elements — los estilos base los maneja el wrapper `prose`
   // del blog-post.tsx (Tailwind typography). Aquí solo afinamos lo que prose
