@@ -111,7 +111,7 @@ export class SitemapGenerator {
     this.config.supportedLocales.forEach(locale => {
       const url = `${this.config.baseUrl}/${locale}`
       const alternateUrls = this.config.includeAlternateLanguages
-        ? this.generateAlternateLanguages("", locale)
+        ? this.generateAlternateLanguages("")
         : undefined
 
       pages.push({
@@ -135,7 +135,7 @@ export class SitemapGenerator {
         lastModified: new Date(),
         changeFrequency: "daily",
         priority: 0.9,
-        alternateLanguages: this.generateAlternateLanguages("/blog", locale),
+        alternateLanguages: this.generateAlternateLanguages("/blog"),
         aiMetadata: {
           contentType: "blog",
           importance: "high",
@@ -151,7 +151,7 @@ export class SitemapGenerator {
         lastModified: new Date(),
         changeFrequency: "weekly",
         priority: 0.8,
-        alternateLanguages: this.generateAlternateLanguages("/docs", locale),
+        alternateLanguages: this.generateAlternateLanguages("/docs"),
         aiMetadata: {
           contentType: "documentation",
           importance: "high",
@@ -177,7 +177,7 @@ export class SitemapGenerator {
       .filter(post => post.published)
       .map(post => {
         const alternateUrls = this.config.includeAlternateLanguages
-          ? this.generateAlternateLanguages(`/blog/${post.slug}`, post.locale)
+          ? this.generateAlternateLanguages(`/blog/${post.slug}`)
           : undefined
 
         return {
@@ -225,7 +225,7 @@ export class SitemapGenerator {
           lastModified: new Date(),
           changeFrequency: "monthly",
           priority: 0.6,
-          alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`, locale),
+          alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`),
           aiMetadata: {
             contentType: "documentation",
             importance: "medium",
@@ -254,7 +254,7 @@ export class SitemapGenerator {
           lastModified: new Date(),
           changeFrequency: "yearly",
           priority: 0.3,
-          alternateLanguages: this.generateAlternateLanguages(`/${page}`, locale),
+          alternateLanguages: this.generateAlternateLanguages(`/${page}`),
           aiMetadata: {
             contentType: "legal",
             importance: "low",
@@ -272,7 +272,7 @@ export class SitemapGenerator {
   /**
    * Generate alternate language URLs
    */
-  private generateAlternateLanguages(path: string, _currentLocale: string): { [key: string]: string } {
+  private generateAlternateLanguages(path: string): { [key: string]: string } {
     const alternates: { [key: string]: string } = {}
 
     this.config.supportedLocales.forEach(locale => {
