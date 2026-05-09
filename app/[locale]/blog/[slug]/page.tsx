@@ -1,15 +1,11 @@
 import { listPostsFromDisk, getCompiledPost, resolvePostCovers, type RuntimeLocale } from "@/lib/blog/posts-runtime"
-import { buildBlogAlternates, toAbsoluteAlternates } from "@/lib/blog/alternates"
 import { BlogPost } from "@/components/blog/blog-post"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
-import { LocaleAlternatesProvider } from "@/components/layout/locale-alternates-context"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
-
-const BASE_URL = "https://evolve2digital.com"
 
 interface BlogPostPageProps {
   params: Promise<{ locale: string; slug: string }>
@@ -30,20 +26,23 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 
   const [post] = await resolvePostCovers([raw])
-  const alternates = await buildBlogAlternates(raw.translationKey)
 
+  const baseUrl = "https://evolve2digital.com"
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
+
   const author = post.author || "Alberto Carrasco"
   const description = post.description || ""
-  const canonical = `${BASE_URL}/${locale}/blog/${slug}`
-
   return {
     title: `${post.title} - E2D Blog`,
     description,
     authors: [{ name: author }],
     alternates: {
-      canonical,
-      languages: toAbsoluteAlternates(alternates, BASE_URL),
+      canonical: `${baseUrl}/${locale}/blog/${slug}`,
+      languages: {
+        es: `${baseUrl}/es/blog/${slug}`,
+        en: `${baseUrl}/en/blog/${slug}`,
+        it: `${baseUrl}/it/blog/${slug}`,
+      },
     },
     openGraph: {
       title: post.title,
@@ -52,7 +51,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       publishedTime: post.date,
       authors: [author],
       locale: ogLocale,
-      url: canonical,
+      url: `${baseUrl}/${locale}/blog/${slug}`,
       images: [
         {
           url: post.cover || "/placeholder.jpg",
@@ -82,17 +81,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = await getCompiledPost(slug, locale)
   if (!post) notFound()
 
-  const alternates = await buildBlogAlternates(post.translationKey)
-
   return (
-    <LocaleAlternatesProvider alternates={alternates}>
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="pt-16">
-          <BlogPost post={post} />
-        </main>
-        <Footer />
-      </div>
-    </LocaleAlternatesProvider>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="pt-16">
+        <BlogPost post={post} />
+      </main>
+      <Footer />
+    </div>
   )
 }
