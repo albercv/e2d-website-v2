@@ -54,22 +54,38 @@
     "abyfoods": {
       "title": "Abyfoods - Sito Corporate",
       "description": "Design elegante ottimizzato per SEO e IA, che riflette il glamour del brand.",
-      "tags": ["SEO", "IA", "Design su misura"]
+      "tags": [
+        "SEO",
+        "IA",
+        "Design su misura"
+      ]
     },
     "augustcollection": {
       "title": "August Collection - E-commerce",
       "description": "Piattaforma di vendita con IA integrata, ottimizzata per mobile e alte prestazioni.",
-      "tags": ["E-commerce", "IA integrata", "Ottimizzazione mobile"]
+      "tags": [
+        "E-commerce",
+        "IA integrata",
+        "Ottimizzazione mobile"
+      ]
     },
     "ferdyCoach": {
       "title": "Ferdy Coach - CMS e Vendite",
       "description": "CMS personalizzato per gestire post e vendite, con un design 100% originale.",
-      "tags": ["CMS", "Design originale", "Ottimizzazione mobile"]
+      "tags": [
+        "CMS",
+        "Design originale",
+        "Ottimizzazione mobile"
+      ]
     },
     "chatbotWhatsapp": {
       "title": "Dashboard per Bot WhatsApp",
       "description": "Pannello di controllo per gestire un bot WhatsApp, con statistiche e viewer delle conversazioni.",
-      "tags": ["Dashboard", "WhatsApp API", "Statistiche"]
+      "tags": [
+        "Dashboard",
+        "WhatsApp API",
+        "Statistiche"
+      ]
     }
   },
   "about": {
@@ -95,6 +111,10 @@
       "title": "Ti interessa automatizzare la tua azienda?",
       "subtitle": "Prenota una demo gratuita e scopri come possiamo aiutarti",
       "button": "Prenota demo"
+    },
+    "contactCta": {
+      "heading": "Parliamo del tuo progetto?",
+      "button": "Contattami"
     }
   },
   "process": {
@@ -200,6 +220,14 @@
       "contact": {
         "title": "Contatto"
       }
+    }
+  },
+  "contact": {
+    "modal": {
+      "whatsappLabel": "WhatsApp",
+      "emailLabel": "Email",
+      "whatsappMessage": "Ciao Alberto, ti scrivo dal tuo sito e vorrei parlare di un progetto.",
+      "emailSubject": "Richiesta dal sito E2D"
     }
   }
 }
