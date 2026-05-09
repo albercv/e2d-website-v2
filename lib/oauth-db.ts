@@ -30,15 +30,24 @@ export type RefreshTokenRow = {
   expires_at: number
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data')
-const DB_PATH = path.join(DATA_DIR, 'oauth.sqlite')
+// Resolución del path del SQLite de OAuth.
+// `OAUTH_DB_DIR` permite sacar la DB del árbol del proyecto (recomendado en
+// producción: `/var/lib/e2d-oauth`) y, sobre todo, permite que los tests
+// monten un dir efímero antes de que el módulo se cargue (ver
+// `jest.global-setup.js`). Sin esto, la DB se materializa en
+// `${cwd}/data/oauth.sqlite`, que en producción comparte destino con cada
+// `next build` mal configurado y en tests vive dentro del repo.
+function resolveDbDir(): string {
+  return process.env.OAUTH_DB_DIR || path.join(process.cwd(), 'data')
+}
 
 let db: Database.Database | null = null
 
 export function getDb() {
   if (db) return db
-  fs.mkdirSync(DATA_DIR, { recursive: true })
-  db = new Database(DB_PATH)
+  const dataDir = resolveDbDir()
+  fs.mkdirSync(dataDir, { recursive: true })
+  db = new Database(path.join(dataDir, 'oauth.sqlite'))
   db.pragma('journal_mode = WAL')
   initDb()
   return db!

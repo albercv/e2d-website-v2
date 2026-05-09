@@ -11,11 +11,16 @@ describe("createPost — cover and translationKey", () => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), "cp-"))
     fs.mkdirSync(path.join(tmp, "content", "posts"), { recursive: true })
     process.env.CONTENT_ROOT = tmp
+    // Alinear BLOG_POSTS_DIR con CONTENT_ROOT — globalSetup lo deja apuntando
+    // al tmpdir global; este test usa su propio tmp y necesita que el writer
+    // aterrice ahí.
+    process.env.BLOG_POSTS_DIR = path.join(tmp, "content", "posts")
     clearPostsRuntimeCache()
   })
   afterEach(() => {
     fs.rmSync(tmp, { recursive: true, force: true })
     delete process.env.CONTENT_ROOT
+    delete process.env.BLOG_POSTS_DIR
   })
 
   it("writes cover and translationKey into the frontmatter when provided", async () => {
