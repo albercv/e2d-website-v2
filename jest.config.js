@@ -7,7 +7,9 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  globalSetup: '<rootDir>/jest.setup-prod-guard.js',
+  globalSetup: '<rootDir>/jest.global-setup.js',
+  globalTeardown: '<rootDir>/jest.global-teardown.js',
+  setupFiles: ['<rootDir>/jest.setup-env.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom', // Volver a jsdom por defecto
   moduleNameMapper: {

@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom'
 
-// Tests crean tmpDirs y setean CONTENT_ROOT a ese tmp. Si BLOG_POSTS_DIR está
-// definido (vía .env de producción) atrapa los writes y rompe la isolación.
-// Lo borramos de raíz; tests que necesiten exercitar BLOG_POSTS_DIR pueden
-// setearlo en un beforeEach local.
-delete process.env.BLOG_POSTS_DIR
+// Nota histórica: hasta 2026-05-09 este fichero hacía `delete process.env.BLOG_POSTS_DIR`
+// para mitigar BUG-13 (el `.env` inyectaba el path de producción y los tests
+// sobreescribían CONTENT_ROOT pero no BLOG_POSTS_DIR). Ese workaround ya no es
+// necesario: `jest.global-setup.js` + `jest.setup-env.js` dejan
+// BLOG_POSTS_DIR/CONTENT_ROOT/OAUTH_DB_DIR/MEDIA_UPLOADS_ROOT apuntando a un
+// tmpdir efímero por run, así que la variable siempre es segura. Borrarla
+// AHORA rompe los tests que sí dependen de su valor.
 
 // next-mdx-remote/serialize y sus deps (@mdx-js/*) son ESM puro. Bajo Jest CJS
 // el import explota con "Unexpected token 'export'". Devolvemos el input tal cual

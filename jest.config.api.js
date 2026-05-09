@@ -7,7 +7,9 @@ const createJestConfig = nextJest({
 
 // Custom config for API tests - no setup files that depend on browser environment
 const customJestConfig = {
-  globalSetup: '<rootDir>/jest.setup-prod-guard.js',
+  globalSetup: '<rootDir>/jest.global-setup.js',
+  globalTeardown: '<rootDir>/jest.global-teardown.js',
+  setupFiles: ['<rootDir>/jest.setup-env.js'],
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',

@@ -61,6 +61,9 @@ async function walkMdx(root: string): Promise<string[]> {
     return out
   }
   for (const entry of entries) {
+    // Saltar dot-dirs (`.trash/` del soft-delete, `.contentlayer/` heredado,
+    // etc.). Sin esto, los .mdx en papelera reaparecerían en `posts_search`.
+    if (entry.name.startsWith(".")) continue
     const full = path.join(root, entry.name)
     if (entry.isDirectory()) {
       out.push(...(await walkMdx(full)))

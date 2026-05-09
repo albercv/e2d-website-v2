@@ -13,6 +13,7 @@ describe("deletePost — uploads cleanup", () => {
     fs.mkdirSync(path.join(tmp, "content", "posts"), { recursive: true })
     fs.mkdirSync(path.join(tmp, "uploads"), { recursive: true })
     process.env.CONTENT_ROOT = tmp
+    process.env.BLOG_POSTS_DIR = path.join(tmp, "content", "posts")
     process.env.MEDIA_UPLOADS_ROOT = path.join(tmp, "uploads")
     clearPostsRuntimeCache()
     clearMediaMetaCache()
@@ -20,6 +21,7 @@ describe("deletePost — uploads cleanup", () => {
   afterEach(() => {
     fs.rmSync(tmp, { recursive: true, force: true })
     delete process.env.CONTENT_ROOT
+    delete process.env.BLOG_POSTS_DIR
     delete process.env.MEDIA_UPLOADS_ROOT
   })
 
