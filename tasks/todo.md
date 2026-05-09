@@ -1,5 +1,40 @@
 # Tarea Activa
 
+## Aislamiento test/prod + hardening derivado del wipe del 8-may (2026-05-09)
+
+> Origen: `data/oauth.sqlite` y `content/posts/` borrados durante el wipe del 8-may. Los tests escribían contra el volumen real porque `.env` inyecta `BLOG_POSTS_DIR` apuntando a prod antes de que Jest pueda interceptar.
+
+### Phase 1 — Aislamiento de tests (PRIORIDAD)
+
+- [ ] **1.1** Añadir `OAUTH_DB_DIR` env var support en `lib/oauth-db.ts:33`
+- [ ] **1.2** Crear `jest.global-setup.js`: monta tmpdir único, sobrescribe `CONTENT_ROOT`, `BLOG_POSTS_DIR`, `OAUTH_DB_DIR`, `MEDIA_UPLOADS_ROOT` (incluso si `.env` los puso a prod), corre la lógica del actual prod-guard como defense-in-depth, expone path en `globalThis.__E2D_TEST_TMPDIR__`
+- [ ] **1.3** Crear `jest.global-teardown.js`: `fs.rm(tmp, { recursive: true, force: true })`
+- [ ] **1.4** Wire en `jest.config.js` y `jest.config.api.js`: `globalSetup`/`globalTeardown`
+- [ ] **1.5** Mantener lógica de `jest.setup-prod-guard.js` integrada en el global-setup (defense-in-depth)
+- [ ] **1.6** Verificar: correr `npm test posts-(write|runtime)` y comprobar tmpdir creado/limpiado
+
+### Phase 2 — Sacar OAuth DB del árbol del proyecto
+
+- [ ] **2.1** Mkdir `/var/lib/e2d-oauth` con permisos del usuario PM2
+- [ ] **2.2** `ecosystem.config.js`: añadir `OAUTH_DB_DIR='/var/lib/e2d-oauth'` + hardening PM2 (`min_uptime: 30000`, `max_memory_restart: '1G'`, `kill_timeout: 10000`)
+- [ ] **2.3** Confirmar con usuario antes de `pm2 restart e2d` (los refresh tokens ya están perdidos; reinicio sólo recreará la DB en la ruta nueva)
+
+### Phase 3 — Hardening writer de posts (atomic + soft-delete)
+
+- [ ] **3.1** Tests primero: escritura no deja `.tmp` huérfanos en error; delete mueve a `.trash/`
+- [ ] **3.2** `lib/blog/posts-write.ts`: `tmp + fsync + rename` y soft-delete a `${BLOG_POSTS_DIR}/.trash/<ts>-<basename>`
+- [ ] **3.3** Cron diario que limpia `.trash/` con mtime >30d
+
+### Phase 4 — `robots.ts` con allow explícito para MCP
+
+- [ ] **4.1** Añadir `Allow: ['/api/mcp', '/sse', '/.well-known/oauth-*']` a las reglas de `ClaudeBot`/`GPTBot`
+
+### Phase 5 — Backups cron (server-level — propuesta, no instalar sin OK)
+
+- [ ] **5.1** Proponer crons de rsync para `/var/lib/e2d-content/posts` y `/var/lib/e2d-oauth`
+
+---
+
 ## `[contact]` MDX marker (2026-05-08)
 
 Marker `[contact]` que renderiza un CTA con modal WhatsApp/email. Plan en `docs/superpowers/plans/2026-05-08-contact-marker.md`.
