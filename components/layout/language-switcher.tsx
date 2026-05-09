@@ -4,21 +4,44 @@ import { useRouter, usePathname } from "next/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { Globe } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useLocaleAlternates } from "./locale-alternates-context"
+
+const LOCALES = [
+  { code: "es", label: "🇪🇸 Español" },
+  { code: "en", label: "🇬🇧 English" },
+  { code: "it", label: "🇮🇹 Italiano" },
+] as const
+
+/**
+ * Resuelve el path al que llevar al visitante para un locale destino.
+ *
+ * Si la página actual aportó un mapa de alternates (vía
+ * `LocaleAlternatesProvider` — ej: blog detail con slugs traducidos), lo
+ * usamos directamente. En caso contrario caemos al patrón naive: reemplazar
+ * el primer segmento del pathname por el locale destino. El naive funciona
+ * bien para páginas con slugs invariantes (home, servicios, docs).
+ */
+function resolveTargetPath(
+  pathname: string,
+  targetLocale: string,
+  alternates: ReturnType<typeof useLocaleAlternates>
+): string {
+  const fromContext = alternates?.[targetLocale]
+  if (fromContext) return fromContext
+
+  const segments = pathname.split("/")
+  if (segments.length < 2) return `/${targetLocale}`
+  segments[1] = targetLocale
+  return segments.join("/")
+}
 
 export function LanguageSwitcher() {
   const router = useRouter()
   const pathname = usePathname()
+  const alternates = useLocaleAlternates()
 
   const switchLanguage = (locale: string) => {
-    const segments = pathname.split("/")
-    // Ensure we have at least two segments ("", locale)
-    if (segments.length < 2) {
-      // If somehow not in a locale route, default to prefixing the path with the desired locale
-      router.push(`/${locale}`)
-      return
-    }
-    segments[1] = locale
-    router.push(segments.join("/"))
+    router.push(resolveTargetPath(pathname, locale, alternates))
   }
 
   return (
@@ -30,10 +53,14 @@ export function LanguageSwitcher() {
         <span className="sr-only">Switch language</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => switchLanguage("es")}>🇪🇸 Español</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchLanguage("en")}>🇬🇧 English</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchLanguage("it")}>🇮🇹 Italiano</DropdownMenuItem>
+        {LOCALES.map(({ code, label }) => (
+          <DropdownMenuItem key={code} onClick={() => switchLanguage(code)}>
+            {label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
+
+export { resolveTargetPath }
