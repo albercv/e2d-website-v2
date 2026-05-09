@@ -54,38 +54,22 @@
     "abyfoods": {
       "title": "Abyfoods - Web Corporativa",
       "description": "Diseño elegante y optimizado para SEO y IA, reflejando el glamour de la marca.",
-      "tags": [
-        "SEO",
-        "IA",
-        "Diseño a medida"
-      ]
+      "tags": ["SEO", "IA", "Diseño a medida"]
     },
     "augustcollection": {
       "title": "August Collection - E-commerce",
       "description": "Plataforma de venta con IA integrada, optimizada para móviles y alto rendimiento.",
-      "tags": [
-        "E-commerce",
-        "IA integrada",
-        "Optimización móvil"
-      ]
+      "tags": ["E-commerce", "IA integrada", "Optimización móvil"]
     },
     "ferdyCoach": {
       "title": "Ferdy Coach - CMS y Ventas",
       "description": "CMS personalizado para gestionar posts y ventas, con un diseño 100% original.",
-      "tags": [
-        "CMS",
-        "Diseño original",
-        "Optimización móvil"
-      ]
+      "tags": ["CMS", "Diseño original", "Optimización móvil"]
     },
     "chatbotWhatsapp": {
       "title": "Dashboard para WhatsApp Bot",
       "description": "Panel de control para gestionar un bot de WhatsApp, con estadísticas y visor de conversaciones.",
-      "tags": [
-        "Dashboard",
-        "WhatsApp API",
-        "Estadísticas"
-      ]
+      "tags": ["Dashboard", "WhatsApp API", "Estadísticas"]
     }
   },
   "about": {
@@ -111,10 +95,6 @@
       "title": "¿Te interesa automatizar tu negocio?",
       "subtitle": "Reserva una demo gratuita y descubre cómo podemos ayudarte",
       "button": "Reservar demo"
-    },
-    "contactCta": {
-      "heading": "¿Hablamos de tu proyecto?",
-      "button": "Contactar"
     }
   },
   "process": {
@@ -220,14 +200,6 @@
       "contact": {
         "title": "Contacto"
       }
-    }
-  },
-  "contact": {
-    "modal": {
-      "whatsappLabel": "WhatsApp",
-      "emailLabel": "Email",
-      "whatsappMessage": "Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.",
-      "emailSubject": "Consulta desde la web E2D"
     }
   }
 }

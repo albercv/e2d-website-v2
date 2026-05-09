@@ -54,38 +54,22 @@
     "abyfoods": {
       "title": "Abyfoods - Corporate Website",
       "description": "Elegant design optimized for SEO and AI, reflecting the brand's glamour.",
-      "tags": [
-        "SEO",
-        "AI",
-        "Custom Design"
-      ]
+      "tags": ["SEO", "AI", "Custom Design"]
     },
     "augustcollection": {
       "title": "August Collection - E-commerce",
       "description": "Sales platform with integrated AI, optimized for mobile and high performance.",
-      "tags": [
-        "E-commerce",
-        "Integrated AI",
-        "Mobile Optimization"
-      ]
+      "tags": ["E-commerce", "Integrated AI", "Mobile Optimization"]
     },
     "ferdyCoach": {
       "title": "Ferdy Coach - CMS & Sales",
       "description": "Custom CMS to manage posts and sales, with a 100% original design.",
-      "tags": [
-        "CMS",
-        "Original Design",
-        "Mobile Optimization"
-      ]
+      "tags": ["CMS", "Original Design", "Mobile Optimization"]
     },
     "chatbotWhatsapp": {
       "title": "WhatsApp Bot Dashboard",
       "description": "Control panel to manage a WhatsApp bot, with statistics and conversation viewer.",
-      "tags": [
-        "Dashboard",
-        "WhatsApp API",
-        "Statistics"
-      ]
+      "tags": ["Dashboard", "WhatsApp API", "Statistics"]
     }
   },
   "about": {
@@ -111,10 +95,6 @@
       "title": "Interested in automating your business?",
       "subtitle": "Book a free demo and discover how we can help you",
       "button": "Book demo"
-    },
-    "contactCta": {
-      "heading": "Shall we talk about your project?",
-      "button": "Get in touch"
     }
   },
   "process": {
@@ -220,14 +200,6 @@
       "contact": {
         "title": "Contact"
       }
-    }
-  },
-  "contact": {
-    "modal": {
-      "whatsappLabel": "WhatsApp",
-      "emailLabel": "Email",
-      "whatsappMessage": "Hi Alberto, I came from your website and I'd like to talk about a project.",
-      "emailSubject": "Inquiry from E2D website"
     }
   }
 }
