@@ -54,6 +54,53 @@ function yamlQuote(value: string): string {
   return `'${value.replace(/'/g, "''")}'`
 }
 
+/**
+ * Escritura atómica: tmp + fsync + rename. Evita dejar el .mdx a medio escribir
+ * si el proceso muere entre `open` y `close`, y evita que un lector concurrente
+ * vea contenido parcial. El rename dentro del mismo dir es atómico en POSIX.
+ *
+ * Origen: incidente del 8-may. El fix raíz fue aislamiento de tests, pero un
+ * `fs.writeFile` no atómico hace que un crash deje un fichero corrupto que el
+ * runtime reader expone — peor que perderlo. Con tmp+rename, o el archivo
+ * antiguo permanece, o el nuevo está completo.
+ */
+async function atomicWriteFile(filePath: string, data: string): Promise<void> {
+  const dir = path.dirname(filePath)
+  const base = path.basename(filePath)
+  const tmp = path.join(dir, `.${base}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
+  let handle: Awaited<ReturnType<typeof fs.open>> | null = null
+  try {
+    handle = await fs.open(tmp, "w", 0o644)
+    await handle.writeFile(data, { encoding: "utf-8" })
+    await handle.sync()
+    await handle.close()
+    handle = null
+    await fs.rename(tmp, filePath)
+  } catch (err) {
+    if (handle) { try { await handle.close() } catch {} }
+    try { await fs.unlink(tmp) } catch {}
+    throw err
+  }
+}
+
+/**
+ * Soft-delete: en lugar de `fs.unlink`, mueve el .mdx a `${postsDir}/.trash/`
+ * con timestamp prefix. El walker `walkMdx` ignora dot-dirs, así que el reader
+ * no lo encuentra. La papelera queda como red de seguridad ante un delete
+ * accidental — con auditd podemos atribuir, con esto podemos recuperar.
+ *
+ * La purga de `.trash/` (>30 días) corre por cron, no aquí.
+ */
+async function softDeleteFile(filePath: string): Promise<void> {
+  const dir = path.dirname(filePath)
+  const base = path.basename(filePath)
+  const trashDir = path.join(dir, ".trash")
+  const ts = new Date().toISOString().replace(/[:.]/g, "-")
+  const dest = path.join(trashDir, `${ts}-${base}`)
+  await fs.mkdir(trashDir, { recursive: true })
+  await fs.rename(filePath, dest)
+}
+
 export function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -143,7 +190,7 @@ export async function createPost(input: CreatePostInput): Promise<CreatePostResu
 
   try {
     await fs.mkdir(postsDir, { recursive: true })
-    await fs.writeFile(filePath, mdx, { encoding: "utf-8" })
+    await atomicWriteFile(filePath, mdx)
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
     throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
@@ -233,7 +280,7 @@ export async function deletePost(input: DeletePostInput): Promise<DeletePostResu
   }
 
   try {
-    await fs.unlink(filePath)
+    await softDeleteFile(filePath)
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
     throw new PostsWriteError("internal_error", 500, "Failed to delete file", { details })
@@ -357,7 +404,7 @@ export async function updatePostBody(input: UpdatePostBodyInput): Promise<void> 
   const parsed = matter(raw)
   const next = matter.stringify(content, parsed.data)
   try {
-    await fs.writeFile(filePath, next, { encoding: "utf-8" })
+    await atomicWriteFile(filePath, next)
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
     throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
@@ -526,7 +573,7 @@ export async function updatePostFrontmatter(
 
   const next = matter.stringify(parsed.content, data)
   try {
-    await fs.writeFile(filePath, next, { encoding: "utf-8" })
+    await atomicWriteFile(filePath, next)
   } catch (err) {
     const details = err instanceof Error ? err.message : String(err)
     throw new PostsWriteError("internal_error", 500, "Failed to write file", { details })
@@ -601,7 +648,7 @@ export async function syncCoverToFrontmatter(
 
     const next = matter.stringify(parsed.content, data)
     try {
-      await fs.writeFile(filePath, next, "utf-8")
+      await atomicWriteFile(filePath, next)
       synced.push(sib._raw.sourceFilePath)
     } catch (err) {
       failed.push({
