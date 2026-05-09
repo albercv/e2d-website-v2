@@ -68,7 +68,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
       {
-        userAgent: ["GPTBot", "ClaudeBot", "ChatGPT-User"],
+        userAgent: "GPTBot",
         allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
         disallow: MCP_BOT_DISALLOW,
       },
@@ -76,6 +76,16 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "Google-Extended",
         allow: PUBLIC_ALLOW,
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
+      },
+      {
+        userAgent: "ClaudeBot",
+        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
+        disallow: MCP_BOT_DISALLOW,
+      },
+      {
+        userAgent: "ChatGPT-User",
+        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
+        disallow: MCP_BOT_DISALLOW,
       },
       {
         userAgent: "PerplexityBot",
