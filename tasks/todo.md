@@ -70,10 +70,7 @@
 ### Phase 4 — robots.txt + subdominio api
 
 - [x] **S.4.1** `app/robots.ts:25-39`: añadir `/it/docs/` a `PUBLIC_ALLOW`. Revisar también si falta `/es/legal/`, `/en/legal/`, `/it/legal/` y `/{locale}/privacy/`. Test en `__tests__/app/robots.test.ts` para cubrir los 3 locales en docs/legal/privacy.
-- [ ] **S.4.2** ⏳ PENDIENTE DECISIÓN USUARIO — `api.evolve2digital.com` — elegir:
-  - Opción A: quitar registro DNS (CLAUDE.md dice "servicio muerto"; si nada lo usa, eliminar).
-  - Opción B: añadir bloque nginx `server { server_name api.evolve2digital.com; return 410 "gone"; add_header X-Robots-Tag "noindex, nofollow" always; }` con su propio cert (o un cert wildcard si existe).
-  - Default sugerido: A si confirmado que no hay clientes apuntando ahí; sino B.
+- [ ] **S.4.2** ⏳ ACCIÓN MANUAL USUARIO — Eliminar registro DNS `api` en Cloudflare (opción A elegida; sin SSL para ese subdominio, B no aplica). Verificar con `dig api.evolve2digital.com +short` → vacío. Luego GSC → "Validate fix" en bucket `Crawled not indexed`.
 
 ### Phase 5 — Resubmit a GSC y monitoreo
 
