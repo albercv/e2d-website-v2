@@ -89,4 +89,25 @@ describe("robots() metadata route", () => {
     expect(byAgent("PerplexityBot")).toBeDefined()
     expect(byAgent("Applebot-Extended")).toBeDefined()
   })
+
+  it("includes /it/docs/ in allow for Bingbot and Google-Extended", () => {
+    // /es/docs/ and /en/docs/ were present; /it/docs/ was missing — GSC showed
+    // IT docs pages as crawl-starved (Discovered not indexed).
+    for (const ua of ["Bingbot", "Google-Extended"]) {
+      const r = byAgent(ua)
+      expect(r).toBeDefined()
+      const allow = Array.isArray(r!.allow) ? r!.allow : [r!.allow]
+      expect(allow).toContain("/it/docs/")
+    }
+  })
+
+  it("includes legal and privacy paths for all locales in Bingbot allow list", () => {
+    const r = byAgent("Bingbot")
+    expect(r).toBeDefined()
+    const allow = Array.isArray(r!.allow) ? r!.allow : [r!.allow]
+    for (const locale of ["es", "en", "it"]) {
+      expect(allow).toContain(`/${locale}/legal/`)
+      expect(allow).toContain(`/${locale}/privacy/`)
+    }
+  })
 })

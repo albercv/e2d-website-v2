@@ -45,8 +45,8 @@
 
 ### Phase 2 — Permanent redirects raíz + www→apex (impacto alto)
 
-- [ ] **S.2.1** `app/page.tsx`: reemplazar `redirect('/es')` con `permanentRedirect('/es')` (import desde `next/navigation`). Mantener `export const dynamic = 'force-dynamic'`. Verificar con `curl -sI https://evolve2digital.com/` → `HTTP/1.1 308 Permanent Redirect` con `Location: /es`.
-- [ ] **S.2.2** Añadir `next.config.mjs` → `async redirects()` con permanentes:
+- [x] **S.2.1** `app/page.tsx`: reemplazar `redirect('/es')` con `permanentRedirect('/es')` (import desde `next/navigation`). Mantener `export const dynamic = 'force-dynamic'`. Verificar con `curl -sI https://evolve2digital.com/` → `HTTP/1.1 308 Permanent Redirect` con `Location: /es`.
+- [x] **S.2.2** Añadir `next.config.mjs` → `async redirects()` con permanentes:
   - `/blog` → `/es/blog` (308)
   - `/blog/:slug*` → `/es/blog/:slug*` (308) — los slugs antiguos `ai-solutions`, `e2d-transformation` no existen en MDX, irán al índice ES del blog vía catch en el page (verificar en navegador, si 404 ajustar a fallback `/es/blog`).
 - [ ] **S.2.3** Nginx www→apex en HTTPS. Editar `/etc/nginx/sites-enabled/evolve2digital`:
@@ -57,11 +57,11 @@
 
 ### Phase 3 — Sitemap real-only (limpia crawl budget)
 
-- [ ] **S.3.1** Tests primero: el sitemap NO emite `/it/legal`, `/it/privacy`, `/it/docs/gdpr` si los MDX correspondientes no existen en `content/`. Cobertura para los 3 locales y para los 6 slugs de docs + 2 de legal.
-- [ ] **S.3.2** `lib/sitemap-generator.ts`:
+- [x] **S.3.1** Tests primero: el sitemap NO emite `/it/legal`, `/it/privacy`, `/it/docs/gdpr` si los MDX correspondientes no existen en `content/`. Cobertura para los 3 locales y para los 6 slugs de docs + 2 de legal.
+- [x] **S.3.2** `lib/sitemap-generator.ts`:
   - `generateDocumentationPages` (línea 209): leer del disco `content/docs/{locale}/*.mdx` (o donde estén; `find content/docs/` para confirmar layout). Para cada locale, emitir solo los slugs que existen. Si el árbol de docs vive en `app/[locale]/docs/`, hardcodear los slugs comunes pero filtrar por locale comprobando que el page existe — preguntar al usuario qué prefiere.
   - `generateLegalPages` (línea 246): mismo enfoque. Verificar primero qué locales tienen `/legal` y `/privacy` reales.
-- [ ] **S.3.3** `lastModified` estable. Reemplazar `new Date()` en las páginas estáticas (líneas 119, 135, 151, 225, 233, 255):
+- [x] **S.3.3** `lastModified` estable. Reemplazar `new Date()` en las páginas estáticas (líneas 119, 135, 151, 225, 233, 255):
   - Homepage: usar `getLatestPostDate(posts)` (ya existe línea 291).
   - Blog index: ya usa `getLatestPostDate`, OK.
   - Docs/legal: usar fecha de build (variable de entorno `BUILD_TIME` inyectada en `next.config.mjs` vía `env`, fallback a `new Date('2026-05-01')`). Alternativa: leer `mtime` del archivo MDX si existe.
@@ -69,7 +69,7 @@
 
 ### Phase 4 — robots.txt + subdominio api
 
-- [ ] **S.4.1** `app/robots.ts:25-39`: añadir `/it/docs/` a `PUBLIC_ALLOW`. Revisar también si falta `/es/legal/`, `/en/legal/`, `/it/legal/` y `/{locale}/privacy/`. Test en `__tests__/app/robots.test.ts` para cubrir los 3 locales en docs/legal/privacy.
+- [x] **S.4.1** `app/robots.ts:25-39`: añadir `/it/docs/` a `PUBLIC_ALLOW`. Revisar también si falta `/es/legal/`, `/en/legal/`, `/it/legal/` y `/{locale}/privacy/`. Test en `__tests__/app/robots.test.ts` para cubrir los 3 locales en docs/legal/privacy.
 - [ ] **S.4.2** `api.evolve2digital.com` — preguntar al usuario qué hacer:
   - Opción A: quitar registro DNS (CLAUDE.md dice "servicio muerto"; si nada lo usa, eliminar).
   - Opción B: añadir bloque nginx `server { server_name api.evolve2digital.com; return 410 "gone"; add_header X-Robots-Tag "noindex, nofollow" always; }` con su propio cert (o un cert wildcard si existe).
@@ -82,7 +82,7 @@
   - GSC → Sitemaps → reenviar `https://evolve2digital.com/sitemap.xml`.
   - GSC → URL Inspection: pedir reindexación de las 5 URLs 404 (tras Phase 2, las cross-locale ahora 200 con slug correcto vía hreflang del sitemap).
   - GSC → Page Indexing → "Validate fix" en cada bucket afectado.
-- [ ] **S.5.2** Crear nota en `tasks/lessons.md` con el patrón aprendido: "hreflang con slug por idioma requiere agrupar por `translationKey`, NO reusar el slug del post actual".
+- [x] **S.5.2** Crear nota en `tasks/lessons.md` con el patrón aprendido: "hreflang con slug por idioma requiere agrupar por `translationKey`, NO reusar el slug del post actual".
 - [ ] **S.5.3** Re-check GSC a 14 días: confirmar drop de los buckets `not found 404`, `redirect error`, `duplicate canonical`. Esperar 30 días para "Discovered not indexed" (depende del crawl rate de Google, fuera de control nuestro).
 
 ### Workflow para Sonnet
