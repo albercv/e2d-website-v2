@@ -116,7 +116,7 @@ export class SitemapGenerator {
 
       pages.push({
         url,
-        lastModified: new Date(),
+        lastModified: this.getLatestPostDate(posts),
         changeFrequency: "weekly",
         priority: 1.0,
         alternateLanguages: alternateUrls,
@@ -124,7 +124,7 @@ export class SitemapGenerator {
           contentType: "homepage",
           importance: "critical",
           crawlPriority: 10,
-          lastContentUpdate: new Date(),
+          lastContentUpdate: this.getLatestPostDate(posts),
           semanticTags: ["automation", "web-development", "ai", "sme", "spain"],
         },
       })
@@ -132,7 +132,7 @@ export class SitemapGenerator {
       // Blog index pages
       pages.push({
         url: `${this.config.baseUrl}/${locale}/blog`,
-        lastModified: new Date(),
+        lastModified: this.getLatestPostDate(posts),
         changeFrequency: "daily",
         priority: 0.9,
         alternateLanguages: this.generateAlternateLanguages("/blog"),
@@ -148,7 +148,7 @@ export class SitemapGenerator {
       // Documentation index pages
       pages.push({
         url: `${this.config.baseUrl}/${locale}/docs`,
-        lastModified: new Date(),
+        lastModified: this.getStableDate(),
         changeFrequency: "weekly",
         priority: 0.8,
         alternateLanguages: this.generateAlternateLanguages("/docs"),
@@ -156,7 +156,7 @@ export class SitemapGenerator {
           contentType: "documentation",
           importance: "high",
           crawlPriority: 8,
-          lastContentUpdate: new Date(),
+          lastContentUpdate: this.getStableDate(),
           semanticTags: ["documentation", "guides", "technical", "implementation"],
         },
       })
@@ -173,47 +173,75 @@ export class SitemapGenerator {
    * wordCount and tags — every field this method needs.
    */
   private generateBlogPosts(posts: RuntimePost[]): SitemapEntry[] {
-    return posts
-      .filter(post => post.published)
-      .map(post => {
-        const alternateUrls = this.config.includeAlternateLanguages
-          ? this.generateAlternateLanguages(`/blog/${post.slug}`)
-          : undefined
+    const published = posts.filter(post => post.published)
 
-        return {
-          url: `${this.config.baseUrl}${post.url}`,
-          lastModified: new Date(post.date),
-          changeFrequency: "monthly" as const,
-          priority: 0.7,
-          alternateLanguages: alternateUrls,
-          aiMetadata: {
-            contentType: "blog" as const,
-            importance: "medium" as const,
-            crawlPriority: 7,
-            lastContentUpdate: new Date(post.date),
-            wordCount: post.wordCount,
-            semanticTags: [
-              ...(post.tags || []),
-              "automation",
-              "technology",
-              post.locale === "es" ? "español" : "english",
-            ],
-          },
+    // Build sibling map once: translationKey → all published posts with that key
+    const siblingMap = new Map<string, RuntimePost[]>()
+    for (const post of published) {
+      const group = siblingMap.get(post.translationKey) ?? []
+      group.push(post)
+      siblingMap.set(post.translationKey, group)
+    }
+
+    return published.map(post => {
+      let alternateUrls: Record<string, string> | undefined
+
+      if (this.config.includeAlternateLanguages) {
+        const siblings = siblingMap.get(post.translationKey) ?? [post]
+        const langs: Record<string, string> = {}
+
+        for (const sibling of siblings) {
+          langs[sibling.locale] = `${this.config.baseUrl}${sibling.url}`
         }
-      })
+
+        // x-default: ES sibling preferred; fall back to first locale alphabetically
+        const esSibling = siblings.find(s => s.locale === "es")
+        const sorted = [...siblings].sort((a, b) => a.locale.localeCompare(b.locale))
+        langs["x-default"] = esSibling
+          ? `${this.config.baseUrl}${esSibling.url}`
+          : `${this.config.baseUrl}${sorted[0].url}`
+
+        alternateUrls = langs
+      }
+
+      return {
+        url: `${this.config.baseUrl}${post.url}`,
+        lastModified: new Date(post.date),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+        alternateLanguages: alternateUrls,
+        aiMetadata: {
+          contentType: "blog" as const,
+          importance: "medium" as const,
+          crawlPriority: 7,
+          lastContentUpdate: new Date(post.date),
+          wordCount: post.wordCount,
+          semanticTags: [
+            ...(post.tags || []),
+            "automation",
+            "technology",
+            post.locale === "es" ? "español" : "english",
+          ],
+        },
+      }
+    })
   }
 
   /**
    * Generate documentation pages
    */
   private generateDocumentationPages(): SitemapEntry[] {
+    // Must match validSlugs in app/[locale]/docs/[slug]/page.tsx exactly.
+    // "security" was never a valid slug — remove it. Add components, i18n, seo.
     const docSlugs = [
       "principles",
       "architecture",
-      "security",
+      "components",
+      "i18n",
+      "seo",
+      "gdpr",
       "performance",
       "deployment",
-      "gdpr",
     ]
 
     const pages: SitemapEntry[] = []
@@ -222,7 +250,7 @@ export class SitemapGenerator {
       docSlugs.forEach(slug => {
         pages.push({
           url: `${this.config.baseUrl}/${locale}/docs/${slug}`,
-          lastModified: new Date(),
+          lastModified: this.getStableDate(),
           changeFrequency: "monthly",
           priority: 0.6,
           alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`),
@@ -230,7 +258,7 @@ export class SitemapGenerator {
             contentType: "documentation",
             importance: "medium",
             crawlPriority: 6,
-            lastContentUpdate: new Date(),
+            lastContentUpdate: this.getStableDate(),
             semanticTags: ["documentation", slug, "technical", "guide"],
           },
         })
@@ -251,7 +279,7 @@ export class SitemapGenerator {
       legalPages.forEach(page => {
         pages.push({
           url: `${this.config.baseUrl}/${locale}/${page}`,
-          lastModified: new Date(),
+          lastModified: this.getStableDate(),
           changeFrequency: "yearly",
           priority: 0.3,
           alternateLanguages: this.generateAlternateLanguages(`/${page}`),
@@ -259,7 +287,7 @@ export class SitemapGenerator {
             contentType: "legal",
             importance: "low",
             crawlPriority: 3,
-            lastContentUpdate: new Date(),
+            lastContentUpdate: this.getStableDate(),
             semanticTags: ["legal", page, "gdpr", "compliance"],
           },
         })
@@ -290,13 +318,25 @@ export class SitemapGenerator {
    */
   private getLatestPostDate(posts: RuntimePost[]): Date {
     const publishedPosts = posts.filter(post => post.published)
-    if (publishedPosts.length === 0) return new Date()
+    if (publishedPosts.length === 0) return this.getStableDate()
 
     const latestPost = publishedPosts.reduce((latest, current) => {
       return new Date(current.date) > new Date(latest.date) ? current : latest
     })
 
     return new Date(latestPost.date)
+  }
+
+  // Returns a stable build-time date so sitemap lastModified doesn't change on
+  // every request. Reads BUILD_TIME env var (set at build time in next.config.mjs)
+  // or falls back to a fixed date that pre-dates the first deploy.
+  private getStableDate(): Date {
+    const buildTime = process.env.BUILD_TIME
+    if (buildTime) {
+      const d = new Date(buildTime)
+      if (!isNaN(d.getTime())) return d
+    }
+    return new Date("2026-05-01")
   }
 
   /**

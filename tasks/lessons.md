@@ -97,3 +97,15 @@ BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverag
 5. **`pm2 reload --update-env` no relee `ecosystem.config.js`**. Solo refresca las vars del shell padre. Para tomar cambios en el ecosystem hay que usar `pm2 startOrReload ecosystem.config.js --env production --update-env --only <name>`.
 
 **La vigilancia desplegada el 6/may funcionó perfecto**: el watchdog detectó, el tripwire dumpeó contexto en 180 s, y auditd dio atribución kernel-level (PID + exe + syscall + cwd) sin race con `ps`. Sin esa stack habríamos vuelto a perder horas haciendo arqueología. Mantener auditd activo, el tripwire en PM2, y los baselines copiados a `logs/ferdy-baseline.{txt,mdx}`.
+
+## 2026-05-11 — hreflang con slug por idioma requiere translationKey, no slug literal
+
+**Patrón**: los posts de este blog tienen slugs distintos por idioma (`arquitectura-microservicios-...` ES, `microservices-architecture-...` EN, `architettura-microservizi-...` IT) enlazados por `translationKey`. Si el sitemap o la metadata de la página construyen las URLs de hreflang reusando el slug del post actual para todos los locales, Google crawlea URLs cruzadas que no existen (404 confirmado en GSC).
+
+**Regla**:
+- En `generateBlogPosts` (sitemap-generator.ts) y en `generateMetadata` (blog/[slug]/page.tsx): SIEMPRE resolver los alternates filtrando todos los posts por `translationKey === post.translationKey` y construir el map `locale → sibling.url` desde los siblings reales.
+- Si un locale no tiene sibling, **omitir** esa clave del map. Nunca fabricar una URL para un locale inexistente.
+- `x-default`: sibling ES si existe; si no, primer locale alfabético de los disponibles.
+- La función `generateAlternateLanguages(path)` solo es válida para rutas uniformes entre locales (homepage, blog index, docs, legal) — NO para posts de blog.
+
+**Causa raíz del bug original**: `generateAlternateLanguages('/blog/' + post.slug)` generaba `/en/blog/<slug-es>` que 404. Visibles en GSC como "not found 404" con slugs de otros idiomas en la ruta equivocada.

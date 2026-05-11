@@ -168,6 +168,25 @@ const nextConfig = {
 
     return config;
   },
+
+  // Permanent redirects for legacy non-locale blog URLs (pre-[locale] routing,
+  // Dec 2025). Legacy slugs ai-solutions / e2d-transformation / blog have no
+  // matching MDX, so redirect to the ES blog index rather than /es/blog/:slug
+  // which would just 404 again.
+  async redirects() {
+    return [
+      {
+        source: "/blog",
+        destination: "/es/blog",
+        permanent: true,
+      },
+      {
+        source: "/blog/:slug*",
+        destination: "/es/blog",
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default withBundleAnalyzer(withNextIntl(withContentlayer(nextConfig)))
