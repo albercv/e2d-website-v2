@@ -32,13 +32,13 @@
 
 ### Phase 1 — Fix hreflang con `translationKey` (impacto alto, urgente)
 
-- [ ] **S.1.1** Tests primero. Crear `__tests__/lib/sitemap-generator.hreflang.test.ts` con fixtures de 2-3 translationKeys que tengan slugs distintos por locale (un caso completo ES+EN+IT, un caso parcial ES+EN). Aseverar que el sitemap emite cada URL alternate con el slug REAL del sibling correspondiente y que `x-default` apunta al sibling ES (o al primer sibling disponible si ES falta).
-- [ ] **S.1.2** Refactor `lib/sitemap-generator.ts`:
+- [x] **S.1.1** Tests primero. Crear `__tests__/lib/sitemap-generator.hreflang.test.ts` con fixtures de 2-3 translationKeys que tengan slugs distintos por locale (un caso completo ES+EN+IT, un caso parcial ES+EN). Aseverar que el sitemap emite cada URL alternate con el slug REAL del sibling correspondiente y que `x-default` apunta al sibling ES (o al primer sibling disponible si ES falta).
+- [x] **S.1.2** Refactor `lib/sitemap-generator.ts`:
   - Importar `findPostsByTranslationKey` desde `lib/blog/translation-key.ts`.
   - En `generateBlogPosts` (líneas 175-204): agrupar `posts` por `translationKey`. Para cada grupo, construir `alternateLanguages` mapeando `locale → ${baseUrl}/${sibling.locale}/blog/${sibling.slug}`. Sibling faltante = locale ausente del map (NO inventar URL).
   - `x-default`: sibling ES si existe, sino primer sibling por orden alfabético de locale.
   - Mantener firma pública de `generateAlternateLanguages` para docs/legal pero NO usarla en blog.
-- [ ] **S.1.3** Fix metadata del post page. `app/[locale]/blog/[slug]/page.tsx:30-47` (`generateMetadata`):
+- [x] **S.1.3** Fix metadata del post page. `app/[locale]/blog/[slug]/page.tsx:30-47` (`generateMetadata`):
   - Reemplazar el `languages: { es: …${slug}, en: …${slug}, it: …${slug} }` hardcodeado con una resolución por `translationKey`. Llamar `findPostsByTranslationKey(raw.translationKey)`, construir el map con slugs reales por sibling. Si el sibling no existe, omitir la clave (no fabricar URL).
   - Hacer lo mismo en `app/[locale]/blog/page.tsx:36-40` si emite hreflang (revisar).
 - [ ] **S.1.4** Verificación: `curl -s https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables | grep alternate` debe devolver `architettura-microservizi-sistemi-scalabili` en `hreflang="it"` y `microservices-architecture-scalable-systems` en `hreflang="en"`. Mismo check en `curl https://evolve2digital.com/sitemap.xml | grep -A3 'arquitectura-microservicios'`.

@@ -116,7 +116,7 @@ export class SitemapGenerator {
 
       pages.push({
         url,
-        lastModified: new Date(),
+        lastModified: this.getLatestPostDate(posts),
         changeFrequency: "weekly",
         priority: 1.0,
         alternateLanguages: alternateUrls,
@@ -124,7 +124,7 @@ export class SitemapGenerator {
           contentType: "homepage",
           importance: "critical",
           crawlPriority: 10,
-          lastContentUpdate: new Date(),
+          lastContentUpdate: this.getLatestPostDate(posts),
           semanticTags: ["automation", "web-development", "ai", "sme", "spain"],
         },
       })
@@ -132,7 +132,7 @@ export class SitemapGenerator {
       // Blog index pages
       pages.push({
         url: `${this.config.baseUrl}/${locale}/blog`,
-        lastModified: new Date(),
+        lastModified: this.getLatestPostDate(posts),
         changeFrequency: "daily",
         priority: 0.9,
         alternateLanguages: this.generateAlternateLanguages("/blog"),
@@ -148,7 +148,7 @@ export class SitemapGenerator {
       // Documentation index pages
       pages.push({
         url: `${this.config.baseUrl}/${locale}/docs`,
-        lastModified: new Date(),
+        lastModified: this.getStableDate(),
         changeFrequency: "weekly",
         priority: 0.8,
         alternateLanguages: this.generateAlternateLanguages("/docs"),
@@ -156,7 +156,7 @@ export class SitemapGenerator {
           contentType: "documentation",
           importance: "high",
           crawlPriority: 8,
-          lastContentUpdate: new Date(),
+          lastContentUpdate: this.getStableDate(),
           semanticTags: ["documentation", "guides", "technical", "implementation"],
         },
       })
@@ -231,13 +231,17 @@ export class SitemapGenerator {
    * Generate documentation pages
    */
   private generateDocumentationPages(): SitemapEntry[] {
+    // Must match validSlugs in app/[locale]/docs/[slug]/page.tsx exactly.
+    // "security" was never a valid slug — remove it. Add components, i18n, seo.
     const docSlugs = [
       "principles",
       "architecture",
-      "security",
+      "components",
+      "i18n",
+      "seo",
+      "gdpr",
       "performance",
       "deployment",
-      "gdpr",
     ]
 
     const pages: SitemapEntry[] = []
@@ -246,7 +250,7 @@ export class SitemapGenerator {
       docSlugs.forEach(slug => {
         pages.push({
           url: `${this.config.baseUrl}/${locale}/docs/${slug}`,
-          lastModified: new Date(),
+          lastModified: this.getStableDate(),
           changeFrequency: "monthly",
           priority: 0.6,
           alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`),
@@ -254,7 +258,7 @@ export class SitemapGenerator {
             contentType: "documentation",
             importance: "medium",
             crawlPriority: 6,
-            lastContentUpdate: new Date(),
+            lastContentUpdate: this.getStableDate(),
             semanticTags: ["documentation", slug, "technical", "guide"],
           },
         })
@@ -275,7 +279,7 @@ export class SitemapGenerator {
       legalPages.forEach(page => {
         pages.push({
           url: `${this.config.baseUrl}/${locale}/${page}`,
-          lastModified: new Date(),
+          lastModified: this.getStableDate(),
           changeFrequency: "yearly",
           priority: 0.3,
           alternateLanguages: this.generateAlternateLanguages(`/${page}`),
@@ -283,7 +287,7 @@ export class SitemapGenerator {
             contentType: "legal",
             importance: "low",
             crawlPriority: 3,
-            lastContentUpdate: new Date(),
+            lastContentUpdate: this.getStableDate(),
             semanticTags: ["legal", page, "gdpr", "compliance"],
           },
         })
@@ -314,13 +318,25 @@ export class SitemapGenerator {
    */
   private getLatestPostDate(posts: RuntimePost[]): Date {
     const publishedPosts = posts.filter(post => post.published)
-    if (publishedPosts.length === 0) return new Date()
+    if (publishedPosts.length === 0) return this.getStableDate()
 
     const latestPost = publishedPosts.reduce((latest, current) => {
       return new Date(current.date) > new Date(latest.date) ? current : latest
     })
 
     return new Date(latestPost.date)
+  }
+
+  // Returns a stable build-time date so sitemap lastModified doesn't change on
+  // every request. Reads BUILD_TIME env var (set at build time in next.config.mjs)
+  // or falls back to a fixed date that pre-dates the first deploy.
+  private getStableDate(): Date {
+    const buildTime = process.env.BUILD_TIME
+    if (buildTime) {
+      const d = new Date(buildTime)
+      if (!isNaN(d.getTime())) return d
+    }
+    return new Date("2026-05-01")
   }
 
   /**
