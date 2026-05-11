@@ -1,11 +1,15 @@
 import { listPostsFromDisk, getCompiledPost, resolvePostCovers, type RuntimeLocale } from "@/lib/blog/posts-runtime"
+import { buildBlogAlternates, toAbsoluteAlternates } from "@/lib/blog/alternates"
 import { BlogPost } from "@/components/blog/blog-post"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
+import { LocaleAlternatesProvider } from "@/components/layout/locale-alternates-context"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
+
+const BASE_URL = "https://evolve2digital.com"
 
 interface BlogPostPageProps {
   params: Promise<{ locale: string; slug: string }>
@@ -26,34 +30,23 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   }
 
   const [post] = await resolvePostCovers([raw])
+  const alternates = await buildBlogAlternates(raw.translationKey)
+  const absoluteAlternates = toAbsoluteAlternates(alternates, BASE_URL)
+  const esFallback = absoluteAlternates["es"] ?? Object.values(absoluteAlternates)[0]
+  if (esFallback) absoluteAlternates["x-default"] = esFallback
 
-  const baseUrl = "https://evolve2digital.com"
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
-
-  // Build hreflang from real sibling slugs via translationKey — never fabricate
-  // URLs for locales that have no translation (caused GSC 404 cross-locale slugs).
-  const siblings = all.filter(
-    (p) => p.translationKey === raw.translationKey && p.published
-  )
-  const hreflangLanguages: Record<string, string> = {}
-  for (const sibling of siblings) {
-    hreflangLanguages[sibling.locale] = `${baseUrl}${sibling.url}`
-  }
-  const esSibling = siblings.find((s) => s.locale === "es")
-  const sortedSiblings = [...siblings].sort((a, b) => a.locale.localeCompare(b.locale))
-  hreflangLanguages["x-default"] = esSibling
-    ? `${baseUrl}${esSibling.url}`
-    : `${baseUrl}${sortedSiblings[0].url}`
-
   const author = post.author || "Alberto Carrasco"
   const description = post.description || ""
+  const canonical = `${BASE_URL}/${locale}/blog/${slug}`
+
   return {
     title: `${post.title} - E2D Blog`,
     description,
     authors: [{ name: author }],
     alternates: {
-      canonical: `${baseUrl}/${locale}/blog/${slug}`,
-      languages: hreflangLanguages,
+      canonical,
+      languages: absoluteAlternates,
     },
     openGraph: {
       title: post.title,
@@ -62,7 +55,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       publishedTime: post.date,
       authors: [author],
       locale: ogLocale,
-      url: `${baseUrl}/${locale}/blog/${slug}`,
+      url: canonical,
       images: [
         {
           url: post.cover || "/placeholder.jpg",
@@ -92,13 +85,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const post = await getCompiledPost(slug, locale)
   if (!post) notFound()
 
+  const alternates = await buildBlogAlternates(post.translationKey)
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <main className="pt-16">
-        <BlogPost post={post} />
-      </main>
-      <Footer />
-    </div>
+    <LocaleAlternatesProvider alternates={alternates}>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="pt-16">
+          <BlogPost post={post} />
+        </main>
+        <Footer />
+      </div>
+    </LocaleAlternatesProvider>
   )
 }
