@@ -41,7 +41,7 @@
 - [x] **S.1.3** Fix metadata del post page. `app/[locale]/blog/[slug]/page.tsx:30-47` (`generateMetadata`):
   - Reemplazar el `languages: { es: …${slug}, en: …${slug}, it: …${slug} }` hardcodeado con una resolución por `translationKey`. Llamar `findPostsByTranslationKey(raw.translationKey)`, construir el map con slugs reales por sibling. Si el sibling no existe, omitir la clave (no fabricar URL).
   - Hacer lo mismo en `app/[locale]/blog/page.tsx:36-40` si emite hreflang (revisar).
-- [ ] **S.1.4** Verificación: `curl -s https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables | grep alternate` debe devolver `architettura-microservizi-sistemi-scalabili` en `hreflang="it"` y `microservices-architecture-scalable-systems` en `hreflang="en"`. Mismo check en `curl https://evolve2digital.com/sitemap.xml | grep -A3 'arquitectura-microservicios'`.
+- [ ] **S.1.4** ⏳ PENDIENTE DEPLOY — Verificación post-build+restart: `curl -s https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables | grep alternate` debe devolver `architettura-microservizi-sistemi-scalabili` en `hreflang="it"` y `microservices-architecture-scalable-systems` en `hreflang="en"`. Mismo check en `curl https://evolve2digital.com/sitemap.xml | grep -A3 'arquitectura-microservicios'`. **Requiere: `npm run build && pm2 restart e2d`** (build completo, no solo restart).
 
 ### Phase 2 — Permanent redirects raíz + www→apex (impacto alto)
 
@@ -49,7 +49,7 @@
 - [x] **S.2.2** Añadir `next.config.mjs` → `async redirects()` con permanentes:
   - `/blog` → `/es/blog` (308)
   - `/blog/:slug*` → `/es/blog/:slug*` (308) — los slugs antiguos `ai-solutions`, `e2d-transformation` no existen en MDX, irán al índice ES del blog vía catch en el page (verificar en navegador, si 404 ajustar a fallback `/es/blog`).
-- [ ] **S.2.3** Nginx www→apex en HTTPS. Editar `/etc/nginx/sites-enabled/evolve2digital`:
+- [ ] **S.2.3** ⏳ PENDIENTE OK USUARIO — Nginx www→apex en HTTPS. Editar `/etc/nginx/sites-enabled/evolve2digital`:
   - Separar el bloque HTTPS actual en dos: uno solo con `server_name www.evolve2digital.com` que hace `return 301 https://evolve2digital.com$request_uri;` (sin proxy_pass) y otro con `server_name evolve2digital.com` que mantiene el `location /` actual.
   - Mantener cert SSL compartido (la cert ya cubre apex+www, ver `/etc/letsencrypt/live/evolve2digital.com/fullchain.pem`).
   - Test: `nginx -t` antes de `systemctl reload nginx`. Confirmar con el usuario ANTES de reload — irreversible si cert no soporta www.
@@ -65,25 +65,25 @@
   - Homepage: usar `getLatestPostDate(posts)` (ya existe línea 291).
   - Blog index: ya usa `getLatestPostDate`, OK.
   - Docs/legal: usar fecha de build (variable de entorno `BUILD_TIME` inyectada en `next.config.mjs` vía `env`, fallback a `new Date('2026-05-01')`). Alternativa: leer `mtime` del archivo MDX si existe.
-- [ ] **S.3.4** Verificación: `curl -s https://evolve2digital.com/sitemap.xml | xmllint --xpath "count(//*[local-name()='url'])" -` cuenta URLs antes/después. Confirmar reducción y que las URLs eliminadas son 404 reales (`for u in $(curl -s …/sitemap.xml | grep -oP '<loc>\K[^<]+'); do curl -so /dev/null -w "%{http_code} $u\n" "$u"; done | grep -v ^200`).
+- [ ] **S.3.4** ⏳ PENDIENTE DEPLOY — Verificación: `curl -s https://evolve2digital.com/sitemap.xml | xmllint --xpath "count(//*[local-name()='url'])" -` cuenta URLs antes/después. Confirmar reducción y que las URLs eliminadas son 404 reales (`for u in $(curl -s …/sitemap.xml | grep -oP '<loc>\K[^<]+'); do curl -so /dev/null -w "%{http_code} $u\n" "$u"; done | grep -v ^200`).
 
 ### Phase 4 — robots.txt + subdominio api
 
 - [x] **S.4.1** `app/robots.ts:25-39`: añadir `/it/docs/` a `PUBLIC_ALLOW`. Revisar también si falta `/es/legal/`, `/en/legal/`, `/it/legal/` y `/{locale}/privacy/`. Test en `__tests__/app/robots.test.ts` para cubrir los 3 locales en docs/legal/privacy.
-- [ ] **S.4.2** `api.evolve2digital.com` — preguntar al usuario qué hacer:
+- [ ] **S.4.2** ⏳ PENDIENTE DECISIÓN USUARIO — `api.evolve2digital.com` — elegir:
   - Opción A: quitar registro DNS (CLAUDE.md dice "servicio muerto"; si nada lo usa, eliminar).
   - Opción B: añadir bloque nginx `server { server_name api.evolve2digital.com; return 410 "gone"; add_header X-Robots-Tag "noindex, nofollow" always; }` con su propio cert (o un cert wildcard si existe).
   - Default sugerido: A si confirmado que no hay clientes apuntando ahí; sino B.
 
 ### Phase 5 — Resubmit a GSC y monitoreo
 
-- [ ] **S.5.1** Tras deploy de Phases 1-3 y `pm2 restart e2d`:
+- [ ] **S.5.1** ⏳ PENDIENTE DEPLOY + GSC (manual) — Tras deploy de Phases 1-3 y `pm2 restart e2d`:
   - Validar prod con la suite de `curl` de cada phase (S.1.4, S.2.1, S.2.3, S.3.4).
   - GSC → Sitemaps → reenviar `https://evolve2digital.com/sitemap.xml`.
   - GSC → URL Inspection: pedir reindexación de las 5 URLs 404 (tras Phase 2, las cross-locale ahora 200 con slug correcto vía hreflang del sitemap).
   - GSC → Page Indexing → "Validate fix" en cada bucket afectado.
 - [x] **S.5.2** Crear nota en `tasks/lessons.md` con el patrón aprendido: "hreflang con slug por idioma requiere agrupar por `translationKey`, NO reusar el slug del post actual".
-- [ ] **S.5.3** Re-check GSC a 14 días: confirmar drop de los buckets `not found 404`, `redirect error`, `duplicate canonical`. Esperar 30 días para "Discovered not indexed" (depende del crawl rate de Google, fuera de control nuestro).
+- [ ] **S.5.3** ⏳ PENDIENTE 14 DÍAS — Re-check GSC a 14 días: confirmar drop de los buckets `not found 404`, `redirect error`, `duplicate canonical`. Esperar 30 días para "Discovered not indexed" (depende del crawl rate de Google, fuera de control nuestro).
 
 ### Workflow para Sonnet
 
