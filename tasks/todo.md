@@ -1,5 +1,102 @@
 # Tarea Activa
 
+## ContactCTA i18n no funciona en runtime (2026-05-09)
+
+> Origen: el usuario reporta que el marker `[contact]` sigue saliendo siempre en español en `/en/blog/*` y `/it/blog/*`. El "fix" anterior (commit `cb6f409` en rama `fix/contact-cta-i18n`) tiene 9 tests jest verdes pero **no funciona en navegador** — falso positivo. El merge a develop ya fue reverteado (`537aff9`); la rama sigue viva con el commit roto.
+
+- [ ] **C.1** Reproducir el bug en navegador con `/en/blog/<post>` y `/it/blog/<post>`, anotar string exacto que sale, locale efectivo del componente y árbol RSC vs client.
+- [ ] **C.2** Diagnosticar con `superpowers:systematic-debugging`. Hipótesis a falsar en este orden:
+  - (a) el componente que renderiza `[contact]` cae en un Server Component que no tiene `NextIntlClientProvider` arriba en el árbol → `useTranslations` resuelve contra el locale por defecto (es).
+  - (b) el namespace que se añadió a `messages/{en,it}.json` no coincide con el que `ContactCTA` consulta vía `useTranslations(...)`.
+  - (c) queda alguna ruta en `ContactCTA` o `ContactModal` con strings hardcodeadas no cubierta por los tests.
+  - (d) cache de RSC/standalone build sirviendo el render con locale `es` pegado.
+- [ ] **C.3** Una vez identificada la causa, **rama nueva desde `develop` actual** (no reusar `fix/contact-cta-i18n`, está contaminada). Implementar fix.
+- [ ] **C.4** Verificación obligatoria en navegador real en los tres locales antes de pedirme que abra PR. Tests verdes ≠ probado (lección de cb6f409).
+- [ ] **C.5** Limpieza: cuando el fix nuevo esté mergeado a develop, borrar `fix/contact-cta-i18n` local y remoto.
+
+---
+
+## Indexación SEO — hreflang roto, redirects 307 y URLs legacy 404 (2026-05-11)
+
+> Origen: Google Search Console reporta 7 buckets de problemas: 5 URLs `not found 404` (cross-locale slugs + legacy `/blog/*` sin locale), 2 `Redirect error` (`www.evolve2digital.com/`, `evolve2digital.com/?trk=...`), 2 `page with redirect` (http→https raíz), 40+ URLs `Discovered not indexed` (EN/IT blog y docs), 2 `Crawled not indexed` (`/it/docs/seo`, `api.evolve2digital.com/`) y 1 `Duplicate canonical /es`. Investigación cerrada en sesión del 2026-05-11.
+>
+> Diagnóstico:
+> 1. `lib/sitemap-generator.ts:275-286` (`generateAlternateLanguages`) y `app/[locale]/blog/[slug]/page.tsx:39-46` (`generateMetadata`) reusan el **mismo slug** para todos los locales en hreflang. Los posts tienen slug por idioma (ej. `arquitectura-microservicios-sistemas-escalables` ES vs `microservices-architecture-scalable-systems` EN vs `architettura-microservizi-sistemi-scalabili` IT) agrupados por `translationKey`. El sitemap y el `<link rel="alternate">` emiten URLs cruzadas falsas → Google las crawlea → 404 garantizado. Ejemplo en GSC: `/es/blog/architettura-microservizi-sistemi-scalabili` (slug IT bajo /es) y `/en/blog/sviluppo-cloud-native-guida-aziendale` (slug IT bajo /en).
+> 2. `app/page.tsx:9` usa `redirect('/es')` que emite **307** (temp). Google no consolida señales por 307. Origen del "Page with redirect" y del "Duplicate canonical /es vs /".
+> 3. `nginx /etc/nginx/sites-enabled/evolve2digital`: el bloque HTTPS sirve `evolve2digital.com` y `www.evolve2digital.com` en el mismo `server_name` SIN redirect www→apex. Solo el bloque puerto 80 hace `return 301 https://$server_name$request_uri` (devuelve la PRIMERA `server_name` = apex, OK para HTTP), pero `https://www.→/es` se sirve directo en www → señal de canonical dividida → GSC reporta como redirect error.
+> 4. Legacy `/blog`, `/blog/ai-solutions`, `/blog/e2d-transformation` (Dec 2025, pre-[locale]) devuelven 404. Sin redirect a `/es/blog/...`.
+> 5. `lib/sitemap-generator.ts:107-270`: `generateDocumentationPages` y `generateLegalPages` generan la matriz completa locale × slug sin comprobar existencia en disco. URLs como `/it/docs/gdpr`, `/it/legal` aparecen aunque no haya MDX. Crawl budget desperdiciado.
+> 6. `lib/sitemap-generator.ts:119, 135, 151, 225, 233, 255`: `lastModified: new Date()` en cada fetch → todas las páginas estáticas marcan "modificadas ahora" en cada request del sitemap. Google ignora la señal de freshness.
+> 7. `api.evolve2digital.com/` indexado pero el servicio n8n está muerto (CLAUDE.md lo confirma). Subdominio sin robots ni noindex.
+> 8. `app/robots.ts:25-39` (`PUBLIC_ALLOW`): falta `/it/docs/` (solo `/es/docs/` y `/en/docs/` declarados).
+
+### Phase 1 — Fix hreflang con `translationKey` (impacto alto, urgente)
+
+- [ ] **S.1.1** Tests primero. Crear `__tests__/lib/sitemap-generator.hreflang.test.ts` con fixtures de 2-3 translationKeys que tengan slugs distintos por locale (un caso completo ES+EN+IT, un caso parcial ES+EN). Aseverar que el sitemap emite cada URL alternate con el slug REAL del sibling correspondiente y que `x-default` apunta al sibling ES (o al primer sibling disponible si ES falta).
+- [ ] **S.1.2** Refactor `lib/sitemap-generator.ts`:
+  - Importar `findPostsByTranslationKey` desde `lib/blog/translation-key.ts`.
+  - En `generateBlogPosts` (líneas 175-204): agrupar `posts` por `translationKey`. Para cada grupo, construir `alternateLanguages` mapeando `locale → ${baseUrl}/${sibling.locale}/blog/${sibling.slug}`. Sibling faltante = locale ausente del map (NO inventar URL).
+  - `x-default`: sibling ES si existe, sino primer sibling por orden alfabético de locale.
+  - Mantener firma pública de `generateAlternateLanguages` para docs/legal pero NO usarla en blog.
+- [ ] **S.1.3** Fix metadata del post page. `app/[locale]/blog/[slug]/page.tsx:30-47` (`generateMetadata`):
+  - Reemplazar el `languages: { es: …${slug}, en: …${slug}, it: …${slug} }` hardcodeado con una resolución por `translationKey`. Llamar `findPostsByTranslationKey(raw.translationKey)`, construir el map con slugs reales por sibling. Si el sibling no existe, omitir la clave (no fabricar URL).
+  - Hacer lo mismo en `app/[locale]/blog/page.tsx:36-40` si emite hreflang (revisar).
+- [ ] **S.1.4** Verificación: `curl -s https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables | grep alternate` debe devolver `architettura-microservizi-sistemi-scalabili` en `hreflang="it"` y `microservices-architecture-scalable-systems` en `hreflang="en"`. Mismo check en `curl https://evolve2digital.com/sitemap.xml | grep -A3 'arquitectura-microservicios'`.
+
+### Phase 2 — Permanent redirects raíz + www→apex (impacto alto)
+
+- [ ] **S.2.1** `app/page.tsx`: reemplazar `redirect('/es')` con `permanentRedirect('/es')` (import desde `next/navigation`). Mantener `export const dynamic = 'force-dynamic'`. Verificar con `curl -sI https://evolve2digital.com/` → `HTTP/1.1 308 Permanent Redirect` con `Location: /es`.
+- [ ] **S.2.2** Añadir `next.config.mjs` → `async redirects()` con permanentes:
+  - `/blog` → `/es/blog` (308)
+  - `/blog/:slug*` → `/es/blog/:slug*` (308) — los slugs antiguos `ai-solutions`, `e2d-transformation` no existen en MDX, irán al índice ES del blog vía catch en el page (verificar en navegador, si 404 ajustar a fallback `/es/blog`).
+- [ ] **S.2.3** Nginx www→apex en HTTPS. Editar `/etc/nginx/sites-enabled/evolve2digital`:
+  - Separar el bloque HTTPS actual en dos: uno solo con `server_name www.evolve2digital.com` que hace `return 301 https://evolve2digital.com$request_uri;` (sin proxy_pass) y otro con `server_name evolve2digital.com` que mantiene el `location /` actual.
+  - Mantener cert SSL compartido (la cert ya cubre apex+www, ver `/etc/letsencrypt/live/evolve2digital.com/fullchain.pem`).
+  - Test: `nginx -t` antes de `systemctl reload nginx`. Confirmar con el usuario ANTES de reload — irreversible si cert no soporta www.
+  - Verificación: `curl -sI https://www.evolve2digital.com/` → `301 Moved Permanently`, `Location: https://evolve2digital.com/`.
+
+### Phase 3 — Sitemap real-only (limpia crawl budget)
+
+- [ ] **S.3.1** Tests primero: el sitemap NO emite `/it/legal`, `/it/privacy`, `/it/docs/gdpr` si los MDX correspondientes no existen en `content/`. Cobertura para los 3 locales y para los 6 slugs de docs + 2 de legal.
+- [ ] **S.3.2** `lib/sitemap-generator.ts`:
+  - `generateDocumentationPages` (línea 209): leer del disco `content/docs/{locale}/*.mdx` (o donde estén; `find content/docs/` para confirmar layout). Para cada locale, emitir solo los slugs que existen. Si el árbol de docs vive en `app/[locale]/docs/`, hardcodear los slugs comunes pero filtrar por locale comprobando que el page existe — preguntar al usuario qué prefiere.
+  - `generateLegalPages` (línea 246): mismo enfoque. Verificar primero qué locales tienen `/legal` y `/privacy` reales.
+- [ ] **S.3.3** `lastModified` estable. Reemplazar `new Date()` en las páginas estáticas (líneas 119, 135, 151, 225, 233, 255):
+  - Homepage: usar `getLatestPostDate(posts)` (ya existe línea 291).
+  - Blog index: ya usa `getLatestPostDate`, OK.
+  - Docs/legal: usar fecha de build (variable de entorno `BUILD_TIME` inyectada en `next.config.mjs` vía `env`, fallback a `new Date('2026-05-01')`). Alternativa: leer `mtime` del archivo MDX si existe.
+- [ ] **S.3.4** Verificación: `curl -s https://evolve2digital.com/sitemap.xml | xmllint --xpath "count(//*[local-name()='url'])" -` cuenta URLs antes/después. Confirmar reducción y que las URLs eliminadas son 404 reales (`for u in $(curl -s …/sitemap.xml | grep -oP '<loc>\K[^<]+'); do curl -so /dev/null -w "%{http_code} $u\n" "$u"; done | grep -v ^200`).
+
+### Phase 4 — robots.txt + subdominio api
+
+- [ ] **S.4.1** `app/robots.ts:25-39`: añadir `/it/docs/` a `PUBLIC_ALLOW`. Revisar también si falta `/es/legal/`, `/en/legal/`, `/it/legal/` y `/{locale}/privacy/`. Test en `__tests__/app/robots.test.ts` para cubrir los 3 locales en docs/legal/privacy.
+- [ ] **S.4.2** `api.evolve2digital.com` — preguntar al usuario qué hacer:
+  - Opción A: quitar registro DNS (CLAUDE.md dice "servicio muerto"; si nada lo usa, eliminar).
+  - Opción B: añadir bloque nginx `server { server_name api.evolve2digital.com; return 410 "gone"; add_header X-Robots-Tag "noindex, nofollow" always; }` con su propio cert (o un cert wildcard si existe).
+  - Default sugerido: A si confirmado que no hay clientes apuntando ahí; sino B.
+
+### Phase 5 — Resubmit a GSC y monitoreo
+
+- [ ] **S.5.1** Tras deploy de Phases 1-3 y `pm2 restart e2d`:
+  - Validar prod con la suite de `curl` de cada phase (S.1.4, S.2.1, S.2.3, S.3.4).
+  - GSC → Sitemaps → reenviar `https://evolve2digital.com/sitemap.xml`.
+  - GSC → URL Inspection: pedir reindexación de las 5 URLs 404 (tras Phase 2, las cross-locale ahora 200 con slug correcto vía hreflang del sitemap).
+  - GSC → Page Indexing → "Validate fix" en cada bucket afectado.
+- [ ] **S.5.2** Crear nota en `tasks/lessons.md` con el patrón aprendido: "hreflang con slug por idioma requiere agrupar por `translationKey`, NO reusar el slug del post actual".
+- [ ] **S.5.3** Re-check GSC a 14 días: confirmar drop de los buckets `not found 404`, `redirect error`, `duplicate canonical`. Esperar 30 días para "Discovered not indexed" (depende del crawl rate de Google, fuera de control nuestro).
+
+### Workflow para Sonnet
+
+- Rama: `fix/seo-hreflang-and-redirects` desde `develop` actual.
+- Una PR por phase (S.1 → PR1, S.2 → PR2, S.3 → PR3, S.4 → PR4). Phase 5 no es PR.
+- S.2.3 (nginx) requiere `sudo` y reload de servicio en host: **NO ejecutar sin confirmación explícita del usuario**.
+- S.4.2 (DNS api subdomain) requiere acceso al DNS provider: **preguntar antes de actuar**.
+- Verificación obligatoria en navegador real (no solo `curl`) en los 3 locales antes de cerrar S.1.4 y S.3.4. Lección de cb6f409: tests verdes ≠ probado.
+- Git workflow: branch + PR, **Claude NO pushea a develop**. El usuario mergea tras revisar.
+- Commits estilo proyecto: `fix(seo): hreflang por translationKey en sitemap`, `fix(seo): root → /es con permanent redirect`, etc. Body con Scope/Problem/Solution/Notes. SIN `Co-Authored-By`.
+
+---
+
 ## Aislamiento test/prod + hardening derivado del wipe del 8-may (2026-05-09)
 
 > Origen: `data/oauth.sqlite` y `content/posts/` borrados durante el wipe del 8-may. Los tests escribían contra el volumen real porque `.env` inyecta `BLOG_POSTS_DIR` apuntando a prod antes de que Jest pueda interceptar.

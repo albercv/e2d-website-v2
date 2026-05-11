@@ -162,7 +162,9 @@ body
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog")
   })
 
-  it("emits alternates.languages for blog posts", async () => {
+  it("emits alternates.languages for blog posts — only real siblings, not fabricated", async () => {
+    // ES post with no EN/IT siblings → alternates must contain only ES + x-default.
+    // Fabricating /en/blog/llm and /it/blog/llm was the bug reported in GSC.
     writeMdx(
       "posts/llm.mdx",
       `---
@@ -181,8 +183,8 @@ body`
     expect(post).toBeDefined()
     const langs = (post as any).alternates?.languages as Record<string, string>
     expect(langs?.es).toBe("https://evolve2digital.com/es/blog/llm")
-    expect(langs?.en).toBe("https://evolve2digital.com/en/blog/llm")
-    expect(langs?.it).toBe("https://evolve2digital.com/it/blog/llm")
+    expect(langs?.en).toBeUndefined()
+    expect(langs?.it).toBeUndefined()
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog/llm")
   })
 })

@@ -173,34 +173,58 @@ export class SitemapGenerator {
    * wordCount and tags — every field this method needs.
    */
   private generateBlogPosts(posts: RuntimePost[]): SitemapEntry[] {
-    return posts
-      .filter(post => post.published)
-      .map(post => {
-        const alternateUrls = this.config.includeAlternateLanguages
-          ? this.generateAlternateLanguages(`/blog/${post.slug}`)
-          : undefined
+    const published = posts.filter(post => post.published)
 
-        return {
-          url: `${this.config.baseUrl}${post.url}`,
-          lastModified: new Date(post.date),
-          changeFrequency: "monthly" as const,
-          priority: 0.7,
-          alternateLanguages: alternateUrls,
-          aiMetadata: {
-            contentType: "blog" as const,
-            importance: "medium" as const,
-            crawlPriority: 7,
-            lastContentUpdate: new Date(post.date),
-            wordCount: post.wordCount,
-            semanticTags: [
-              ...(post.tags || []),
-              "automation",
-              "technology",
-              post.locale === "es" ? "español" : "english",
-            ],
-          },
+    // Build sibling map once: translationKey → all published posts with that key
+    const siblingMap = new Map<string, RuntimePost[]>()
+    for (const post of published) {
+      const group = siblingMap.get(post.translationKey) ?? []
+      group.push(post)
+      siblingMap.set(post.translationKey, group)
+    }
+
+    return published.map(post => {
+      let alternateUrls: Record<string, string> | undefined
+
+      if (this.config.includeAlternateLanguages) {
+        const siblings = siblingMap.get(post.translationKey) ?? [post]
+        const langs: Record<string, string> = {}
+
+        for (const sibling of siblings) {
+          langs[sibling.locale] = `${this.config.baseUrl}${sibling.url}`
         }
-      })
+
+        // x-default: ES sibling preferred; fall back to first locale alphabetically
+        const esSibling = siblings.find(s => s.locale === "es")
+        const sorted = [...siblings].sort((a, b) => a.locale.localeCompare(b.locale))
+        langs["x-default"] = esSibling
+          ? `${this.config.baseUrl}${esSibling.url}`
+          : `${this.config.baseUrl}${sorted[0].url}`
+
+        alternateUrls = langs
+      }
+
+      return {
+        url: `${this.config.baseUrl}${post.url}`,
+        lastModified: new Date(post.date),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+        alternateLanguages: alternateUrls,
+        aiMetadata: {
+          contentType: "blog" as const,
+          importance: "medium" as const,
+          crawlPriority: 7,
+          lastContentUpdate: new Date(post.date),
+          wordCount: post.wordCount,
+          semanticTags: [
+            ...(post.tags || []),
+            "automation",
+            "technology",
+            post.locale === "es" ? "español" : "english",
+          ],
+        },
+      }
+    })
   }
 
   /**

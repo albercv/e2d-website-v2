@@ -30,6 +30,21 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const baseUrl = "https://evolve2digital.com"
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
 
+  // Build hreflang from real sibling slugs via translationKey — never fabricate
+  // URLs for locales that have no translation (caused GSC 404 cross-locale slugs).
+  const siblings = all.filter(
+    (p) => p.translationKey === raw.translationKey && p.published
+  )
+  const hreflangLanguages: Record<string, string> = {}
+  for (const sibling of siblings) {
+    hreflangLanguages[sibling.locale] = `${baseUrl}${sibling.url}`
+  }
+  const esSibling = siblings.find((s) => s.locale === "es")
+  const sortedSiblings = [...siblings].sort((a, b) => a.locale.localeCompare(b.locale))
+  hreflangLanguages["x-default"] = esSibling
+    ? `${baseUrl}${esSibling.url}`
+    : `${baseUrl}${sortedSiblings[0].url}`
+
   const author = post.author || "Alberto Carrasco"
   const description = post.description || ""
   return {
@@ -38,11 +53,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     authors: [{ name: author }],
     alternates: {
       canonical: `${baseUrl}/${locale}/blog/${slug}`,
-      languages: {
-        es: `${baseUrl}/es/blog/${slug}`,
-        en: `${baseUrl}/en/blog/${slug}`,
-        it: `${baseUrl}/it/blog/${slug}`,
-      },
+      languages: hreflangLanguages,
     },
     openGraph: {
       title: post.title,
