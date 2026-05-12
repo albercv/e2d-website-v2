@@ -68,6 +68,15 @@ export const ProcessSectionLazy = dynamic(
   },
 )
 
+// Lazy load FaqSection
+export const FaqSectionLazy = dynamic(
+  () => import("@/components/sections/faq-section").then((mod) => ({ default: mod.FaqSection })),
+  {
+    ssr: false,
+    loading: () => <SectionFallback message="..." />,
+  },
+)
+
 // New: Lazy load AdaptSection
 export const AdaptSectionLazy = dynamic(
   () => import("@/components/sections/adapt-section").then((mod) => ({ default: mod.AdaptSection })),
