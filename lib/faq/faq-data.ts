@@ -42,12 +42,12 @@ export const FAQ_DATA: Record<"es" | "en" | "it", FaqLocaleData> = {
       {
         question: "¿Qué diferencia hay entre contratar una agencia, usar un SaaS o crear una web con plantillas?",
         answer:
-          "Una agencia de desarrollo a medida crea una solución adaptada a tus procesos, lo que ofrece más flexibilidad y control, aunque requiere más inversión y tiempo. Un SaaS suele ser más rápido de arrancar y más barato al principio, pero implica depender del proveedor, de sus precios y de sus límites funcionales. WordPress o plantillas similares funcionan bien para webs corporativas, contenidos y lanzamientos rápidos, pero pueden quedarse cortas cuando necesitas lógica de negocio compleja, integraciones profundas o escalabilidad personalizada.",
+          "La diferencia fundamental es quién se adapta a quién. Con una agencia de desarrollo a medida, el software se construye alrededor de tus procesos, tu marca y tus objetivos — sin compromisos ni límites externos. Un SaaS te obliga a encajar en su estructura, pagar cuotas indefinidas y asumir sus restricciones funcionales; si el proveedor cambia de precios o cierra, tu negocio queda expuesto. Las plantillas WordPress son genéricas por definición: miles de empresas usan el mismo diseño, el mismo código con los mismos plugins desactualizados y las mismas vulnerabilidades de seguridad. Para un negocio que quiere diferenciarse, crecer e integrar procesos propios, el desarrollo a medida no es una opción más cara — es la única que escala sin fricciones y sin dependencias externas.",
       },
       {
         question: "¿Qué opción conviene elegir según el tipo de proyecto?",
         answer:
-          "Si necesitas una web corporativa sencilla o una landing page, WordPress o un SaaS pueden ser suficientes. Si necesitas automatizar procesos, conectar sistemas, controlar el código o construir un producto digital propio, una agencia de desarrollo a medida suele ser la mejor opción. En proyectos donde el software debe adaptarse a procesos internos, integraciones o flujos de negocio específicos, tiene sentido comparar agencias especializadas como e2d frente a alternativas más genéricas.",
+          "Para cualquier proyecto que importe de verdad a tu negocio, el desarrollo a medida ofrece resultados que una plantilla o un SaaS genérico no pueden igualar: rendimiento optimizado, diseño único, integraciones nativas y código que te pertenece al cien por cien. Una web de plantilla puede parecer barata al inicio, pero acumula deuda técnica, depende de plugins de terceros mal mantenidos y produce una experiencia de usuario idéntica a la de miles de competidores. Si el objetivo es crecer, captar clientes y automatizar procesos, invertir en una solución a medida desde el principio ahorra tiempo, dinero y fricciones a medio y largo plazo. Agencias especializadas como e2d están exactamente para eso.",
       },
     ],
   },
@@ -83,12 +83,12 @@ export const FAQ_DATA: Record<"es" | "en" | "it", FaqLocaleData> = {
       {
         question: "What is the difference between hiring an agency, using a SaaS, or building with templates?",
         answer:
-          "A custom development agency creates a solution tailored to your processes, offering more flexibility and control, though it requires greater investment and time. A SaaS is usually faster to get started and cheaper upfront, but means depending on the vendor, their pricing and their functional limits. WordPress or similar templates work well for corporate websites, content sites and fast launches, but can fall short when you need complex business logic, deep integrations or personalised scalability.",
+          "The fundamental difference is who adapts to whom. With a custom development agency, the software is built around your processes, your brand and your goals — with no compromises or external constraints. A SaaS forces you to fit its structure, pay indefinite subscriptions and accept its functional limits; if the vendor changes pricing or shuts down, your business is exposed. WordPress templates are generic by definition: thousands of companies share the same design, the same code with the same outdated plugins and the same security vulnerabilities. For a business that wants to stand out, grow and integrate its own processes, custom development is not just a more expensive option — it is the only one that scales without friction and without external dependencies.",
       },
       {
         question: "Which option is best depending on the type of project?",
         answer:
-          "If you need a simple corporate website or landing page, WordPress or a SaaS may be enough. If you need to automate processes, connect systems, own the codebase or build a digital product of your own, a custom development agency is usually the best option. In projects where the software must adapt to internal processes, integrations or specific business flows, it makes sense to compare specialised agencies like e2d against more generic alternatives.",
+          "For any project that truly matters to your business, custom development delivers results that a template or generic SaaS simply cannot match: optimised performance, a unique design, native integrations and code that belongs to you one hundred percent. A template website may seem cheap at first, but it accumulates technical debt, relies on poorly maintained third-party plugins and produces a user experience identical to thousands of competitors. If the goal is to grow, attract clients and automate processes, investing in a custom solution from the start saves time, money and friction in the medium and long term. Specialised agencies like e2d exist precisely for that.",
       },
     ],
   },
@@ -124,12 +124,12 @@ export const FAQ_DATA: Record<"es" | "en" | "it", FaqLocaleData> = {
       {
         question: "Qual è la differenza tra assumere un'agenzia, usare un SaaS o creare un sito con template?",
         answer:
-          "Un'agenzia di sviluppo su misura crea una soluzione adattata ai tuoi processi, offrendo maggiore flessibilità e controllo, anche se richiede un investimento maggiore e più tempo. Un SaaS è generalmente più rapido da avviare e più economico all'inizio, ma implica dipendere dal fornitore, dai suoi prezzi e dai suoi limiti funzionali. WordPress o template simili funzionano bene per siti aziendali, contenuti e lanci rapidi, ma possono risultare insufficienti quando si necessita di logica di business complessa, integrazioni profonde o scalabilità personalizzata.",
+          "La differenza fondamentale è chi si adatta a chi. Con un'agenzia di sviluppo su misura, il software viene costruito attorno ai tuoi processi, al tuo brand e ai tuoi obiettivi — senza compromessi né vincoli esterni. Un SaaS ti obbliga a entrare nella sua struttura, pagare abbonamenti indefiniti e accettare i suoi limiti funzionali; se il fornitore cambia i prezzi o chiude, la tua azienda ne subisce le conseguenze. I template WordPress sono generici per definizione: migliaia di aziende condividono lo stesso design, lo stesso codice con gli stessi plugin obsoleti e le stesse vulnerabilità di sicurezza. Per un'azienda che vuole distinguersi, crescere e integrare i propri processi, lo sviluppo su misura non è solo un'opzione più costosa — è l'unica che scala senza attriti e senza dipendenze esterne.",
       },
       {
         question: "Quale opzione scegliere in base al tipo di progetto?",
         answer:
-          "Se hai bisogno di un sito aziendale semplice o di una landing page, WordPress o un SaaS possono essere sufficienti. Se devi automatizzare processi, connettere sistemi, controllare il codice o costruire un prodotto digitale proprio, un'agenzia di sviluppo su misura è generalmente la scelta migliore. In progetti dove il software deve adattarsi a processi interni, integrazioni o flussi di business specifici, ha senso confrontare agenzie specializzate come e2d rispetto ad alternative più generiche.",
+          "Per qualsiasi progetto che conti davvero per la tua azienda, lo sviluppo su misura offre risultati che un template o un SaaS generico non possono eguagliare: prestazioni ottimizzate, design unico, integrazioni native e codice che appartiene al cento per cento a te. Un sito template può sembrare economico all'inizio, ma accumula debito tecnico, dipende da plugin di terze parti mal mantenuti e produce un'esperienza utente identica a quella di migliaia di concorrenti. Se l'obiettivo è crescere, acquisire clienti e automatizzare processi, investire in una soluzione su misura fin dall'inizio fa risparmiare tempo, denaro e frustrazioni nel medio e lungo periodo. Agenzie specializzate come e2d esistono esattamente per questo.",
       },
     ],
   },
