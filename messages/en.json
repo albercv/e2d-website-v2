@@ -165,7 +165,7 @@
       },
       "marketing": {
         "title": "Marketing Cookies",
-        "description": "Used to show relevant ads and measure campaigns."
+        "description": "Used to show relevant ads and measure campaigns. Includes Apollo.io for visitor identification."
       },
       "required": "Required",
       "cancel": "Cancel",

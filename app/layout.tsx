@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { PreloadResources } from "@/components/performance/preload-resources"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
+import { ApolloTracker } from "@/components/analytics/apollo-tracker"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,10 +67,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.evolve2digital.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://assets.apollo.io" />
       </head>
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <PreloadResources />
         <GoogleAnalytics />
+        <ApolloTracker />
         {children}
       </body>
     </html>
