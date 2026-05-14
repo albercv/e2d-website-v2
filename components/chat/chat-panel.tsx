@@ -3,10 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { KeyboardEvent } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { MessageCircle, RotateCcw, Send, X } from "lucide-react"
+import { Mail, MessageCircle, RotateCcw, Send, X } from "lucide-react"
 import { ChatMessage } from "./chat-message"
+import { LeadCaptureForm } from "./lead-capture-form"
 import { useChatStream, type ChatTurn, type ChatError } from "./use-chat-stream"
 import { cn } from "@/lib/utils"
+
+// Cookie set by /api/chat is HttpOnly, so this helper will only return a value
+// if the cookie ever lands in document.cookie (it won't on the production
+// path). Kept regardless so the form can still pull a value should the cookie
+// flag ever be relaxed in dev. Real gating is via `stream.messages.length`.
+function readSessionIdFromCookie(): string | null {
+  if (typeof document === "undefined") return null
+  const m = document.cookie.match(/(?:^|;\s*)e2d_chat_session=([^;]+)/)
+  return m ? decodeURIComponent(m[1]) : null
+}
 
 // Mirrors the existing contact-modal contract. Kept inline (single source) to
 // avoid coupling this component to contact-modal.tsx — wire-up to share will be
@@ -28,6 +39,7 @@ interface PanelHeaderProps {
   subtitle: string
   closeLabel: string
   resetLabel: string
+  leadButton: JSX.Element
   onClose: () => void
   onReset: () => void
 }
@@ -40,6 +52,7 @@ function PanelHeader(props: PanelHeaderProps): JSX.Element {
         <p className="truncate text-xs text-white/80">{props.subtitle}</p>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        {props.leadButton}
         <button
           type="button"
           onClick={props.onReset}
@@ -60,6 +73,27 @@ function PanelHeader(props: PanelHeaderProps): JSX.Element {
         </button>
       </div>
     </div>
+  )
+}
+
+interface LeadCaptureButtonProps {
+  label: string
+  enabled: boolean
+  onClick: () => void
+}
+
+function LeadCaptureButton(props: LeadCaptureButtonProps): JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      disabled={!props.enabled}
+      aria-label={props.label}
+      title={props.label}
+      className="rounded-full p-1.5 text-white/90 transition-colors hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-40 disabled:hover:bg-transparent"
+    >
+      <Mail className="h-4 w-4" aria-hidden="true" />
+    </button>
   )
 }
 
@@ -209,6 +243,8 @@ export function ChatPanel(): JSX.Element {
   const t = useTranslations("chat")
   const locale = useLocale()
   const [isOpen, setIsOpen] = useState(false)
+  const [leadFormOpen, setLeadFormOpen] = useState(false)
+  const [leadFormSessionId, setLeadFormSessionId] = useState<string | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const stream = useChatStream({ locale })
 
@@ -227,6 +263,26 @@ export function ChatPanel(): JSX.Element {
 
   const close = useCallback(() => setIsOpen(false), [])
   const open = useCallback(() => setIsOpen(true), [])
+
+  // Lead form is enabled once at least one message has been exchanged — that
+  // guarantees a chat_sessions row exists server-side and the user has shown
+  // intent. The session id is read from the cookie at click time per spec.
+  const leadFormEnabled = stream.messages.length > 0
+  const onOpenLeadForm = useCallback(() => {
+    if (!leadFormEnabled) return
+    const sid = readSessionIdFromCookie()
+    if (!sid) {
+      // HttpOnly cookie path: server still has the session, but we can't read
+      // the id client-side. Surface the situation in console for ops; the
+      // button stays clickable so users aren't blocked when the cookie is
+      // accessible (e.g. dev/non-HttpOnly setup).
+      console.warn("[chat-panel] e2d_chat_session cookie not readable from JS")
+      return
+    }
+    setLeadFormSessionId(sid)
+    setLeadFormOpen(true)
+  }, [leadFormEnabled])
+  const closeLeadForm = useCallback(() => setLeadFormOpen(false), [])
 
   if (!isOpen) return <Launcher label={t("openLabel")} onClick={open} />
 
@@ -250,6 +306,13 @@ export function ChatPanel(): JSX.Element {
           subtitle={t("subtitle")}
           closeLabel={t("close")}
           resetLabel={t("newConversation")}
+          leadButton={
+            <LeadCaptureButton
+              label={t("leadForm.open")}
+              enabled={leadFormEnabled}
+              onClick={onOpenLeadForm}
+            />
+          }
           onClose={close}
           onReset={stream.reset}
         />
@@ -272,6 +335,14 @@ export function ChatPanel(): JSX.Element {
           {t("disclaimer")}
         </p>
       </div>
+      {leadFormSessionId ? (
+        <LeadCaptureForm
+          open={leadFormOpen}
+          onClose={closeLeadForm}
+          sessionId={leadFormSessionId}
+          locale={locale as "es" | "en" | "it"}
+        />
+      ) : null}
     </>
   )
 }
