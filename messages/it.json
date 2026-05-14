@@ -165,7 +165,7 @@
       },
       "marketing": {
         "title": "Cookie di Marketing",
-        "description": "Utilizzati per mostrare annunci rilevanti e misurare le campagne."
+        "description": "Utilizzati per mostrare annunci rilevanti e misurare le campagne. Include Apollo.io per l'identificazione dei visitatori."
       },
       "required": "Richieste",
       "cancel": "Annulla",
