@@ -16,6 +16,7 @@ import { asc, eq } from "drizzle-orm"
 
 import { db } from "@/lib/db/client"
 import { apolloSyncQueue, chatLeads, chatMessages } from "@/lib/db/schema"
+import { recordStreamResponseUsage } from "@/lib/chat/cost-telemetry"
 import { streamCompletion } from "@/lib/chat/deepseek"
 import { extractLead } from "@/lib/chat/lead-extractor"
 import { buildMessages } from "@/lib/chat/prompt"
@@ -105,14 +106,18 @@ async function persistAssistantMessage(
   content: string,
   tokenCount: number,
   retrievedChunkIds: string[],
-): Promise<void> {
-  await db.insert(chatMessages).values({
-    sessionId,
-    role: "assistant",
-    content,
-    tokenCount: tokenCount > 0 ? tokenCount : null,
-    retrievedChunkIds: retrievedChunkIds.length > 0 ? retrievedChunkIds : null,
-  })
+): Promise<string | null> {
+  const inserted = await db
+    .insert(chatMessages)
+    .values({
+      sessionId,
+      role: "assistant",
+      content,
+      tokenCount: tokenCount > 0 ? tokenCount : null,
+      retrievedChunkIds: retrievedChunkIds.length > 0 ? retrievedChunkIds : null,
+    })
+    .returning({ id: chatMessages.id })
+  return inserted[0]?.id ?? null
 }
 
 async function queueLead(
@@ -161,6 +166,8 @@ interface StreamPlan {
   messages: ChatTurn[]
   chunks: RetrievedChunk[]
   signal: AbortSignal
+  locale: Locale
+  startedAtMs: number
 }
 
 async function safePersistAssistant(
@@ -168,16 +175,17 @@ async function safePersistAssistant(
   text: string,
   tokens: number,
   chunkIds: string[],
-): Promise<void> {
+): Promise<string | null> {
   try {
-    await persistAssistantMessage(sessionId, text, tokens, chunkIds)
+    return await persistAssistantMessage(sessionId, text, tokens, chunkIds)
   } catch (err) {
     console.error("[chat] assistant persist failed:", (err as Error).message)
+    return null
   }
 }
 
 function buildSseStream(plan: StreamPlan): ReadableStream<Uint8Array> {
-  const { session, messages, chunks, signal } = plan
+  const { session, messages, chunks, signal, locale, startedAtMs } = plan
   const chunkIds = chunks.map((c) => c.id)
 
   return new ReadableStream<Uint8Array>({
@@ -196,7 +204,8 @@ function buildSseStream(plan: StreamPlan): ReadableStream<Uint8Array> {
           accumulated += next.value
           controller.enqueue(sseEncode(next.value))
         }
-        await safePersistAssistant(session.sessionId, accumulated, totalTokens, chunkIds)
+        const messageId = await safePersistAssistant(session.sessionId, accumulated, totalTokens, chunkIds)
+        await recordStreamResponseUsage({ sessionId: session.sessionId, messageId, locale, totalTokens, retrievedChunks: chunks.length, durationMs: Date.now() - startedAtMs })
         controller.enqueue(sseEncode("[DONE]"))
         controller.close()
       } catch (err) {
@@ -257,6 +266,7 @@ function serverErrorResponse(request: NextRequest): NextResponse {
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
+  const startedAtMs = Date.now()
   try {
     const prep = await prepareRequest(request)
     if (!prep.ok) return NextResponse.json({ error: "bad_request" }, { status: 400 })
@@ -282,7 +292,14 @@ export async function POST(request: NextRequest): Promise<Response> {
       history,
       userInput: chatInput,
     })
-    const body = buildSseStream({ session, messages, chunks, signal: request.signal })
+    const body = buildSseStream({
+      session,
+      messages,
+      chunks,
+      signal: request.signal,
+      locale,
+      startedAtMs,
+    })
     return new Response(body, {
       status: 200,
       headers: buildStreamHeaders(session.setCookieHeader),
