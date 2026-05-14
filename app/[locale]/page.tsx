@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/footer"
 import { Navigation } from "@/components/layout/navigation"
 import { Suspense } from "react"
 import { ProjectsSectionLazy, AboutSectionLazy, AdaptSectionLazy, FaqSectionLazy } from "@/components/performance/lazy-components"
-import { E2DChat } from "@/components/chat/e2d-chat"
+import { FloatingContactButton } from "@/components/contact/floating-contact-button"
 
 export default function HomePage() {
   return (
@@ -30,7 +30,7 @@ export default function HomePage() {
         </Suspense>
       </main>
       <Footer />
-      <E2DChat />
+      <FloatingContactButton />
     </div>
   )
 }
