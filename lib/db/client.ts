@@ -27,3 +27,12 @@ const client = postgres(connectionString, {
 export const db = drizzle(client, { schema });
 
 export { schema };
+
+/**
+ * Close the connection pool. Use in one-shot CLI scripts so the Node event
+ * loop can drain and the process exits cleanly. Next.js route handlers
+ * should NOT call this — the pool is reused across requests.
+ */
+export async function closeDb(): Promise<void> {
+  await client.end({ timeout: 5 });
+}

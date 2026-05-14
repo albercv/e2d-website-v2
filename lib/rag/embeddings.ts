@@ -72,12 +72,17 @@ async function callEmbeddings(input: string[], signal?: AbortSignal): Promise<nu
   throw lastError ?? new Error("OpenAI embeddings: exhausted retries")
 }
 
+const REQUEST_TIMEOUT_MS = 30_000
+
 function fetchEmbeddings(
   apiKey: string,
   model: string,
   input: string[],
   signal?: AbortSignal,
 ): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(new Error("OpenAI embeddings request timed out")), REQUEST_TIMEOUT_MS)
+  const composite = signal ? mergeSignals(signal, controller.signal) : controller.signal
   return fetch(ENDPOINT, {
     method: "POST",
     headers: {
@@ -85,8 +90,18 @@ function fetchEmbeddings(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({ model, input }),
-    signal,
-  })
+    signal: composite,
+  }).finally(() => clearTimeout(timer))
+}
+
+function mergeSignals(a: AbortSignal, b: AbortSignal): AbortSignal {
+  const controller = new AbortController()
+  const onAbort = (sig: AbortSignal) => () => controller.abort(sig.reason)
+  if (a.aborted) controller.abort(a.reason)
+  else a.addEventListener("abort", onAbort(a), { once: true })
+  if (b.aborted) controller.abort(b.reason)
+  else b.addEventListener("abort", onAbort(b), { once: true })
+  return controller.signal
 }
 
 function parseResponse(json: unknown, expected: number): number[][] {

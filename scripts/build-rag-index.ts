@@ -14,6 +14,8 @@
  * Wired into package.json as `npm run rag:index`.
  */
 
+import "./_env"
+
 import { rebuildIndex } from "@/lib/rag/indexer"
 import type { IndexerOptions, Locale, SourceKind } from "@/lib/rag/types"
 
@@ -45,14 +47,27 @@ function parseSources(value: string): SourceKind[] {
     .filter((v): v is SourceKind => (VALID_SOURCES as string[]).includes(v))
 }
 
-async function main(): Promise<void> {
+async function main(): Promise<number> {
   const opts = parseArgs(process.argv.slice(2))
   const stats = await rebuildIndex(opts)
   console.log(JSON.stringify(stats, null, 2))
+  return 0
 }
 
-main().catch((err: unknown) => {
-  const message = err instanceof Error ? err.message : String(err)
-  console.error(`[rag/build] failed: ${message}`)
-  process.exit(1)
-})
+main()
+  .then(async (code) => {
+    const { closeDb } = await import("@/lib/db/client")
+    await closeDb()
+    process.exit(code)
+  })
+  .catch(async (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[rag/build] failed: ${message}`)
+    try {
+      const { closeDb } = await import("@/lib/db/client")
+      await closeDb()
+    } catch {
+      // ignore close errors during failure path
+    }
+    process.exit(1)
+  })
