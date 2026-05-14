@@ -223,6 +223,37 @@
     "fallbackContactCTA": "Contattaci via WhatsApp o email",
     "newConversation": "Nuova conversazione",
     "close": "Chiudi",
-    "initialMessage": "Ciao! Sono l'assistente di E2D. Come posso aiutarti?"
+    "initialMessage": "Ciao! Sono l'assistente di E2D. Come posso aiutarti?",
+    "leadForm": {
+      "open": "Lascia i tuoi dati",
+      "title": "Lascia i tuoi dati",
+      "subtitle": "Alberto ti risponderà personalmente. Senza impegno.",
+      "name": "Nome",
+      "email": "Email",
+      "phone": "Telefono",
+      "company": "Azienda",
+      "intent": "Di cosa vuoi parlare",
+      "intentOptions": {
+        "voicebot": "Voicebot",
+        "chatbot": "Chatbot / WhatsApp",
+        "automation": "Automazione dei processi",
+        "web": "Sviluppo web",
+        "crm": "CRM / integrazione",
+        "budget": "Preventivo",
+        "other": "Altro"
+      },
+      "message": "Raccontaci brevemente cosa ti serve (opzionale)",
+      "consent": "Accetto l'informativa sulla privacy",
+      "submit": "Invia",
+      "sending": "Invio in corso…",
+      "successTitle": "Ricevuto",
+      "successBody": "Alberto ti risponderà a breve. Nel frattempo puoi continuare a chattare con il bot.",
+      "errorTitle": "Non siamo riusciti a inviarlo",
+      "errorBody": "Riprova tra un momento, oppure scrivi direttamente ad Alberto:",
+      "close": "Chiudi",
+      "requiredEmail": "L'email è obbligatoria",
+      "invalidEmail": "Email non valida",
+      "requiredConsent": "Abbiamo bisogno del tuo consenso"
+    }
   }
 }
