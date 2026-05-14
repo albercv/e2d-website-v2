@@ -18,6 +18,10 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
+
+# local docker overrides (developer-specific compose tweaks)
+docker-compose.override.yml
 
 # vercel
 .vercel

@@ -1,0 +1,21 @@
+services:
+  e2d-db:
+    image: pgvector/pgvector:pg16
+    container_name: e2d-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${E2D_DB_NAME}
+      POSTGRES_USER: ${E2D_DB_USER}
+      POSTGRES_PASSWORD: ${E2D_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5436:5432"
+    volumes:
+      - e2d_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  e2d_pg_data:

@@ -11,6 +11,10 @@ interface CookiePreferences {
   necessary: boolean
   analytics: boolean
   marketing: boolean
+  // Opt-in toggle for the AI chat assistant. When false the chat panel
+  // should not load (DeepSeek + OpenAI embeddings cookie disclosure).
+  // TODO: wire chat-panel.tsx to read this flag from localStorage.
+  aiChat: boolean
 }
 
 export function CookieBanner() {
@@ -21,6 +25,7 @@ export function CookieBanner() {
     necessary: true,
     analytics: false,
     marketing: false,
+    aiChat: false,
   })
 
   useEffect(() => {
@@ -29,7 +34,9 @@ export function CookieBanner() {
       setShowBanner(true)
     } else {
       const savedPreferences = JSON.parse(consent)
-      setPreferences(savedPreferences)
+      // Older consent payloads may lack the aiChat key — default to false
+      // so existing visitors must explicitly opt in.
+      setPreferences({ aiChat: false, ...savedPreferences })
       // Initialize analytics based on consent
       if (savedPreferences.analytics) {
         initializeAnalytics()
@@ -51,6 +58,7 @@ export function CookieBanner() {
       necessary: true,
       analytics: true,
       marketing: true,
+      aiChat: true,
     }
     setPreferences(allAccepted)
     localStorage.setItem("cookie-consent", JSON.stringify(allAccepted))
@@ -63,6 +71,7 @@ export function CookieBanner() {
       necessary: true,
       analytics: false,
       marketing: false,
+      aiChat: false,
     }
     setPreferences(onlyNecessary)
     localStorage.setItem("cookie-consent", JSON.stringify(onlyNecessary))
@@ -185,6 +194,23 @@ export function CookieBanner() {
                           type="checkbox"
                           checked={preferences.marketing}
                           onChange={() => handlePreferenceChange("marketing")}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+
+                    {/* TODO: wire chat-panel to skip mount when preferences.aiChat === false. */}
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{t("settings.aiChat.title")}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{t("settings.aiChat.description")}</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={preferences.aiChat}
+                          onChange={() => handlePreferenceChange("aiChat")}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
