@@ -268,15 +268,23 @@ export function ChatPanel(): JSX.Element {
   // guarantees a chat_sessions row exists server-side and the user has shown
   // intent. The session id is read from the cookie at click time per spec.
   const leadFormEnabled = stream.messages.length > 0
-  const onOpenLeadForm = useCallback(() => {
+  const onOpenLeadForm = useCallback(async () => {
     if (!leadFormEnabled) return
-    const sid = readSessionIdFromCookie()
+    let sid = readSessionIdFromCookie()
     if (!sid) {
-      // HttpOnly cookie path: server still has the session, but we can't read
-      // the id client-side. Surface the situation in console for ops; the
-      // button stays clickable so users aren't blocked when the cookie is
-      // accessible (e.g. dev/non-HttpOnly setup).
-      console.warn("[chat-panel] e2d_chat_session cookie not readable from JS")
+      // HttpOnly cookie: ask the server for the id via /api/chat/session.
+      try {
+        const res = await fetch("/api/chat/session", { credentials: "same-origin" })
+        if (res.ok) {
+          const body = (await res.json()) as { sessionId: string | null }
+          sid = body.sessionId
+        }
+      } catch {
+        // network error — leave sid as null; button stays disabled below
+      }
+    }
+    if (!sid) {
+      console.warn("[chat-panel] no session id available for lead form")
       return
     }
     setLeadFormSessionId(sid)

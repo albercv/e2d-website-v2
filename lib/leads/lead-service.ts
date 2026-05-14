@@ -48,10 +48,12 @@ async function insertLead(input: CaptureLeadInput): Promise<string> {
     .insert(chatLeads)
     .values({
       sessionId: input.sessionId,
+      name: input.name ?? null,
       email: input.email,
       phone: input.phone ?? null,
       company: input.company ?? null,
       intent: input.intent ?? null,
+      message: input.message ?? null,
       consent: true,
     })
     .returning({ id: chatLeads.id })

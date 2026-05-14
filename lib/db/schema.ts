@@ -97,10 +97,12 @@ export const chatLeads = pgTable("chat_leads", {
   sessionId: uuid("session_id").references(() => chatSessions.id, {
     onDelete: "set null",
   }),
+  name: text("name"),
   email: text("email"),
   phone: text("phone"),
   company: text("company"),
   intent: text("intent"),
+  message: text("message"),
   consent: boolean("consent").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
