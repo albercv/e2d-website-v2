@@ -35,8 +35,41 @@ export async function readAllSources(): Promise<RawDocument[]> {
     readServicePages(),
     readFaqs(),
     readAiAnswers(),
+    readAboutDocs(),
   ])
   return results.flat()
+}
+
+export async function readAboutDocs(): Promise<RawDocument[]> {
+  try {
+    const dir = path.resolve(process.cwd(), "content", "about")
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+    const files = entries.filter((e) => e.isFile() && e.name.endsWith(".md"))
+    const docs = await Promise.all(files.map((file) => readAboutFile(dir, file.name)))
+    return docs.filter((d): d is RawDocument => d !== null)
+  } catch (err) {
+    console.warn(`[rag/sources] about reader failed: ${describeError(err)}`)
+    return []
+  }
+}
+
+async function readAboutFile(dir: string, filename: string): Promise<RawDocument | null> {
+  const fullPath = path.join(dir, filename)
+  const raw = await fs.readFile(fullPath, "utf8")
+  const parsed = matter(raw)
+  const fm = parsed.data as Record<string, unknown>
+  const locale = fm.locale as Locale | undefined
+  const slug = fm.slug as string | undefined
+  const title = fm.title as string | undefined
+  if (!locale || !slug || !title) return null
+  return {
+    source: "about",
+    sourceRef: slug,
+    locale,
+    title,
+    url: `${BASE_URL}/${locale}`,
+    body: parsed.content.trim(),
+  }
 }
 
 export async function readBlogPosts(): Promise<RawDocument[]> {

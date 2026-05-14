@@ -7,7 +7,7 @@
 
 export type Locale = "es" | "en" | "it"
 
-export type SourceKind = "blog" | "service" | "faq" | "landing" | "ai-answer"
+export type SourceKind = "blog" | "service" | "faq" | "landing" | "ai-answer" | "about"
 
 export interface RawDocument {
   source: SourceKind
