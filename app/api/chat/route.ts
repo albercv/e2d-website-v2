@@ -1,71 +1,68 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const WEBHOOK_URL = process.env.E2D_CHAT_WEBHOOK_URL || "https://api.evolve2digital.com/webhook/userMessage"
+type Locale = "es" | "en" | "it"
 
-function getAuthHeader() {
-  const user = process.env.E2D_CHAT_USER
-  const pass = process.env.E2D_CHAT_PASSWORD
-  if (!user || !pass) return undefined
-  const token = Buffer.from(`${user}:${pass}`).toString("base64")
-  return `Basic ${token}`
+const SUPPORTED_LOCALES: readonly Locale[] = ["es", "en", "it"] as const
+
+const MESSAGES: Record<Locale, string> = {
+  es: "El chat IA está temporalmente fuera de servicio. Contáctanos por WhatsApp o email.",
+  en: "The AI chat is temporarily unavailable. Contact us via WhatsApp or email.",
+  it: "La chat IA è temporaneamente non disponibile. Contattaci via WhatsApp o email.",
 }
 
-export async function POST(request: NextRequest) {
+const CONTACT = {
+  whatsapp: "https://wa.me/34605497639",
+  email: "hello@evolve2digital.com",
+} as const
+
+function isLocale(value: unknown): value is Locale {
+  return typeof value === "string" && (SUPPORTED_LOCALES as readonly string[]).includes(value)
+}
+
+function parseAcceptLanguage(header: string | null): Locale | null {
+  if (!header) return null
+  const tags = header.split(",").map((tag) => tag.trim().split(";")[0]?.toLowerCase() ?? "")
+  for (const tag of tags) {
+    const primary = tag.split("-")[0]
+    if (isLocale(primary)) return primary
+  }
+  return null
+}
+
+async function safeParseJson(request: NextRequest): Promise<Record<string, unknown>> {
   try {
-    const url = new URL(request.url)
-    const action = url.searchParams.get("action") || "sendMessage"
-    const body = await request.json().catch(() => ({}))
-
-    // @n8n/chat defaults
-    const chatInput = body?.chatInput ?? body?.message ?? body?.text ?? ""
-    const sessionId = body?.sessionId ?? body?.session_id ?? body?.session ?? ""
-
-    const payload = {
-      messageType: "USER-CHAT",
-      userMessage: String(chatInput ?? ""),
-      sessionId: String(sessionId ?? ""),
-      action, // optional: forward action for debugging
-      metadata: body?.metadata ?? {},
-    }
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    }
-
-    const auth = getAuthHeader()
-    if (auth) headers["Authorization"] = auth
-
-    const res = await fetch(WEBHOOK_URL, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    })
-
-    const data = await res.text()
-
-    // Try to return JSON if possible; otherwise pass text
-    try {
-      const json = JSON.parse(data)
-      return NextResponse.json(json, { status: res.status })
-    } catch {
-      return new NextResponse(data, {
-        status: res.status,
-        headers: { "Content-Type": res.headers.get("Content-Type") || "text/plain" },
-      })
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Proxy error"
-    return NextResponse.json(
-      {
-        error: true,
-        message,
-      },
-      { status: 500 },
-    )
+    const data = (await request.json()) as unknown
+    if (data && typeof data === "object") return data as Record<string, unknown>
+    return {}
+  } catch {
+    return {}
   }
 }
 
-// We disable previous session loading by setting loadPreviousSession=false in the widget.
-export async function GET() {
+function resolveLocale(body: Record<string, unknown>, request: NextRequest): Locale {
+  const metadata = body.metadata
+  if (metadata && typeof metadata === "object") {
+    const candidate = (metadata as Record<string, unknown>).locale
+    if (isLocale(candidate)) return candidate
+  }
+  const fromHeader = parseAcceptLanguage(request.headers.get("accept-language"))
+  if (fromHeader) return fromHeader
+  return "es"
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const body = await safeParseJson(request)
+  const locale = resolveLocale(body, request)
+  return NextResponse.json(
+    {
+      error: "chat_unavailable",
+      message: MESSAGES[locale],
+      contact: CONTACT,
+    },
+    { status: 503 }
+  )
+}
+
+export async function GET(): Promise<NextResponse> {
   return NextResponse.json({ messages: [] }, { status: 200 })
 }
