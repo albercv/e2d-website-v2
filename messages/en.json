@@ -201,5 +201,20 @@
         "title": "Contact"
       }
     }
+  },
+  "chat": {
+    "openLabel": "Chat with the AI assistant",
+    "title": "E2D Assistant",
+    "subtitle": "Powered by AI — ask me about automation",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "thinking": "Thinking…",
+    "errorGeneric": "Something went wrong. Please try again in a moment or reach us on WhatsApp.",
+    "errorRateLimit": "You have reached the hourly limit. Try again later or message us on WhatsApp.",
+    "disclaimer": "The assistant can make mistakes. For critical matters, contact us directly.",
+    "fallbackContactCTA": "Contact us via WhatsApp or email",
+    "newConversation": "New conversation",
+    "close": "Close",
+    "initialMessage": "Hi! I'm the E2D assistant. How can I help you today?"
   }
 }

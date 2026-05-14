@@ -201,5 +201,20 @@
         "title": "Contatto"
       }
     }
+  },
+  "chat": {
+    "openLabel": "Chatta con l'assistente IA",
+    "title": "Assistente E2D",
+    "subtitle": "Powered by IA — chiedimi di automazione",
+    "placeholder": "Scrivi la tua domanda…",
+    "send": "Invia",
+    "thinking": "Sto pensando…",
+    "errorGeneric": "Qualcosa è andato storto. Riprova tra un momento o contattaci su WhatsApp.",
+    "errorRateLimit": "Hai raggiunto il limite orario. Riprova più tardi o scrivici su WhatsApp.",
+    "disclaimer": "L'assistente può sbagliare. Per questioni critiche, contattaci direttamente.",
+    "fallbackContactCTA": "Contattaci via WhatsApp o email",
+    "newConversation": "Nuova conversazione",
+    "close": "Chiudi",
+    "initialMessage": "Ciao! Sono l'assistente di E2D. Come posso aiutarti?"
   }
 }
