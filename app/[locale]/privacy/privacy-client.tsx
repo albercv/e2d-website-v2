@@ -186,6 +186,13 @@ export default function PrivacyClientPage() {
                   </p>
                 </div>
               </section>
+
+              <Separator className="my-8" />
+
+              <section className="mb-8">
+                <h2 className="text-2xl font-semibold mb-4">{t("sections.aiChat.title")}</h2>
+                <p className="text-muted-foreground leading-relaxed">{t("sections.aiChat.description")}</p>
+              </section>
             </div>
           </Card>
         </div>

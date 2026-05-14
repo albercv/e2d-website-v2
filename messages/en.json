@@ -167,6 +167,10 @@
         "title": "Marketing Cookies",
         "description": "Used to show relevant ads and measure campaigns. Includes Apollo.io for visitor identification."
       },
+      "aiChat": {
+        "title": "AI Assistant",
+        "description": "Enables the AI chat panel. Your messages are sent to DeepSeek and search queries are processed using OpenAI embeddings."
+      },
       "required": "Required",
       "cancel": "Cancel",
       "save": "Save preferences"
@@ -199,6 +203,10 @@
       },
       "contact": {
         "title": "Contact"
+      },
+      "aiChat": {
+        "title": "AI Assistant",
+        "description": "If you interact with the AI assistant, your messages are sent to DeepSeek (LLM) and your queries are vectorized using OpenAI embeddings to surface relevant content from our knowledge base. We keep conversations for 90 days, after which they are deleted automatically. Any contact details you choose to share are retained as a business record."
       }
     }
   },

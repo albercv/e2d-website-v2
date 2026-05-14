@@ -46,3 +46,21 @@ export interface ExtractedLead {
   company?: string
   intent?: string // 'voicebot'|'chatbot'|'automation'|'web'|'crm'|'budget'|'other'
 }
+
+/**
+ * Per-response telemetry row written to `chat_usage`.
+ * `costUsdMicro` is the estimated cost in micro-USD (integer).
+ */
+export interface UsageRecord {
+  sessionId: string
+  messageId: string | null
+  locale: Locale
+  model: string
+  inputTokens: number | null
+  outputTokens: number | null
+  totalTokens: number | null
+  embeddingTokens: number | null
+  retrievedChunks: number
+  durationMs: number
+  costUsdMicro: number
+}

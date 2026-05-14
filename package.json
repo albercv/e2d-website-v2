@@ -33,7 +33,8 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:studio": "drizzle-kit studio",
     "rag:index": "tsx scripts/build-rag-index.ts",
-    "apollo:sync": "tsx scripts/sync-leads-to-apollo.ts"
+    "apollo:sync": "tsx scripts/sync-leads-to-apollo.ts",
+    "chat:retention": "tsx scripts/chat-retention.ts"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",

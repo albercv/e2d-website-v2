@@ -167,6 +167,10 @@
         "title": "Cookies de Marketing",
         "description": "Utilizadas para mostrar anuncios relevantes y medir campañas. Incluye Apollo.io para identificación de visitantes."
       },
+      "aiChat": {
+        "title": "Asistente IA",
+        "description": "Permite cargar el chat con IA. Tus mensajes se envían a DeepSeek y las búsquedas se procesan con embeddings de OpenAI."
+      },
       "required": "Requeridas",
       "cancel": "Cancelar",
       "save": "Guardar preferencias"
@@ -199,6 +203,10 @@
       },
       "contact": {
         "title": "Contacto"
+      },
+      "aiChat": {
+        "title": "Asistente de IA",
+        "description": "Si interactúas con el asistente IA, tus mensajes se envían a DeepSeek (LLM) y las consultas de búsqueda se vectorizan con embeddings de OpenAI para localizar contenido relevante de nuestra base de conocimiento. Conservamos las conversaciones durante 90 días y después se eliminan automáticamente. Los datos de contacto que decidas compartir se guardan como registro comercial."
       }
     }
   },
