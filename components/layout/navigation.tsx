@@ -22,6 +22,7 @@ export function Navigation() {
   const navItems = [
     { key: "services", href: `/${locale}#services` },
     { key: "projects", href: `/${locale}#projects` },
+    { key: "faq", href: `/${locale}#faq` },
     { key: "about", href: `/${locale}#about` },
     { key: "blog", href: `/${locale}/blog` },
   ]
