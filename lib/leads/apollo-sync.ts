@@ -34,6 +34,7 @@ interface QueueJoinedRow {
   queueId: string
   attempts: number
   leadId: string | null
+  name: string | null
   email: string | null
   phone: string | null
   company: string | null
@@ -42,7 +43,7 @@ interface QueueJoinedRow {
 
 const DEFAULT_MAX_ATTEMPTS = 5
 const DEFAULT_BATCH_SIZE = 25
-const ERROR_MAX_CHARS = 500
+const ERROR_MAX_CHARS = 1024
 
 async function fetchBatch(
   batchSize: number,
@@ -53,6 +54,7 @@ async function fetchBatch(
       queueId: apolloSyncQueue.id,
       attempts: apolloSyncQueue.attempts,
       leadId: chatLeads.id,
+      name: chatLeads.name,
       email: chatLeads.email,
       phone: chatLeads.phone,
       company: chatLeads.company,
@@ -72,6 +74,7 @@ async function fetchBatch(
     queueId: r.queueId,
     attempts: r.attempts ?? 0,
     leadId: r.leadId,
+    name: r.name,
     email: r.email,
     phone: r.phone,
     company: r.company,
@@ -140,6 +143,7 @@ async function processRow(
     await createOrUpdateContact(
       {
         email: row.email ?? undefined,
+        name: row.name ?? undefined,
         phone: row.phone ?? undefined,
         company: row.company ?? undefined,
         notes: row.intent ?? undefined,

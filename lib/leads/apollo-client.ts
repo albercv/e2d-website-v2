@@ -6,12 +6,22 @@
  * Apollo tools are intentionally NOT used: they require an OAuth dance
  * that does not exist in the chat handler's server context.
  *
- * Payload-shape assumption:
- *   The Apollo /v1/contacts upsert accepts `email` (required) plus optional
- *   `organization_name`, `phone_numbers: string[]`, and `label_names: string[]`.
- *   We do NOT have first/last name on chat leads, so we send the minimal
- *   shape. Notes (if any) are prefixed with "e2d-note:" and attached as an
- *   extra label so they show up on the contact card.
+ * Payload-shape sources (retrieved 2026-05-15):
+ *   - https://docs.apollo.io/reference/create-a-contact
+ *   - https://docs.apollo.io/docs/api-overview
+ *   - https://endgrate.com/blog/using-the-apollo-api-to-create-or-update-contacts-(with-javascript-examples)
+ *
+ * Apollo's POST /v1/contacts accepts:
+ *   - first_name, last_name (separate strings — NOT a single `name`)
+ *   - email
+ *   - organization_name (string — triggers a fuzzy account match server-side)
+ *   - direct_phone / mobile_phone / corporate_phone / home_phone / other_phone
+ *     as INDIVIDUAL TOP-LEVEL STRINGS — there is no `phone_numbers` array.
+ *   - label_names: string[] — short tag names; long free-text labels (>~50
+ *     chars) get rejected with 422 "There is something wrong with your
+ *     request." Notes therefore go to a custom field, not a label.
+ *
+ * Auth header is `X-Api-Key`.
  */
 
 const APOLLO_ENDPOINT = "https://api.apollo.io/api/v1/contacts"
@@ -22,10 +32,12 @@ const RETRY_BASE_MS = 500
 const RETRY_FACTOR = 2
 const RETRY_CAP_MS = 4_000
 const NOTE_MAX_CHARS = 200
-const ERROR_BODY_SLICE = 200
+const ERROR_BODY_SLICE = 1024
+const APOLLO_LEAD_LABEL = "e2d-chat-lead"
 
 export interface ApolloContactInput {
   email?: string
+  name?: string
   phone?: string
   company?: string
   notes?: string
@@ -36,10 +48,13 @@ export interface ApolloContactResponse {
 }
 
 interface ApolloRequestBody {
+  first_name?: string
+  last_name?: string
   email?: string
   organization_name?: string
-  phone_numbers?: string[]
+  direct_phone?: string
   label_names?: string[]
+  typed_custom_fields?: Record<string, string>
 }
 
 interface ApolloResponseShape {
@@ -52,18 +67,48 @@ function readApiKey(): string {
   return key
 }
 
+function splitName(full: string): { first?: string; last?: string } {
+  const trimmed = full.trim()
+  if (!trimmed) return {}
+  const idx = trimmed.search(/\s+/)
+  if (idx === -1) return { first: trimmed }
+  return {
+    first: trimmed.slice(0, idx),
+    last: trimmed.slice(idx).trim() || undefined,
+  }
+}
+
 function buildBody(input: ApolloContactInput): ApolloRequestBody {
   const body: ApolloRequestBody = {}
+  if (input.name) {
+    const { first, last } = splitName(input.name)
+    if (first) body.first_name = first
+    if (last) body.last_name = last
+  }
   if (input.email) body.email = input.email
   if (input.company) body.organization_name = input.company
-  if (input.phone) body.phone_numbers = [input.phone]
-  const labels: string[] = ["e2d-chat-lead"]
+  if (input.phone) body.direct_phone = input.phone
+  body.label_names = [APOLLO_LEAD_LABEL]
   if (input.notes) {
     const trimmed = input.notes.slice(0, NOTE_MAX_CHARS)
-    labels.push(`e2d-note:${trimmed}`)
+    // Apollo rejects long free-text labels; stash the note under a typed
+    // custom field instead. The field name "e2d_chat_intent" must already
+    // exist in Apollo (or the API silently drops it — non-fatal).
+    body.typed_custom_fields = { e2d_chat_intent: trimmed }
   }
-  body.label_names = labels
   return body
+}
+
+function maskKey(k: string): string {
+  if (k.length <= 8) return "****"
+  return `${k.slice(0, 4)}…${k.slice(-2)}`
+}
+
+function logRequest(body: ApolloRequestBody, apiKey: string): void {
+  // eslint-disable-next-line no-console -- diagnostic for sync drainer
+  console.log(
+    `[apollo-client] POST ${APOLLO_ENDPOINT} key=${maskKey(apiKey)} body=${JSON.stringify(body)}`,
+  )
 }
 
 function backoffMs(attempt: number): number {
@@ -131,7 +176,7 @@ async function performRequest(
       headers: {
         "Cache-Control": "no-cache",
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
+        "X-Api-Key": apiKey,
       },
       body: JSON.stringify(body),
       signal,
@@ -162,6 +207,7 @@ export async function createOrUpdateContact(
 ): Promise<ApolloContactResponse> {
   const apiKey = readApiKey()
   const body = buildBody(input)
+  logRequest(body, apiKey)
   let lastError: Error | null = null
 
   for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt++) {
