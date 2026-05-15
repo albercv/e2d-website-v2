@@ -24,6 +24,7 @@ export function Navigation() {
     { key: "projects", href: `/${locale}#projects` },
     { key: "about", href: `/${locale}#about` },
     { key: "blog", href: `/${locale}/blog` },
+    { key: "faq", href: `/${locale}#faq` },
   ]
 
   return (
