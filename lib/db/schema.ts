@@ -126,6 +126,33 @@ export const apolloSyncQueue = pgTable(
   }),
 );
 
+// Editable, versioned per-locale system prompt for the chat agent.
+// One row per (locale) carries is_active = true at any time. The runtime
+// prompt builder loads the active body via lib/chat/prompt-store (60s
+// in-memory cache) and falls back to the hardcoded template when no row
+// is active or the DB is unreachable.
+export const systemPrompts = pgTable(
+  "system_prompts",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    locale: text("locale").notNull(),
+    version: integer("version").notNull(),
+    body: text("body").notNull(),
+    notes: text("notes"),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    isActive: boolean("is_active").notNull().default(false),
+  },
+  (t) => ({
+    localeVersionUnique: uniqueIndex("system_prompts_locale_version").on(
+      t.locale,
+      t.version,
+    ),
+  }),
+);
+
 // Row types — exported so other agents typecheck against the canonical schema.
 export type ChatSession = typeof chatSessions.$inferSelect;
 export type NewChatSession = typeof chatSessions.$inferInsert;
@@ -144,3 +171,6 @@ export type NewChatLead = typeof chatLeads.$inferInsert;
 
 export type ApolloSyncQueueRow = typeof apolloSyncQueue.$inferSelect;
 export type NewApolloSyncQueueRow = typeof apolloSyncQueue.$inferInsert;
+
+export type SystemPrompt = typeof systemPrompts.$inferSelect;
+export type NewSystemPrompt = typeof systemPrompts.$inferInsert;

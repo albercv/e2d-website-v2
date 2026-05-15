@@ -1,5 +1,12 @@
 // Builds the localized system prompt and the final message list sent to DeepSeek.
 // Reads CHAT_MAX_HISTORY_TURNS lazily so tests can override it.
+//
+// The localized template body is loaded from the system_prompts table via the
+// in-memory cache in lib/chat/prompt-store.ts. On a cold cache or any DB
+// failure we fall back to the hardcoded FALLBACK_TEMPLATES below — the
+// canonical seed used to populate the first DB version from the admin UI.
+// buildSystemPrompt stays synchronous: when the cache is cold we trigger a
+// non-blocking refresh and serve the fallback for this single request.
 
 import type {
   BuildMessagesOpts,
@@ -7,6 +14,10 @@ import type {
   Locale,
   RetrievedChunk,
 } from './types'
+import {
+  peekCachedPromptBody,
+  refreshPromptCacheInBackground,
+} from './prompt-store'
 
 const DEFAULT_MAX_TURNS = 10
 const CONTACT_WHATSAPP = '+34 605 497 639'
@@ -21,7 +32,7 @@ interface LocalizedTemplate {
   emptyContext: string
 }
 
-const TEMPLATES: Record<Locale, LocalizedTemplate> = {
+const FALLBACK_TEMPLATES: Record<Locale, LocalizedTemplate> = {
   es: {
     intro: 'Eres el asistente de Evolve2Digital (E2D).',
     domain: [
@@ -100,16 +111,53 @@ function renderRules(rules: string[]): string {
   return rules.map((r, i) => `${i + 1}. ${r}`).join('\n')
 }
 
+function renderFallbackBody(tpl: LocalizedTemplate): string {
+  // Mirror the original layout (header lines + numbered rules) so the
+  // fallback is the canonical seed for the first DB version.
+  const header = `${tpl.intro}\n${tpl.domain}\n${tpl.tone}`
+  const rules = renderRules(tpl.rules)
+  return `${header}\n\n${rules}`
+}
+
+function resolvePromptBody(locale: Locale, fallback: LocalizedTemplate): string {
+  // Best-effort sync read: if the cache is cold, ask for a background
+  // refresh and serve the fallback this single request. Subsequent
+  // requests pick up the DB body without ever blocking the hot path.
+  const dbBody = peekCachedPromptBody(locale)
+  if (dbBody !== null) return dbBody
+  refreshPromptCacheInBackground(locale)
+  return renderFallbackBody(fallback)
+}
+
+export function renderPromptForBody(opts: {
+  locale: Locale
+  body: string
+  chunks: RetrievedChunk[]
+}): string {
+  // Used by the admin preview endpoint to render an arbitrary body
+  // (e.g. an unsaved draft) against sample chunks. Same tail layout as
+  // the runtime path so what you preview is exactly what gets shipped.
+  const tpl = FALLBACK_TEMPLATES[opts.locale]
+  const contextBody =
+    opts.chunks.length === 0 ? tpl.emptyContext : renderChunks(opts.chunks)
+  return `${opts.body}\n\n${tpl.contextHeader}\n${contextBody}`
+}
+
 export function buildSystemPrompt(opts: {
   locale: Locale
   chunks: RetrievedChunk[]
 }): string {
-  const tpl = TEMPLATES[opts.locale]
-  const header = `${tpl.intro}\n${tpl.domain}\n${tpl.tone}`
-  const rules = renderRules(tpl.rules)
+  const tpl = FALLBACK_TEMPLATES[opts.locale]
+  const body = resolvePromptBody(opts.locale, tpl)
   const contextBody =
     opts.chunks.length === 0 ? tpl.emptyContext : renderChunks(opts.chunks)
-  return `${header}\n\n${rules}\n\n${tpl.contextHeader}\n${contextBody}`
+  return `${body}\n\n${tpl.contextHeader}\n${contextBody}`
+}
+
+export function getFallbackPromptBody(locale: Locale): string {
+  // Exposed so the admin UI can seed the editor with the canonical
+  // hardcoded body when the locale has no DB version yet.
+  return renderFallbackBody(FALLBACK_TEMPLATES[locale])
 }
 
 function readMaxTurns(): number {
