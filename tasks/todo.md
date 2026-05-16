@@ -1,5 +1,22 @@
 # Tarea Activa
 
+## Chat IA — panel demasiado grande en móvil (2026-05-16)
+
+> Origen: el usuario reporta que el chat IA en móvil "no se ve bien, es demasiado grande". Causa probable identificada por inspección: `components/chat/chat-panel.tsx:308` aplica `inset-0` en móvil, lo que ocupa el viewport completo (full-screen take-over). En desktop usa `sm:bottom-24 sm:right-6 sm:h-[560px] sm:w-[380px] sm:rounded-2xl sm:border` (panel anclado). El comportamiento full-screen en móvil es agresivo: tapa toda la página y se siente desproporcionado en pantallas pequeñas.
+
+- [ ] **M.1** Reproducir en móvil real (no solo devtools responsive) en al menos: iPhone (Safari) + Android Chrome. Anotar viewport reportado, qué se ve y qué se siente "demasiado grande" — es el panel completo, el header, el input, el avatar/launcher, o todo a la vez.
+- [ ] **M.2** Decidir el patrón mobile correcto:
+  - (a) Panel anclado bottom con `max-h-[80vh]` y `inset-x-2 bottom-2` (sheet flotante, no full-screen).
+  - (b) Bottom-sheet con `inset-x-0 bottom-0` + `h-[75vh]` + `rounded-t-2xl` (estilo iOS/Android sheet).
+  - (c) Mantener full-screen pero reducir paddings/tamaño tipográfico y header compacto.
+  - Discutirlo con el usuario antes de codear.
+- [ ] **M.3** Implementar el cambio en `components/chat/chat-panel.tsx:305-310` (clases del contenedor `role="dialog"`). Probable: cambiar `inset-0` por la variante mobile elegida, mantener `sm:*` desktop intacto.
+- [ ] **M.4** Verificar que el botón "X" (cerrar) sigue accesible sin interferir con la safe-area iOS (notch + home indicator). Si bottom-sheet → añadir `pb-[env(safe-area-inset-bottom)]` al input bar.
+- [ ] **M.5** Verificar que el launcher flotante (`components/chat/chat-panel.tsx:228` — `fixed bottom-6 right-6 z-50`) no queda tapado por el panel reducido cuando esté abierto, o esconderlo cuando `isOpen`.
+- [ ] **M.6** Verificación obligatoria en móvil real antes de PR (lección [[contact-cta-i18n-still-broken]]: tests verdes ≠ probado).
+
+---
+
 ## ContactCTA i18n no funciona en runtime (2026-05-09)
 
 > Origen: el usuario reporta que el marker `[contact]` sigue saliendo siempre en español en `/en/blog/*` y `/it/blog/*`. El "fix" anterior (commit `cb6f409` en rama `fix/contact-cta-i18n`) tiene 9 tests jest verdes pero **no funciona en navegador** — falso positivo. El merge a develop ya fue reverteado (`537aff9`); la rama sigue viva con el commit roto.
