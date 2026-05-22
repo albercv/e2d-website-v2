@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
+import { usePathname } from "next/navigation"
 import Script from "next/script"
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
@@ -13,37 +14,63 @@ declare global {
 }
 
 export function GoogleAnalytics() {
+  const pathname = usePathname()
+  // Track whether the initial mount has already fired its page_view via gtag("config",...)
+  // so the pathname effect skips the first run and avoids a duplicate hit.
+  const initialMountDone = useRef(false)
+
+  // Gate everything on production + measurement ID present.
+  // Dev/staging traffic must never reach GA — it inflates metrics and
+  // corrupts audience data.
+  const isEnabled =
+    process.env.NODE_ENV === "production" && Boolean(GA_MEASUREMENT_ID)
+
   useEffect(() => {
-    // Initialize gtag with denied consent by default
-    if (typeof window !== "undefined") {
-      if (!GA_MEASUREMENT_ID) return
-      window.dataLayer = window.dataLayer || []
-      window.gtag = (...args: unknown[]) => {
-        window.dataLayer.push(args)
-      }
-      window.gtag("js", new Date())
-      window.gtag("config", GA_MEASUREMENT_ID, {
-        page_title: document.title,
-        page_location: window.location.href,
-      })
+    if (!isEnabled) return
 
-      // Set default consent state
-      window.gtag("consent", "default", {
-        analytics_storage: "denied",
-        ad_storage: "denied",
-        wait_for_update: 500,
-      })
+    window.dataLayer = window.dataLayer || []
+    window.gtag = (...args: unknown[]) => {
+      window.dataLayer.push(args)
     }
-  }, [])
 
-  if (!GA_MEASUREMENT_ID) {
-    return null
-  }
+    window.gtag("js", new Date())
+
+    // Consent must be declared BEFORE config so GA honours it from the very
+    // first hit. Sending config first would fire an unconsented page_view.
+    window.gtag("consent", "default", {
+      analytics_storage: "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+      wait_for_update: 500,
+    })
+
+    window.gtag("config", GA_MEASUREMENT_ID!, {
+      page_title: document.title,
+      page_location: window.location.href,
+    })
+
+    initialMountDone.current = true
+  }, [isEnabled])
+
+  useEffect(() => {
+    // Skip the first render — gtag("config",...) in the init effect already
+    // sends the landing page_view; firing again here would double-count it.
+    if (!isEnabled || !initialMountDone.current) return
+
+    window.gtag("event", "page_view", {
+      page_location: window.location.href,
+      page_title: document.title,
+    })
+  }, [pathname, isEnabled])
+
+  if (!isEnabled) return null
 
   return (
-    <>
-      <Script strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
-    </>
+    <Script
+      strategy="afterInteractive"
+      src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+    />
   )
 }
 
