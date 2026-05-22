@@ -17,6 +17,20 @@ interface CookiePreferences {
   aiChat: boolean
 }
 
+// Maps the saved preferences to a gtag consent update covering both
+// analytics (GA) and marketing/ad signals (Apollo, remarketing).
+// Must be called after every consent change so the consent mode state
+// stays in sync without requiring a page reload.
+function applyConsentToGtag(prefs: CookiePreferences) {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return
+  window.gtag("consent", "update", {
+    analytics_storage: prefs.analytics ? "granted" : "denied",
+    ad_storage: prefs.marketing ? "granted" : "denied",
+    ad_user_data: prefs.marketing ? "granted" : "denied",
+    ad_personalization: prefs.marketing ? "granted" : "denied",
+  })
+}
+
 export function CookieBanner() {
   const t = useTranslations("cookies")
   const [showBanner, setShowBanner] = useState(false)
@@ -32,29 +46,26 @@ export function CookieBanner() {
     const consent = localStorage.getItem("cookie-consent")
     if (!consent) {
       setShowBanner(true)
-    } else {
-      const savedPreferences = JSON.parse(consent)
-      // Older consent payloads may lack the aiChat key — default to false
-      // so existing visitors must explicitly opt in.
-      setPreferences({ aiChat: false, ...savedPreferences })
-      // Initialize analytics based on consent
-      if (savedPreferences.analytics) {
-        initializeAnalytics()
-      }
+      return
     }
+    // Older consent payloads may lack the aiChat key — default to false
+    // so existing visitors must explicitly opt in to the AI chat toggle.
+    const partial = JSON.parse(consent) as Partial<CookiePreferences>
+    const savedPreferences: CookiePreferences = {
+      necessary: true,
+      analytics: false,
+      marketing: false,
+      aiChat: false,
+      ...partial,
+    }
+    setPreferences(savedPreferences)
+    // Replay consent state into gtag so the consent mode reflects what
+    // the visitor actually chose in a prior session, not the denied default.
+    applyConsentToGtag(savedPreferences)
   }, [])
 
-  const initializeAnalytics = () => {
-    // Initialize Google Analytics
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("consent", "update", {
-        analytics_storage: "granted",
-      })
-    }
-  }
-
   const handleAcceptAll = () => {
-    const allAccepted = {
+    const allAccepted: CookiePreferences = {
       necessary: true,
       analytics: true,
       marketing: true,
@@ -63,11 +74,14 @@ export function CookieBanner() {
     setPreferences(allAccepted)
     localStorage.setItem("cookie-consent", JSON.stringify(allAccepted))
     setShowBanner(false)
-    initializeAnalytics()
+    applyConsentToGtag(allAccepted)
+    // Notify other components (e.g. ApolloTracker) so they can react
+    // to the new consent state without a full page reload.
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handleRejectAll = () => {
-    const onlyNecessary = {
+    const onlyNecessary: CookiePreferences = {
       necessary: true,
       analytics: false,
       marketing: false,
@@ -76,15 +90,18 @@ export function CookieBanner() {
     setPreferences(onlyNecessary)
     localStorage.setItem("cookie-consent", JSON.stringify(onlyNecessary))
     setShowBanner(false)
+    // Downgrade consent signals so any already-initialised trackers honour
+    // the rejection and stop collecting data in the current session.
+    applyConsentToGtag(onlyNecessary)
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handleSavePreferences = () => {
     localStorage.setItem("cookie-consent", JSON.stringify(preferences))
     setShowBanner(false)
     setShowSettings(false)
-    if (preferences.analytics) {
-      initializeAnalytics()
-    }
+    applyConsentToGtag(preferences)
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handlePreferenceChange = (type: keyof CookiePreferences) => {
