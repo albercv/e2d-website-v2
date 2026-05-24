@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
+import { track } from "@/lib/analytics/track"
 
 // Inline fallback constants — duplicated from chat-panel.tsx on purpose. The
 // follow-up task that consolidates contact channels will collapse both copies
@@ -74,17 +75,19 @@ export interface LeadCaptureFormProps {
 
 type T = ReturnType<typeof useTranslations>
 
-function ServerFallback({ t }: { t: T }): JSX.Element {
+function ServerFallback({ t, locale }: { t: T; locale: string }): JSX.Element {
   return (
     <div className="mt-1 space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
       <p><strong>{t("errorTitle")}</strong>. {t("errorBody")}</p>
       <div className="flex flex-wrap gap-2">
         <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90">
+          className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
+          onClick={() => track("whatsapp_click", { link_location: "lead_form_fallback", locale })}>
           WhatsApp
         </a>
         <a href={MAIL_HREF}
-          className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-foreground hover:bg-accent">
+          className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-foreground hover:bg-accent"
+          onClick={() => track("email_click", { link_location: "lead_form_fallback", locale })}>
           {SUPPORT_EMAIL}
         </a>
       </div>
@@ -173,6 +176,10 @@ export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null
     }
     setStatus({ kind: "submitting" })
     const ok = await postLead(buildPayload(state, props.sessionId, props.locale))
+    if (ok) {
+      // Track the qualified lead — this is the primary conversion event.
+      track("generate_lead", { form_location: "chat", intent: state.intent || "", locale: props.locale })
+    }
     setStatus(ok ? { kind: "success" } : { kind: "server" })
   }, [props.sessionId, props.locale, state])
 
@@ -209,7 +216,7 @@ export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null
                 className="w-full bg-[#05b4ba] text-white hover:bg-[#05b4ba]/90">
                 {status.kind === "submitting" ? t("sending") : t("submit")}
               </Button>
-              {status.kind === "server" && <ServerFallback t={t} />}
+              {status.kind === "server" && <ServerFallback t={t} locale={props.locale} />}
             </form>
           )}
         </div>

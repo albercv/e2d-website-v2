@@ -1,15 +1,17 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { useState, useRef } from "react"
 import { ArrowRight, Play } from "lucide-react"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
 import { LazyMotionSection, OptimizedMotionDiv } from "@/components/performance/motion-optimized"
 import LiquidEther from "./LiquidEther"
+import { track } from "@/lib/analytics/track"
 
 export function HeroSection() {
   const t = useTranslations("hero");
+  const locale = useLocale();
   const { renderCount } = useComponentDebugLogger('HeroSection');
   const [isHovering, setIsHovering] = useState(false);
   
@@ -60,10 +62,11 @@ export function HeroSection() {
           <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white px-8 py-3 text-lg font-semibold"
               onClick={() => {
+                track("cta_click", { cta_id: "hero_demo", locale })
                 // Open contact modal by triggering the navigation contact button
                 const contactButton = document.querySelector('[data-contact-trigger]') as HTMLButtonElement;
                 if (contactButton) {
@@ -83,6 +86,7 @@ export function HeroSection() {
               size="lg"
               className="border-[#05b4ba] text-[#05b4ba] hover:bg-[#05b4ba]/10 px-8 py-3 text-lg bg-transparent"
               onClick={() => {
+                track("cta_click", { cta_id: "hero_projects", locale })
                 // Scroll to projects section
                 const projectsSection = document.getElementById('projects');
                 if (projectsSection) {

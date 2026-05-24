@@ -8,6 +8,7 @@ import { ChatMessage } from "./chat-message"
 import { LeadCaptureForm } from "./lead-capture-form"
 import { useChatStream, type ChatTurn, type ChatError } from "./use-chat-stream"
 import { cn } from "@/lib/utils"
+import { track } from "@/lib/analytics/track"
 
 // Cookie set by /api/chat is HttpOnly, so this helper will only return a value
 // if the cookie ever lands in document.cookie (it won't on the production
@@ -130,6 +131,7 @@ interface ErrorBlockProps {
   errorGeneric: string
   errorRateLimit: string
   fallbackCTA: string
+  locale: string
 }
 
 function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
@@ -148,6 +150,7 @@ function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
+          onClick={() => track("whatsapp_click", { link_location: "chat_panel", locale: props.locale })}
         >
           {props.fallbackCTA}
         </a>
@@ -252,6 +255,8 @@ export function ChatPanel(): JSX.Element {
   // attribute selector to avoid threading another ref through child components.
   useEffect(() => {
     if (!isOpen) return
+    // Track panel open to measure chat funnel entry.
+    track("chat_open", { locale })
     const onKey = (e: globalThis.KeyboardEvent): void => {
       if (e.key === "Escape") setIsOpen(false)
     }
@@ -259,7 +264,7 @@ export function ChatPanel(): JSX.Element {
     const ta = panelRef.current?.querySelector<HTMLTextAreaElement>("[data-chat-input]")
     ta?.focus()
     return () => window.removeEventListener("keydown", onKey)
-  }, [isOpen])
+  }, [isOpen, locale])
 
   const close = useCallback(() => setIsOpen(false), [])
   const open = useCallback(() => setIsOpen(true), [])
@@ -330,12 +335,14 @@ export function ChatPanel(): JSX.Element {
           errorGeneric={t("errorGeneric")}
           errorRateLimit={t("errorRateLimit")}
           fallbackCTA={t("fallbackContactCTA")}
+          locale={locale}
         />
         <InputBar
           placeholder={t("placeholder")}
           sendLabel={t("send")}
           disabled={stream.isStreaming}
           onSubmit={(text) => {
+            track("chat_message_sent", { locale })
             void stream.send(text)
           }}
         />

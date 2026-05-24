@@ -1,5 +1,41 @@
 # Tarea Activa
 
+## GA4 measurement — verificación post-fix + cierre de `feature/google-meassurement` (2026-05-22)
+
+> Origen: 6h de debug cerradas. El stub `window.gtag` en `components/analytics/google-analytics.tsx` pusheaba un Array (arrow + rest params) en vez de un objeto `arguments`. gtag.js solo procesa un comando cuando el valor pusheado a `dataLayer` es un `arguments` object — un Array lo ignora. Resultado: `js`/`consent`/`config`/`event` quedaban inertes → cero hits. Fix aplicado (forma canónica `function gtag(){ dataLayer.push(arguments) }`), `npm run build` + redeploy hechos, GA4 ya recibe eventos. Detalle completo en `tasks/ga4-debugging-report.md`.
+>
+> **CONSECUENCIA: todo lo que depende de `window.gtag` estuvo roto hasta ahora.** La checklist de test que se dio al mergear las 4 ramas GA nunca fue válida — hay que re-verificarla entera.
+
+### Phase A — Re-verificar el stack GA completo (ahora que gtag transmite)
+
+- [ ] **A.1** 12 business events de `lib/analytics/track.ts` — disparar cada uno en navegador (contact-modal, whatsapp, hero-section, chat-panel, lead-capture-form, ContactCTA) y confirmar en GA4 DebugView que llega con sus parámetros.
+- [ ] **A.2** SPA page_view — navegar entre rutas, confirmar UN `page_view` por navegación y sin duplicado en el mount inicial (el efecto `usePathname` salta el primer render).
+- [ ] **A.3** Consent — rechazar cookies → hits `gcs=G100` (cookieless); aceptar → `gcs=G111` (full). Verificar el param `gcs` en Network.
+- [ ] **A.4** Apollo tracker — confirmar que solo dispara tras aceptar consent de marketing (evento `cookie-consent-changed`).
+- [ ] **A.5** Gate dev/staging — confirmar que en `next dev` / no-producción NO se envían hits (gate `NODE_ENV==='production'`).
+
+### Phase B — Config GA4 en consola (manual, sin código)
+
+- [ ] **B.1** Marcar key events: `generate_lead`, `whatsapp_click`, `contact_open`.
+- [ ] **B.2** Filtro de tráfico interno — excluir IP de oficina/dev (Admin → Data Settings → Data Filters).
+
+### Phase C — Git (rama NO se pushea ni mergea — decisión usuario 2026-05-22)
+
+- [ ] **C.1** Commit local del fix gtag + el `.gitignore` (`.codegraph/`) en `feature/google-meassurement`. SIN push. Mensaje estilo proyecto (Scope/Problem/Solution/Notes, sin Co-Authored-By).
+- [ ] **C.2** Anotar la lección en `tasks/lessons.md`: "el stub gtag DEBE pushear `arguments`, nunca un Array; arrow + rest params lo rompe en silencio".
+- [ ] **C.3** Cuando el usuario lo decida: PR `feature/google-meassurement` → develop, tras pasar Phase A.
+
+### Phase D — Decisiones diferidas (pendiente input usuario)
+
+- [ ] **D.1** Borrar `AIAgentModal` / `AIAgentButton` muertos (nunca renderizados) — confirmar con usuario.
+- [ ] **D.2** Decidir: adoptar GTM vs mantener gtag hardcodeado.
+
+### Phase E — Limpieza
+
+- [ ] **E.1** `git worktree remove` de los 4 worktrees de agentes bloqueados en `.claude/worktrees/`.
+
+---
+
 ## Chat IA — panel demasiado grande en móvil (2026-05-16)
 
 > Origen: el usuario reporta que el chat IA en móvil "no se ve bien, es demasiado grande". Causa probable identificada por inspección: `components/chat/chat-panel.tsx:308` aplica `inset-0` en móvil, lo que ocupa el viewport completo (full-screen take-over). En desktop usa `sm:bottom-24 sm:right-6 sm:h-[560px] sm:w-[380px] sm:rounded-2xl sm:border` (panel anclado). El comportamiento full-screen en móvil es agresivo: tapa toda la página y se siente desproporcionado en pantallas pequeñas.
