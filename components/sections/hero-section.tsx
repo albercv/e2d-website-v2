@@ -100,30 +100,6 @@ export function HeroSection() {
           </div>
         </OptimizedMotionDiv>
 
-        {/* Stats */}
-        <OptimizedMotionDiv
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-        >
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">+35%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.moreAppointments")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-40%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.missedCalls")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-28%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.noShows")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-12h</div>
-            <div className="text-sm text-muted-foreground">{t("stats.tasksPerWeek")}</div>
-          </div>
-        </OptimizedMotionDiv>
       </div>
     </section>
   )

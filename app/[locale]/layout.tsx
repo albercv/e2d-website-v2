@@ -16,19 +16,24 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
   const baseUrl = "https://evolve2digital.com"
 
   const titleByLocale = {
-    es: "E2D - Automatiza tu empresa con IA",
-    en: "E2D - Automate your business with AI",
-    it: "E2D - Automatizza la tua azienda con IA",
+    es: "Software a medida para PYMEs | Automatización con IA — E2D",
+    en: "Custom software for SMEs | AI automation — E2D",
+    it: "Software su misura per PMI | Automazione con IA — E2D",
   } as const
 
   const descriptionByLocale = {
-    es: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
-    en: "Automate your business: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
-    it: "Automatizza la tua azienda: più vendite, meno compiti. Voice agent, chatbot WhatsApp e automazioni per cliniche, immobiliare e consulenze.",
+    es: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
+    en: "Custom software development, process automation and AI integrations for SMEs of 10 to 50 employees. No generic SaaS: your software, your business.",
+    it: "Sviluppo di software su misura, automazione dei processi e integrazioni IA per PMI di 10-50 dipendenti. Niente SaaS generico: il tuo software, il tuo business.",
+  } as const
+
+  const keywordsByLocale = {
+    es: ["software a medida", "desarrollo a medida", "ERP a medida", "CRM personalizado", "automatización de procesos", "integración IA empresas", "software para PYMEs"],
+    en: ["custom software development", "bespoke software", "custom ERP", "custom CRM", "process automation", "AI integration", "SME software"],
+    it: ["software su misura", "sviluppo su misura", "ERP personalizzato", "CRM personalizzato", "automazione processi", "integrazione IA", "software PMI"],
   } as const
 
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
-  const smeWord = locale === "es" ? "PYME" : locale === "it" ? "PMI" : "SME"
 
   return {
     title: titleByLocale[locale as keyof typeof titleByLocale] ?? titleByLocale.es,
@@ -58,13 +63,7 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
       index: true,
       follow: true,
     },
-    keywords: [
-      locale === "es" ? "automatización" : locale === "it" ? "automazione" : "automation",
-      "chatbots",
-      "WhatsApp",
-      "voicebots",
-      smeWord,
-    ],
+    keywords: keywordsByLocale[locale as keyof typeof keywordsByLocale] ?? keywordsByLocale.es,
   }
 }
 

@@ -10,12 +10,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { track } from "@/lib/analytics/track"
+import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 
-// Inline fallback constants — duplicated from chat-panel.tsx on purpose. The
-// follow-up task that consolidates contact channels will collapse both copies
-// into a shared module. Keeping them inline avoids coupling components today.
+// SUPPORT_EMAIL and MAIL_HREF are kept inline — email contact is always available
+// regardless of whether WhatsApp is configured via env.
 const SUPPORT_EMAIL = "hello@evolve2digital.com"
-const WHATSAPP_HREF = `https://wa.me/34605497639?text=${encodeURIComponent("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")}`
 const MAIL_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Consulta desde la web E2D")}`
 
 // Same intent vocabulary the lead-extractor uses, so the queue surfaces a
@@ -76,15 +75,18 @@ export interface LeadCaptureFormProps {
 type T = ReturnType<typeof useTranslations>
 
 function ServerFallback({ t, locale }: { t: T; locale: string }): JSX.Element {
+  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
   return (
     <div className="mt-1 space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
       <p><strong>{t("errorTitle")}</strong>. {t("errorBody")}</p>
       <div className="flex flex-wrap gap-2">
-        <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
-          onClick={() => track("whatsapp_click", { link_location: "lead_form_fallback", locale })}>
-          WhatsApp
-        </a>
+        {whatsappHref && (
+          <a href={whatsappHref} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
+            onClick={() => track("whatsapp_click", { link_location: "lead_form_fallback", locale })}>
+            WhatsApp
+          </a>
+        )}
         <a href={MAIL_HREF}
           className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-foreground hover:bg-accent"
           onClick={() => track("email_click", { link_location: "lead_form_fallback", locale })}>
