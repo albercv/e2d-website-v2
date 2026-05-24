@@ -9,6 +9,7 @@ import { LeadCaptureForm } from "./lead-capture-form"
 import { useChatStream, type ChatTurn, type ChatError } from "./use-chat-stream"
 import { cn } from "@/lib/utils"
 import { track } from "@/lib/analytics/track"
+import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 
 // Cookie set by /api/chat is HttpOnly, so this helper will only return a value
 // if the cookie ever lands in document.cookie (it won't on the production
@@ -20,16 +21,9 @@ function readSessionIdFromCookie(): string | null {
   return m ? decodeURIComponent(m[1]) : null
 }
 
-// Mirrors the existing contact-modal contract. Kept inline (single source) to
-// avoid coupling this component to contact-modal.tsx — wire-up to share will be
-// done in the follow-up task that replaces FloatingContactButton.
-const WHATSAPP_NUMBER_INTL = "34605497639"
+// SUPPORT_EMAIL is kept inline intentionally — email contact is always available
+// regardless of whether WhatsApp is configured via env.
 const SUPPORT_EMAIL = "hello@evolve2digital.com"
-
-function buildWhatsappHref(): string {
-  const text = "Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto."
-  return `https://wa.me/${WHATSAPP_NUMBER_INTL}?text=${encodeURIComponent(text)}`
-}
 
 function buildMailHref(): string {
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Consulta desde la web E2D")}`
@@ -138,6 +132,7 @@ function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
   if (props.error === null) return null
   const isRateLimit = props.error === "rate-limit"
   const text = isRateLimit ? props.errorRateLimit : props.errorGeneric
+  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
   return (
     <div
       role="alert"
@@ -145,15 +140,17 @@ function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
     >
       <p>{text}</p>
       <div className="flex flex-wrap gap-2">
-        <a
-          href={buildWhatsappHref()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
-          onClick={() => track("whatsapp_click", { link_location: "chat_panel", locale: props.locale })}
-        >
-          {props.fallbackCTA}
-        </a>
+        {whatsappHref && (
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
+            onClick={() => track("whatsapp_click", { link_location: "chat_panel", locale: props.locale })}
+          >
+            {props.fallbackCTA}
+          </a>
+        )}
         <a
           href={buildMailHref()}
           className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-foreground hover:bg-accent"

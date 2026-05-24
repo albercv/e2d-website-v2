@@ -9,15 +9,15 @@
     "contact": "Contatto"
   },
   "hero": {
-    "title": "Automatizza la tua azienda: più vendite, meno compiti",
-    "subtitle": "Agenti vocali, chatbot WhatsApp e automazioni che trasformano qualsiasi business. Soluzioni su misura per aziende che vogliono crescere.",
-    "cta": "Prenota una demo",
+    "title": "Software su misura per aziende che hanno smesso di crescere a causa dei loro strumenti",
+    "subtitle": "Costruiamo il sistema operativo della tua azienda: software che si adatta a come lavori davvero, con automazione e IA dove servono. Per PMI da 10 a 50 dipendenti.",
+    "cta": "Parliamone — 20 min →",
     "ctaSecondary": "Vedi progetti",
     "stats": {
-      "moreAppointments": "Più appuntamenti",
-      "missedCalls": "Chiamate perse",
-      "noShows": "No-show",
-      "tasksPerWeek": "Compiti/settimana"
+      "customSoftware": "Software su misura",
+      "processAutomation": "Automazione dei processi",
+      "aiIntegrations": "Integrazioni IA",
+      "internalErpCrm": "ERP e CRM interni"
     }
   },
   "services": {

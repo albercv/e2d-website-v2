@@ -9,15 +9,15 @@
     "contact": "Contacto"
   },
   "hero": {
-    "title": "Automatiza tu empresa: más ventas, menos tareas",
-    "subtitle": "Agentes de voz, chatbots WhatsApp y automatizaciones que transforman cualquier negocio. Soluciones personalizadas para empresas que buscan crecer.",
-    "cta": "Reserva una demo",
+    "title": "Software a medida para empresas que han dejado de crecer por sus herramientas",
+    "subtitle": "Construimos el sistema operativo de tu empresa: software propio que se adapta a cómo trabajas, con automatización e IA donde aporta valor real. Para PYMEs de 10 a 50 empleados.",
+    "cta": "Habla conmigo 20 min →",
     "ctaSecondary": "Ver proyectos",
     "stats": {
-      "moreAppointments": "Más citas",
-      "missedCalls": "Llamadas perdidas",
-      "noShows": "No-shows",
-      "tasksPerWeek": "Tareas/semana"
+      "customSoftware": "Software a medida",
+      "processAutomation": "Automatización de procesos",
+      "aiIntegrations": "Integraciones con IA",
+      "internalErpCrm": "ERPs y CRMs internos"
     }
   },
   "services": {

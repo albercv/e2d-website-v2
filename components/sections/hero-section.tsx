@@ -100,7 +100,7 @@ export function HeroSection() {
           </div>
         </OptimizedMotionDiv>
 
-        {/* Stats */}
+        {/* Capability bullets */}
         <OptimizedMotionDiv
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -108,20 +108,16 @@ export function HeroSection() {
           className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
         >
           <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">+35%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.moreAppointments")}</div>
+            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.customSoftware")}</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-40%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.missedCalls")}</div>
+            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.processAutomation")}</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-28%</div>
-            <div className="text-sm text-muted-foreground">{t("stats.noShows")}</div>
+            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.aiIntegrations")}</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-[#05b4ba] mb-2">-12h</div>
-            <div className="text-sm text-muted-foreground">{t("stats.tasksPerWeek")}</div>
+            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.internalErpCrm")}</div>
           </div>
         </OptimizedMotionDiv>
       </div>

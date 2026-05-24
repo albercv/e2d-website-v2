@@ -9,15 +9,15 @@
     "contact": "Contact"
   },
   "hero": {
-    "title": "Automate your company: more sales, fewer tasks",
-    "subtitle": "Voice agents, WhatsApp chatbots and automations that transform any business. Custom solutions for companies looking to grow.",
-    "cta": "Book a demo",
+    "title": "Custom software for companies whose tools have stopped scaling with them",
+    "subtitle": "We build your company's operating system: software that adapts to how you actually work, with automation and AI where they earn their place. For SMEs of 10 to 50 employees.",
+    "cta": "Talk to me — 20 min →",
     "ctaSecondary": "See projects",
     "stats": {
-      "moreAppointments": "More appointments",
-      "missedCalls": "Missed calls",
-      "noShows": "No-shows",
-      "tasksPerWeek": "Tasks/week"
+      "customSoftware": "Custom software",
+      "processAutomation": "Process automation",
+      "aiIntegrations": "AI integrations",
+      "internalErpCrm": "In-house ERPs and CRMs"
     }
   },
   "services": {
