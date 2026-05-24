@@ -29,8 +29,13 @@ export function GoogleAnalytics() {
     if (!isEnabled) return
 
     window.dataLayer = window.dataLayer || []
-    window.gtag = (...args: unknown[]) => {
-      window.dataLayer.push(args)
+    // gtag.js only treats a dataLayer entry as an API command when the pushed
+    // value is an `arguments` object. Pushing a plain array — which rest
+    // params produce — makes gtag.js silently ignore every js/consent/config/
+    // event command, so no measurement initialises and no hits are ever sent.
+    window.gtag = function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer.push(arguments)
     }
 
     window.gtag("js", new Date())
