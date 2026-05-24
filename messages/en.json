@@ -10,15 +10,9 @@
   },
   "hero": {
     "title": "Custom software for companies whose tools have stopped scaling with them",
-    "subtitle": "We build your company's operating system: software that adapts to how you actually work, with automation and AI where they earn their place. For SMEs of 10 to 50 employees.",
+    "subtitle": "We build your company's operating system, software that adapts to how you and your team actually work. Automation and AI for SMEs with real value.",
     "cta": "Talk to me — 20 min →",
-    "ctaSecondary": "See projects",
-    "stats": {
-      "customSoftware": "Custom software",
-      "processAutomation": "Process automation",
-      "aiIntegrations": "AI integrations",
-      "internalErpCrm": "In-house ERPs and CRMs"
-    }
+    "ctaSecondary": "See projects"
   },
   "services": {
     "title": "Services that transform your business",

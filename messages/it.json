@@ -10,15 +10,9 @@
   },
   "hero": {
     "title": "Software su misura per aziende che hanno smesso di crescere a causa dei loro strumenti",
-    "subtitle": "Costruiamo il sistema operativo della tua azienda: software che si adatta a come lavori davvero, con automazione e IA dove servono. Per PMI da 10 a 50 dipendenti.",
+    "subtitle": "Costruiamo il sistema operativo della tua azienda, software che si adatta a come lavorate tu e il tuo team. Automazione e IA per PMI con valore reale.",
     "cta": "Parliamone — 20 min →",
-    "ctaSecondary": "Vedi progetti",
-    "stats": {
-      "customSoftware": "Software su misura",
-      "processAutomation": "Automazione dei processi",
-      "aiIntegrations": "Integrazioni IA",
-      "internalErpCrm": "ERP e CRM interni"
-    }
+    "ctaSecondary": "Vedi progetti"
   },
   "services": {
     "title": "Servizi che trasformano la tua impresa",

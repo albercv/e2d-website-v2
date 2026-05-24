@@ -10,15 +10,9 @@
   },
   "hero": {
     "title": "Software a medida para empresas que han dejado de crecer por sus herramientas",
-    "subtitle": "Construimos el sistema operativo de tu empresa: software propio que se adapta a cómo trabajas, con automatización e IA donde aporta valor real. Para PYMEs de 10 a 50 empleados.",
+    "subtitle": "Construimos el sistema operativo de tu empresa, software propio que se adapta a cómo trabajáis tú y tu empresa. Automatización e IA para PYMEs con valor real.",
     "cta": "Habla conmigo 20 min →",
-    "ctaSecondary": "Ver proyectos",
-    "stats": {
-      "customSoftware": "Software a medida",
-      "processAutomation": "Automatización de procesos",
-      "aiIntegrations": "Integraciones con IA",
-      "internalErpCrm": "ERPs y CRMs internos"
-    }
+    "ctaSecondary": "Ver proyectos"
   },
   "services": {
     "title": "Servicios que transforman tu negocio",

@@ -100,26 +100,6 @@ export function HeroSection() {
           </div>
         </OptimizedMotionDiv>
 
-        {/* Capability bullets */}
-        <OptimizedMotionDiv
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
-        >
-          <div className="text-center">
-            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.customSoftware")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.processAutomation")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.aiIntegrations")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-base sm:text-lg font-semibold text-[#05b4ba]">{t("stats.internalErpCrm")}</div>
-          </div>
-        </OptimizedMotionDiv>
       </div>
     </section>
   )
