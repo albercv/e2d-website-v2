@@ -1,5 +1,6 @@
 import { listPostsFromDisk, getCompiledPost, resolvePostCovers, type RuntimeLocale } from "@/lib/blog/posts-runtime"
 import { buildBlogAlternates, toAbsoluteAlternates } from "@/lib/blog/alternates"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { BlogPost } from "@/components/blog/blog-post"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -31,9 +32,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
   const [post] = await resolvePostCovers([raw])
   const alternates = await buildBlogAlternates(raw.translationKey)
-  const absoluteAlternates = toAbsoluteAlternates(alternates, BASE_URL)
-  const esFallback = absoluteAlternates["es"] ?? Object.values(absoluteAlternates)[0]
-  if (esFallback) absoluteAlternates["x-default"] = esFallback
+  // hreflang regional (es-ES/en-US/it-IT) + x-default, unificado con el resto
+  // del sitio y el sitemap. Solo emite locales con sibling real.
+  const languages = buildHreflangLanguages(toAbsoluteAlternates(alternates, BASE_URL))
 
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
   const author = post.author || "Alberto Carrasco"
@@ -46,7 +47,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     authors: [{ name: author }],
     alternates: {
       canonical,
-      languages: absoluteAlternates,
+      languages,
     },
     openGraph: {
       title: post.title,

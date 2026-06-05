@@ -15,6 +15,7 @@
  */
 
 import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
+import { toRegionalHreflangKeys } from "./seo/hreflang"
 import type { MetadataRoute } from "next"
 
 export interface SitemapEntry {
@@ -201,7 +202,8 @@ export class SitemapGenerator {
           ? `${this.config.baseUrl}${esSibling.url}`
           : `${this.config.baseUrl}${sorted[0].url}`
 
-        alternateUrls = langs
+        // hreflang regional (es-ES/en-US/it-IT) + x-default, unificado con el head.
+        alternateUrls = toRegionalHreflangKeys(langs)
       }
 
       return {
@@ -310,7 +312,8 @@ export class SitemapGenerator {
     // x-default points to Spanish, the primary locale for E2D.
     alternates["x-default"] = `${this.config.baseUrl}/es${path}`
 
-    return alternates
+    // hreflang regional (es-ES/en-US/it-IT) + x-default, unificado con el head.
+    return toRegionalHreflangKeys(alternates)
   }
 
   /**

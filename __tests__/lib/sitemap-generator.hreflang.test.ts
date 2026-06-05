@@ -90,9 +90,9 @@ body`
     expect(langs).toBeDefined()
 
     // Each locale must use its own real slug, not the ES slug
-    expect(langs.es).toBe("https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables")
-    expect(langs.en).toBe("https://evolve2digital.com/en/blog/microservices-architecture-scalable-systems")
-    expect(langs.it).toBe("https://evolve2digital.com/it/blog/architettura-microservizi-sistemi-scalabili")
+    expect(langs["es-ES"]).toBe("https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables")
+    expect(langs["en-US"]).toBe("https://evolve2digital.com/en/blog/microservices-architecture-scalable-systems")
+    expect(langs["it-IT"]).toBe("https://evolve2digital.com/it/blog/architettura-microservizi-sistemi-scalabili")
     expect(langs["x-default"]).toBe("https://evolve2digital.com/es/blog/arquitectura-microservicios-sistemas-escalables")
   })
 
@@ -132,10 +132,10 @@ body`
     expect(esEntry).toBeDefined()
     const langs = (esEntry as any).alternates?.languages as Record<string, string>
 
-    expect(langs.es).toBe("https://evolve2digital.com/es/blog/desarrollo-cloud-native-guia-empresarial")
-    expect(langs.en).toBe("https://evolve2digital.com/en/blog/cloud-native-development-enterprise-guide")
+    expect(langs["es-ES"]).toBe("https://evolve2digital.com/es/blog/desarrollo-cloud-native-guia-empresarial")
+    expect(langs["en-US"]).toBe("https://evolve2digital.com/en/blog/cloud-native-development-enterprise-guide")
     // IT sibling absent → must NOT be fabricated with ES or EN slug
-    expect(langs.it).toBeUndefined()
+    expect(langs["it-IT"]).toBeUndefined()
   })
 
   it("EN sibling entry also uses correct alternate slugs", async () => {
@@ -175,9 +175,9 @@ body`
     const langs = (enEntry as any).alternates?.languages as Record<string, string>
 
     // EN entry must reference the ES sibling slug, not its own slug for hreflang="es"
-    expect(langs.es).toBe("https://evolve2digital.com/es/blog/desarrollo-agil-transformacion-empresarial")
-    expect(langs.en).toBe("https://evolve2digital.com/en/blog/agile-development-business-transformation")
-    expect(langs.it).toBeUndefined()
+    expect(langs["es-ES"]).toBe("https://evolve2digital.com/es/blog/desarrollo-agil-transformacion-empresarial")
+    expect(langs["en-US"]).toBe("https://evolve2digital.com/en/blog/agile-development-business-transformation")
+    expect(langs["it-IT"]).toBeUndefined()
     expect(langs["x-default"]).toBe("https://evolve2digital.com/es/blog/desarrollo-agil-transformacion-empresarial")
   })
 
@@ -217,9 +217,9 @@ body`
     expect(enEntry).toBeDefined()
     const langs = (enEntry as any).alternates?.languages as Record<string, string>
 
-    expect(langs.es).toBeUndefined()
-    expect(langs.en).toBe("https://evolve2digital.com/en/blog/en-only-post")
-    expect(langs.it).toBe("https://evolve2digital.com/it/blog/it-only-post")
+    expect(langs["es-ES"]).toBeUndefined()
+    expect(langs["en-US"]).toBe("https://evolve2digital.com/en/blog/en-only-post")
+    expect(langs["it-IT"]).toBe("https://evolve2digital.com/it/blog/it-only-post")
     // x-default = EN (first alphabetically among available locales, no ES)
     expect(langs["x-default"]).toBe("https://evolve2digital.com/en/blog/en-only-post")
   })
@@ -247,10 +247,10 @@ body`
     expect(entry).toBeDefined()
     const langs = (entry as any).alternates?.languages as Record<string, string>
 
-    expect(langs.es).toBe("https://evolve2digital.com/es/blog/solo-post")
+    expect(langs["es-ES"]).toBe("https://evolve2digital.com/es/blog/solo-post")
     // No EN or IT siblings exist → must NOT appear in alternates
-    expect(langs.en).toBeUndefined()
-    expect(langs.it).toBeUndefined()
+    expect(langs["en-US"]).toBeUndefined()
+    expect(langs["it-IT"]).toBeUndefined()
     expect(langs["x-default"]).toBe("https://evolve2digital.com/es/blog/solo-post")
   })
 })

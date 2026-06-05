@@ -1,4 +1,5 @@
 import { listPostsFromDisk, resolvePostCovers } from "@/lib/blog/posts-runtime"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { BlogList } from "@/components/blog/blog-list"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -35,11 +36,11 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `${baseUrl}/${locale}/blog`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/blog`,
         en: `${baseUrl}/en/blog`,
         it: `${baseUrl}/it/blog`,
-      },
+      }),
     },
     openGraph: {
       type: "website",
