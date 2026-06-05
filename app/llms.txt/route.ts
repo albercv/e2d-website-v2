@@ -7,9 +7,9 @@ const BASE_URL = "https://evolve2digital.com"
 
 const HEADER = `# E2D — Evolve2Digital
 
-> Automatización empresarial con IA: agentes de voz, chatbots WhatsApp y workflows que liberan horas a equipos de PYMEs y mid-market en clínicas, inmobiliarias y asesorías.
+> Software a medida e integración de IA para PYMEs de 10 a 50 empleados que han dejado de crecer por sus herramientas. Aplicaciones web, ERP/CRM y automatización de procesos. Sin SaaS genérico: tu software, tu negocio.
 
-E2D es una boutique de implementación. Construimos automatizaciones a medida con un loop corto: medimos el tiempo perdido en una tarea, prototipamos en días, desplegamos y monitorizamos.
+E2D construye el software propio de cada empresa con un loop corto: entendemos cómo trabajáis, prototipamos en días, desplegamos y lo hacemos crecer contigo. Software a medida y automatización con valor real, no SaaS genérico.
 
 `
 

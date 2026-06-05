@@ -82,7 +82,9 @@ export class JsonLdGenerator {
       "@id": `${this.config.baseUrl}#organization`,
       name: org.name,
       alternateName: org.alternateName,
-      url: `${this.config.baseUrl}/${locale}`,
+      // url de la entidad = raíz canónica, no la ruta de locale: identifica la
+      // marca para Knowledge Panel/Sitelinks, no su página en español.
+      url: this.config.baseUrl,
       logo: {
         "@type": "ImageObject",
         url: `${this.config.baseUrl}${org.logo}`,
@@ -435,9 +437,9 @@ export const defaultJsonLdConfig: JsonLdConfig = {
     name: "E2D - Evolve2Digital",
     alternateName: "E2D",
     description: {
-      es: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
-      en: "Automate your company: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
-      it: "Automatizza la tua azienda: più vendite, meno compiti. Agenti vocali, chatbot WhatsApp e automazioni per cliniche, immobiliari e consulenze."
+      es: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
+      en: "Custom software development, process automation and AI integrations for SMEs of 10 to 50 employees. No generic SaaS: your software, your business.",
+      it: "Sviluppo di software su misura, automazione dei processi e integrazioni IA per PMI di 10-50 dipendenti. Niente SaaS generico: il tuo software, il tuo business."
     },
     logo: "/e2d_logo.webp",
     url: "https://evolve2digital.com",
