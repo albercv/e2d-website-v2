@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import PrivacyClientPage from "./privacy-client"
 
 interface PrivacyPageProps {
@@ -28,11 +29,11 @@ export async function generateMetadata({ params }: PrivacyPageProps): Promise<Me
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `${baseUrl}/${locale}/privacy`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/privacy`,
         en: `${baseUrl}/en/privacy`,
         it: `${baseUrl}/it/privacy`,
-      },
+      }),
     },
     openGraph: {
       type: "website",

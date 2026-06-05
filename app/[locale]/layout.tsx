@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { NextIntlClientProvider } from "next-intl"
 import { notFound } from "next/navigation"
 import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/seo/json-ld"
@@ -40,11 +41,11 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
     description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
     alternates: {
       canonical: `${baseUrl}/${locale}`,
-      languages: {
-        "es-ES": `${baseUrl}/es`,
-        "en-US": `${baseUrl}/en`,
-        "it-IT": `${baseUrl}/it`,
-      },
+      languages: buildHreflangLanguages({
+        es: `${baseUrl}/es`,
+        en: `${baseUrl}/en`,
+        it: `${baseUrl}/it`,
+      }),
     },
     openGraph: {
       type: "website",

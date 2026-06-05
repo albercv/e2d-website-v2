@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/navigation"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { Footer } from "@/components/layout/footer"
 import { DocsNavigation } from "@/components/docs/docs-navigation"
 import { DocsOverview } from "@/components/docs/docs-overview"
@@ -23,10 +24,10 @@ export async function generateMetadata({ params }: DocsPageProps): Promise<Metad
         : "Complete technical documentation for E2D project: architecture, components, principles and best practices",
     alternates: {
       canonical: `${baseUrl}/${locale}/docs`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/docs`,
         en: `${baseUrl}/en/docs`,
-      },
+      }),
     },
     openGraph: {
       type: "website",
