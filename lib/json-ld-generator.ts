@@ -225,7 +225,11 @@ export class JsonLdGenerator {
    */
   generateBlogPostSchema(post: BlogPostData): object {
     const baseUrl = this.config.baseUrl
-    const fullUrl = `${baseUrl}${post.url}`
+    // post.url puede llegar como ruta relativa (`/es/blog/...`) o ya absoluta
+    // (`https://.../es/blog/...`). Concatenar baseUrl sin comprobarlo duplicaba
+    // el origen (`evolve2digital.comhttps://evolve2digital.com/...`), rompiendo
+    // @id/url/mainEntityOfPage en TODOS los posts para rich results y para IA.
+    const fullUrl = /^https?:\/\//.test(post.url) ? post.url : `${baseUrl}${post.url}`
     
     return {
       "@context": "https://schema.org",
@@ -285,14 +289,10 @@ export class JsonLdGenerator {
       potentialAction: {
         "@type": "ReadAction",
         target: fullUrl
-      },
-      // Content quality indicators for AI
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.8",
-        ratingCount: "1",
-        bestRating: "5"
       }
+      // NOTA: se eliminó `aggregateRating` (valoración fabricada 4.8/1 voto).
+      // Datos estructurados inventados = riesgo de manual action de Google y
+      // AggregateRating no genera rich result en artículos. Solo riesgo.
     }
   }
 
@@ -442,7 +442,9 @@ export const defaultJsonLdConfig: JsonLdConfig = {
     logo: "/e2d_logo.webp",
     url: "https://evolve2digital.com",
     email: "hello@evolve2digital.com",
-    telephone: "+34-600-000-000",
+    // telephone omitido: no publicar número placeholder en el schema de
+    // Organization (Google podría mostrarlo como teléfono real). El campo es
+    // opcional; al quedar undefined, JSON.stringify lo elimina del JSON-LD.
     address: {
       country: "ES",
       locality: "España"
