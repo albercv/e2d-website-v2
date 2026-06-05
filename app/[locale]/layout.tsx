@@ -90,20 +90,20 @@ export default async function LocaleLayout({  children,
       <noscript>
         {locale === "es" && (
           <p>
-            Evolve2Digital (E2D) ayuda a PYMEs a automatizar ventas y operaciones con IA: voicebots, chatbots de
-            WhatsApp y flujos n8n. Más ventas, menos tareas.
+            Evolve2Digital (E2D) desarrolla software a medida e integra IA para PYMEs de 10 a 50 empleados:
+            aplicaciones web, ERP/CRM y automatización de procesos. Sin SaaS genérico: tu software, tu negocio.
           </p>
         )}
         {locale === "en" && (
           <p>
-            Evolve2Digital (E2D) helps SMEs automate sales and operations with AI: voicebots, WhatsApp chatbots and n8n
-            flows. More sales, fewer tasks.
+            Evolve2Digital (E2D) builds custom software and integrates AI for SMEs of 10 to 50 employees: web apps,
+            ERP/CRM and process automation. No generic SaaS: your software, your business.
           </p>
         )}
         {locale === "it" && (
           <p>
-            Evolve2Digital (E2D) aiuta le PMI ad automatizzare vendite e operazioni con l’IA: voicebot, chatbot
-            WhatsApp e flussi n8n. Più vendite, meno compiti.
+            Evolve2Digital (E2D) sviluppa software su misura e integra l’IA per PMI di 10-50 dipendenti: applicazioni
+            web, ERP/CRM e automazione dei processi. Niente SaaS generico: il tuo software, il tuo business.
           </p>
         )}
       </noscript>
