@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import LegalClientPage from "./LegalClientPage"
 
 interface LegalPageProps {
@@ -28,11 +29,11 @@ export async function generateMetadata({ params }: LegalPageProps): Promise<Meta
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `${baseUrl}/${locale}/legal`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/legal`,
         en: `${baseUrl}/en/legal`,
         it: `${baseUrl}/it/legal`,
-      },
+      }),
     },
     openGraph: {
       type: "website",

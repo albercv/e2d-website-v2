@@ -1,4 +1,5 @@
 import { Navigation } from "@/components/layout/navigation"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { Footer } from "@/components/layout/footer"
 import { DocsNavigation } from "@/components/docs/docs-navigation"
 import { DocsContent } from "@/components/docs/docs-content"
@@ -78,11 +79,11 @@ export async function generateMetadata({ params }: DocsSlugPageProps): Promise<M
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `${baseUrl}/${locale}/docs/${slug}`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/docs/${slug}`,
         en: `${baseUrl}/en/docs/${slug}`,
         it: `${baseUrl}/it/docs/${slug}`,
-      },
+      }),
     },
     openGraph: {
       type: "article",

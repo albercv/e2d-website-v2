@@ -19,11 +19,11 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "E2D - Evolve2Digital | Automatiza tu empresa",
+  title: "E2D - Evolve2Digital | Software a medida para PYMEs",
   description:
-    "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
+    "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
   generator: "E2D - Evolve2Digital",
-  keywords: ["automatización", "chatbots", "WhatsApp", "voicebots", "PYME", "clínicas", "inmobiliarias"],
+  keywords: ["software a medida", "desarrollo a medida", "ERP a medida", "CRM personalizado", "automatización de procesos", "integración IA empresas", "software para PYMEs"],
   authors: [{ name: "Alberto Carrasco", url: "https://evolve2digital.com" }],
   creator: "E2D - Evolve2Digital",
   publisher: "E2D - Evolve2Digital",
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
     alternateLocale: "en_US",
     url: "https://evolve2digital.com",
     siteName: "E2D - Evolve2Digital",
-    title: "E2D - Automatiza tu empresa con IA",
-    description: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
+    title: "E2D - Software a medida para PYMEs",
+    description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "E2D - Automatiza tu empresa con IA",
-    description: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones.",
+    title: "E2D - Software a medida para PYMEs",
+    description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
   },
   robots: {
     index: true,
@@ -64,8 +64,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://api.evolve2digital.com" />
-        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+<link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://assets.apollo.io" />
       </head>

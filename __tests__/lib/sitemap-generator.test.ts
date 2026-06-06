@@ -145,9 +145,9 @@ body
     expect(home).toBeDefined()
     const langs = (home as any).alternates?.languages as Record<string, string>
     expect(langs).toBeDefined()
-    expect(langs.es).toBe("https://evolve2digital.com/es")
-    expect(langs.en).toBe("https://evolve2digital.com/en")
-    expect(langs.it).toBe("https://evolve2digital.com/it")
+    expect(langs["es-ES"]).toBe("https://evolve2digital.com/es")
+    expect(langs["en-US"]).toBe("https://evolve2digital.com/en")
+    expect(langs["it-IT"]).toBe("https://evolve2digital.com/it")
     expect(langs["x-default"]).toBe("https://evolve2digital.com/es")
   })
 
@@ -156,9 +156,9 @@ body
     const blog = entries.find(e => e.url === "https://evolve2digital.com/en/blog")
     expect(blog).toBeDefined()
     const langs = (blog as any).alternates?.languages as Record<string, string>
-    expect(langs?.es).toBe("https://evolve2digital.com/es/blog")
-    expect(langs?.en).toBe("https://evolve2digital.com/en/blog")
-    expect(langs?.it).toBe("https://evolve2digital.com/it/blog")
+    expect(langs?.["es-ES"]).toBe("https://evolve2digital.com/es/blog")
+    expect(langs?.["en-US"]).toBe("https://evolve2digital.com/en/blog")
+    expect(langs?.["it-IT"]).toBe("https://evolve2digital.com/it/blog")
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog")
   })
 
@@ -182,9 +182,9 @@ body`
     )
     expect(post).toBeDefined()
     const langs = (post as any).alternates?.languages as Record<string, string>
-    expect(langs?.es).toBe("https://evolve2digital.com/es/blog/llm")
-    expect(langs?.en).toBeUndefined()
-    expect(langs?.it).toBeUndefined()
+    expect(langs?.["es-ES"]).toBe("https://evolve2digital.com/es/blog/llm")
+    expect(langs?.["en-US"]).toBeUndefined()
+    expect(langs?.["it-IT"]).toBeUndefined()
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog/llm")
   })
 })

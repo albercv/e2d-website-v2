@@ -5,19 +5,14 @@
     "projects": "Projects",
     "about": "About",
     "blog": "Blog",
+    "faq": "FAQs",
     "contact": "Contact"
   },
   "hero": {
-    "title": "Automate your company: more sales, fewer tasks",
-    "subtitle": "Voice agents, WhatsApp chatbots and automations that transform any business. Custom solutions for companies looking to grow.",
-    "cta": "Book a demo",
-    "ctaSecondary": "See projects",
-    "stats": {
-      "moreAppointments": "More appointments",
-      "missedCalls": "Missed calls",
-      "noShows": "No-shows",
-      "tasksPerWeek": "Tasks/week"
-    }
+    "title": "Custom software for companies whose tools have stopped scaling with them",
+    "subtitle": "We build your company's operating system, software that adapts to how you and your team actually work. Automation and AI for SMEs with real value.",
+    "cta": "Talk to me — 20 min →",
+    "ctaSecondary": "See projects"
   },
   "services": {
     "title": "Services that transform your business",
@@ -167,6 +162,10 @@
         "title": "Marketing Cookies",
         "description": "Used to show relevant ads and measure campaigns. Includes Apollo.io for visitor identification."
       },
+      "aiChat": {
+        "title": "AI Assistant",
+        "description": "Enables the AI chat panel. Your messages are sent to DeepSeek and search queries are processed using OpenAI embeddings."
+      },
       "required": "Required",
       "cancel": "Cancel",
       "save": "Save preferences"
@@ -199,7 +198,57 @@
       },
       "contact": {
         "title": "Contact"
+      },
+      "aiChat": {
+        "title": "AI Assistant",
+        "description": "If you interact with the AI assistant, your messages are sent to DeepSeek (LLM) and your queries are vectorized using OpenAI embeddings to surface relevant content from our knowledge base. We keep conversations for 90 days, after which they are deleted automatically. Any contact details you choose to share are retained as a business record."
       }
+    }
+  },
+  "chat": {
+    "openLabel": "Chat with the AI assistant",
+    "title": "E2D Assistant",
+    "subtitle": "Powered by AI — ask me about automation",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "thinking": "Thinking…",
+    "errorGeneric": "Something went wrong. Please try again in a moment or reach us on WhatsApp.",
+    "errorRateLimit": "You have reached the hourly limit. Try again later or message us on WhatsApp.",
+    "disclaimer": "The assistant can make mistakes. For critical matters, contact us directly.",
+    "fallbackContactCTA": "Contact us via WhatsApp or email",
+    "newConversation": "New conversation",
+    "close": "Close",
+    "initialMessage": "Hi! I'm the E2D assistant. How can I help you today?",
+    "leadForm": {
+      "open": "Leave my contact",
+      "title": "Leave your contact",
+      "subtitle": "Alberto will reply to you personally. No commitment.",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "company": "Company",
+      "intent": "What do you want to talk about",
+      "intentOptions": {
+        "voicebot": "Voicebot",
+        "chatbot": "Chatbot / WhatsApp",
+        "automation": "Process automation",
+        "web": "Web development",
+        "crm": "CRM / integration",
+        "budget": "Quote",
+        "other": "Other"
+      },
+      "message": "Tell us briefly what you need (optional)",
+      "consent": "I accept the privacy policy",
+      "submit": "Send",
+      "sending": "Sending…",
+      "successTitle": "Received",
+      "successBody": "Alberto will get back to you soon. Meanwhile, feel free to keep chatting with the bot.",
+      "errorTitle": "We could not send it",
+      "errorBody": "Please try again in a moment, or write directly to Alberto:",
+      "close": "Close",
+      "requiredEmail": "Email is required",
+      "invalidEmail": "Invalid email",
+      "requiredConsent": "We need your consent"
     }
   }
 }

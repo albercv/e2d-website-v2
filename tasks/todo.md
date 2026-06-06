@@ -1,5 +1,58 @@
 # Tarea Activa
 
+## GA4 measurement — verificación post-fix + cierre de `feature/google-meassurement` (2026-05-22)
+
+> Origen: 6h de debug cerradas. El stub `window.gtag` en `components/analytics/google-analytics.tsx` pusheaba un Array (arrow + rest params) en vez de un objeto `arguments`. gtag.js solo procesa un comando cuando el valor pusheado a `dataLayer` es un `arguments` object — un Array lo ignora. Resultado: `js`/`consent`/`config`/`event` quedaban inertes → cero hits. Fix aplicado (forma canónica `function gtag(){ dataLayer.push(arguments) }`), `npm run build` + redeploy hechos, GA4 ya recibe eventos. Detalle completo en `tasks/ga4-debugging-report.md`.
+>
+> **CONSECUENCIA: todo lo que depende de `window.gtag` estuvo roto hasta ahora.** La checklist de test que se dio al mergear las 4 ramas GA nunca fue válida — hay que re-verificarla entera.
+
+### Phase A — Re-verificar el stack GA completo (ahora que gtag transmite)
+
+- [ ] **A.1** 12 business events de `lib/analytics/track.ts` — disparar cada uno en navegador (contact-modal, whatsapp, hero-section, chat-panel, lead-capture-form, ContactCTA) y confirmar en GA4 DebugView que llega con sus parámetros.
+- [ ] **A.2** SPA page_view — navegar entre rutas, confirmar UN `page_view` por navegación y sin duplicado en el mount inicial (el efecto `usePathname` salta el primer render).
+- [ ] **A.3** Consent — rechazar cookies → hits `gcs=G100` (cookieless); aceptar → `gcs=G111` (full). Verificar el param `gcs` en Network.
+- [ ] **A.4** Apollo tracker — confirmar que solo dispara tras aceptar consent de marketing (evento `cookie-consent-changed`).
+- [ ] **A.5** Gate dev/staging — confirmar que en `next dev` / no-producción NO se envían hits (gate `NODE_ENV==='production'`).
+
+### Phase B — Config GA4 en consola (manual, sin código)
+
+- [ ] **B.1** Marcar key events: `generate_lead`, `whatsapp_click`, `contact_open`.
+- [ ] **B.2** Filtro de tráfico interno — excluir IP de oficina/dev (Admin → Data Settings → Data Filters).
+
+### Phase C — Git (rama NO se pushea ni mergea — decisión usuario 2026-05-22)
+
+- [ ] **C.1** Commit local del fix gtag + el `.gitignore` (`.codegraph/`) en `feature/google-meassurement`. SIN push. Mensaje estilo proyecto (Scope/Problem/Solution/Notes, sin Co-Authored-By).
+- [ ] **C.2** Anotar la lección en `tasks/lessons.md`: "el stub gtag DEBE pushear `arguments`, nunca un Array; arrow + rest params lo rompe en silencio".
+- [ ] **C.3** Cuando el usuario lo decida: PR `feature/google-meassurement` → develop, tras pasar Phase A.
+
+### Phase D — Decisiones diferidas (pendiente input usuario)
+
+- [ ] **D.1** Borrar `AIAgentModal` / `AIAgentButton` muertos (nunca renderizados) — confirmar con usuario.
+- [ ] **D.2** Decidir: adoptar GTM vs mantener gtag hardcodeado.
+
+### Phase E — Limpieza
+
+- [ ] **E.1** `git worktree remove` de los 4 worktrees de agentes bloqueados en `.claude/worktrees/`.
+
+---
+
+## Chat IA — panel demasiado grande en móvil (2026-05-16)
+
+> Origen: el usuario reporta que el chat IA en móvil "no se ve bien, es demasiado grande". Causa probable identificada por inspección: `components/chat/chat-panel.tsx:308` aplica `inset-0` en móvil, lo que ocupa el viewport completo (full-screen take-over). En desktop usa `sm:bottom-24 sm:right-6 sm:h-[560px] sm:w-[380px] sm:rounded-2xl sm:border` (panel anclado). El comportamiento full-screen en móvil es agresivo: tapa toda la página y se siente desproporcionado en pantallas pequeñas.
+
+- [ ] **M.1** Reproducir en móvil real (no solo devtools responsive) en al menos: iPhone (Safari) + Android Chrome. Anotar viewport reportado, qué se ve y qué se siente "demasiado grande" — es el panel completo, el header, el input, el avatar/launcher, o todo a la vez.
+- [ ] **M.2** Decidir el patrón mobile correcto:
+  - (a) Panel anclado bottom con `max-h-[80vh]` y `inset-x-2 bottom-2` (sheet flotante, no full-screen).
+  - (b) Bottom-sheet con `inset-x-0 bottom-0` + `h-[75vh]` + `rounded-t-2xl` (estilo iOS/Android sheet).
+  - (c) Mantener full-screen pero reducir paddings/tamaño tipográfico y header compacto.
+  - Discutirlo con el usuario antes de codear.
+- [ ] **M.3** Implementar el cambio en `components/chat/chat-panel.tsx:305-310` (clases del contenedor `role="dialog"`). Probable: cambiar `inset-0` por la variante mobile elegida, mantener `sm:*` desktop intacto.
+- [ ] **M.4** Verificar que el botón "X" (cerrar) sigue accesible sin interferir con la safe-area iOS (notch + home indicator). Si bottom-sheet → añadir `pb-[env(safe-area-inset-bottom)]` al input bar.
+- [ ] **M.5** Verificar que el launcher flotante (`components/chat/chat-panel.tsx:228` — `fixed bottom-6 right-6 z-50`) no queda tapado por el panel reducido cuando esté abierto, o esconderlo cuando `isOpen`.
+- [ ] **M.6** Verificación obligatoria en móvil real antes de PR (lección [[contact-cta-i18n-still-broken]]: tests verdes ≠ probado).
+
+---
+
 ## ContactCTA i18n no funciona en runtime (2026-05-09)
 
 > Origen: el usuario reporta que el marker `[contact]` sigue saliendo siempre en español en `/en/blog/*` y `/it/blog/*`. El "fix" anterior (commit `cb6f409` en rama `fix/contact-cta-i18n`) tiene 9 tests jest verdes pero **no funciona en navegador** — falso positivo. El merge a develop ya fue reverteado (`537aff9`); la rama sigue viva con el commit roto.

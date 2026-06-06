@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/footer"
 import { Navigation } from "@/components/layout/navigation"
 import { Suspense } from "react"
 import { ProjectsSectionLazy, AboutSectionLazy, AdaptSectionLazy, FaqSectionLazy } from "@/components/performance/lazy-components"
-import { FloatingContactButton } from "@/components/contact/floating-contact-button"
+import { ChatPanel } from "@/components/chat/chat-panel"
 
 export default function HomePage() {
   return (
@@ -30,7 +30,7 @@ export default function HomePage() {
         </Suspense>
       </main>
       <Footer />
-      <FloatingContactButton />
+      <ChatPanel />
     </div>
   )
 }

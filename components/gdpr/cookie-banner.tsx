@@ -11,6 +11,24 @@ interface CookiePreferences {
   necessary: boolean
   analytics: boolean
   marketing: boolean
+  // Opt-in toggle for the AI chat assistant. When false the chat panel
+  // should not load (DeepSeek + OpenAI embeddings cookie disclosure).
+  // TODO: wire chat-panel.tsx to read this flag from localStorage.
+  aiChat: boolean
+}
+
+// Maps the saved preferences to a gtag consent update covering both
+// analytics (GA) and marketing/ad signals (Apollo, remarketing).
+// Must be called after every consent change so the consent mode state
+// stays in sync without requiring a page reload.
+function applyConsentToGtag(prefs: CookiePreferences) {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") return
+  window.gtag("consent", "update", {
+    analytics_storage: prefs.analytics ? "granted" : "denied",
+    ad_storage: prefs.marketing ? "granted" : "denied",
+    ad_user_data: prefs.marketing ? "granted" : "denied",
+    ad_personalization: prefs.marketing ? "granted" : "denied",
+  })
 }
 
 export function CookieBanner() {
@@ -21,61 +39,69 @@ export function CookieBanner() {
     necessary: true,
     analytics: false,
     marketing: false,
+    aiChat: false,
   })
 
   useEffect(() => {
     const consent = localStorage.getItem("cookie-consent")
     if (!consent) {
       setShowBanner(true)
-    } else {
-      const savedPreferences = JSON.parse(consent)
-      setPreferences(savedPreferences)
-      // Initialize analytics based on consent
-      if (savedPreferences.analytics) {
-        initializeAnalytics()
-      }
+      return
     }
+    // Older consent payloads may lack the aiChat key — default to false
+    // so existing visitors must explicitly opt in to the AI chat toggle.
+    const partial = JSON.parse(consent) as Partial<CookiePreferences>
+    const savedPreferences: CookiePreferences = {
+      necessary: true,
+      analytics: false,
+      marketing: false,
+      aiChat: false,
+      ...partial,
+    }
+    setPreferences(savedPreferences)
+    // Replay consent state into gtag so the consent mode reflects what
+    // the visitor actually chose in a prior session, not the denied default.
+    applyConsentToGtag(savedPreferences)
   }, [])
 
-  const initializeAnalytics = () => {
-    // Initialize Google Analytics
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("consent", "update", {
-        analytics_storage: "granted",
-      })
-    }
-  }
-
   const handleAcceptAll = () => {
-    const allAccepted = {
+    const allAccepted: CookiePreferences = {
       necessary: true,
       analytics: true,
       marketing: true,
+      aiChat: true,
     }
     setPreferences(allAccepted)
     localStorage.setItem("cookie-consent", JSON.stringify(allAccepted))
     setShowBanner(false)
-    initializeAnalytics()
+    applyConsentToGtag(allAccepted)
+    // Notify other components (e.g. ApolloTracker) so they can react
+    // to the new consent state without a full page reload.
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handleRejectAll = () => {
-    const onlyNecessary = {
+    const onlyNecessary: CookiePreferences = {
       necessary: true,
       analytics: false,
       marketing: false,
+      aiChat: false,
     }
     setPreferences(onlyNecessary)
     localStorage.setItem("cookie-consent", JSON.stringify(onlyNecessary))
     setShowBanner(false)
+    // Downgrade consent signals so any already-initialised trackers honour
+    // the rejection and stop collecting data in the current session.
+    applyConsentToGtag(onlyNecessary)
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handleSavePreferences = () => {
     localStorage.setItem("cookie-consent", JSON.stringify(preferences))
     setShowBanner(false)
     setShowSettings(false)
-    if (preferences.analytics) {
-      initializeAnalytics()
-    }
+    applyConsentToGtag(preferences)
+    window.dispatchEvent(new Event("cookie-consent-changed"))
   }
 
   const handlePreferenceChange = (type: keyof CookiePreferences) => {
@@ -185,6 +211,23 @@ export function CookieBanner() {
                           type="checkbox"
                           checked={preferences.marketing}
                           onChange={() => handlePreferenceChange("marketing")}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+
+                    {/* TODO: wire chat-panel to skip mount when preferences.aiChat === false. */}
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{t("settings.aiChat.title")}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{t("settings.aiChat.description")}</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={preferences.aiChat}
+                          onChange={() => handlePreferenceChange("aiChat")}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>

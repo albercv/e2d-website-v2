@@ -10,6 +10,9 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // SEO/security: ocultar el header `X-Powered-By: Next.js` para no revelar
+  // el framework ni facilitar la búsqueda de exploits por versión.
+  poweredByHeader: false,
   // BUG-16: `content/posts` es por diseño un symlink a /var/lib/e2d-content/
   // posts (el reader de posts-runtime.ts atraviesa el symlink en walkMdx,
   // ver línea 70). next-tracer copia `content/` al standalone siguiendo el

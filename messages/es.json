@@ -5,19 +5,14 @@
     "projects": "Proyectos",
     "about": "Sobre mí",
     "blog": "Blog",
+    "faq": "FAQs",
     "contact": "Contacto"
   },
   "hero": {
-    "title": "Automatiza tu empresa: más ventas, menos tareas",
-    "subtitle": "Agentes de voz, chatbots WhatsApp y automatizaciones que transforman cualquier negocio. Soluciones personalizadas para empresas que buscan crecer.",
-    "cta": "Reserva una demo",
-    "ctaSecondary": "Ver proyectos",
-    "stats": {
-      "moreAppointments": "Más citas",
-      "missedCalls": "Llamadas perdidas",
-      "noShows": "No-shows",
-      "tasksPerWeek": "Tareas/semana"
-    }
+    "title": "Software a medida para empresas que han dejado de crecer por sus herramientas",
+    "subtitle": "Construimos el sistema operativo de tu empresa, software propio que se adapta a cómo trabajáis tú y tu empresa. Automatización e IA para PYMEs con valor real.",
+    "cta": "Habla conmigo 20 min →",
+    "ctaSecondary": "Ver proyectos"
   },
   "services": {
     "title": "Servicios que transforman tu negocio",
@@ -167,6 +162,10 @@
         "title": "Cookies de Marketing",
         "description": "Utilizadas para mostrar anuncios relevantes y medir campañas. Incluye Apollo.io para identificación de visitantes."
       },
+      "aiChat": {
+        "title": "Asistente IA",
+        "description": "Permite cargar el chat con IA. Tus mensajes se envían a DeepSeek y las búsquedas se procesan con embeddings de OpenAI."
+      },
       "required": "Requeridas",
       "cancel": "Cancelar",
       "save": "Guardar preferencias"
@@ -199,7 +198,57 @@
       },
       "contact": {
         "title": "Contacto"
+      },
+      "aiChat": {
+        "title": "Asistente de IA",
+        "description": "Si interactúas con el asistente IA, tus mensajes se envían a DeepSeek (LLM) y las consultas de búsqueda se vectorizan con embeddings de OpenAI para localizar contenido relevante de nuestra base de conocimiento. Conservamos las conversaciones durante 90 días y después se eliminan automáticamente. Los datos de contacto que decidas compartir se guardan como registro comercial."
       }
+    }
+  },
+  "chat": {
+    "openLabel": "Chatear con el asistente IA",
+    "title": "Asistente E2D",
+    "subtitle": "Powered by IA — pregúntame sobre automatización",
+    "placeholder": "Escribe tu pregunta…",
+    "send": "Enviar",
+    "thinking": "Pensando…",
+    "errorGeneric": "Algo salió mal. Inténtalo de nuevo en un momento o contáctanos por WhatsApp.",
+    "errorRateLimit": "Has alcanzado el límite por hora. Vuelve a intentarlo más tarde o escríbenos por WhatsApp.",
+    "disclaimer": "El asistente puede equivocarse. Para asuntos críticos, contáctanos directamente.",
+    "fallbackContactCTA": "Contactar por WhatsApp o email",
+    "newConversation": "Nueva conversación",
+    "close": "Cerrar",
+    "initialMessage": "¡Hola! Soy el asistente de E2D. ¿En qué puedo ayudarte?",
+    "leadForm": {
+      "open": "Dejar mis datos",
+      "title": "Dejar mis datos",
+      "subtitle": "Te respondo personalmente. Sin compromiso.",
+      "name": "Nombre",
+      "email": "Email",
+      "phone": "Teléfono",
+      "company": "Empresa",
+      "intent": "Sobre qué quieres hablar",
+      "intentOptions": {
+        "voicebot": "Voicebot",
+        "chatbot": "Chatbot / WhatsApp",
+        "automation": "Automatización de procesos",
+        "web": "Desarrollo web",
+        "crm": "CRM / integración",
+        "budget": "Presupuesto",
+        "other": "Otro"
+      },
+      "message": "Cuéntame brevemente qué necesitas (opcional)",
+      "consent": "Acepto la política de privacidad",
+      "submit": "Enviar",
+      "sending": "Enviando…",
+      "successTitle": "Recibido",
+      "successBody": "Alberto te responderá pronto. Mientras tanto puedes seguir charlando con el bot.",
+      "errorTitle": "No hemos podido enviarlo",
+      "errorBody": "Inténtalo en un momento, o escribe directamente a Alberto:",
+      "close": "Cerrar",
+      "requiredEmail": "El email es obligatorio",
+      "invalidEmail": "Email no válido",
+      "requiredConsent": "Necesitamos tu consentimiento"
     }
   }
 }

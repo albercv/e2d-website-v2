@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { NextIntlClientProvider } from "next-intl"
 import { notFound } from "next/navigation"
 import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/seo/json-ld"
@@ -16,30 +17,35 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
   const baseUrl = "https://evolve2digital.com"
 
   const titleByLocale = {
-    es: "E2D - Automatiza tu empresa con IA",
-    en: "E2D - Automate your business with AI",
-    it: "E2D - Automatizza la tua azienda con IA",
+    es: "Software a medida para PYMEs | Automatización con IA — E2D",
+    en: "Custom software for SMEs | AI automation — E2D",
+    it: "Software su misura per PMI | Automazione con IA — E2D",
   } as const
 
   const descriptionByLocale = {
-    es: "Automatiza tu empresa: más ventas, menos tareas. Agentes de voz, chatbots WhatsApp y automatizaciones para clínicas, inmobiliarias y asesorías.",
-    en: "Automate your business: more sales, fewer tasks. Voice agents, WhatsApp chatbots and automations for clinics, real estate and consultancies.",
-    it: "Automatizza la tua azienda: più vendite, meno compiti. Voice agent, chatbot WhatsApp e automazioni per cliniche, immobiliare e consulenze.",
+    es: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
+    en: "Custom software development, process automation and AI integrations for SMEs of 10 to 50 employees. No generic SaaS: your software, your business.",
+    it: "Sviluppo di software su misura, automazione dei processi e integrazioni IA per PMI di 10-50 dipendenti. Niente SaaS generico: il tuo software, il tuo business.",
+  } as const
+
+  const keywordsByLocale = {
+    es: ["software a medida", "desarrollo a medida", "ERP a medida", "CRM personalizado", "automatización de procesos", "integración IA empresas", "software para PYMEs"],
+    en: ["custom software development", "bespoke software", "custom ERP", "custom CRM", "process automation", "AI integration", "SME software"],
+    it: ["software su misura", "sviluppo su misura", "ERP personalizzato", "CRM personalizzato", "automazione processi", "integrazione IA", "software PMI"],
   } as const
 
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
-  const smeWord = locale === "es" ? "PYME" : locale === "it" ? "PMI" : "SME"
 
   return {
     title: titleByLocale[locale as keyof typeof titleByLocale] ?? titleByLocale.es,
     description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
     alternates: {
       canonical: `${baseUrl}/${locale}`,
-      languages: {
-        "es-ES": `${baseUrl}/es`,
-        "en-US": `${baseUrl}/en`,
-        "it-IT": `${baseUrl}/it`,
-      },
+      languages: buildHreflangLanguages({
+        es: `${baseUrl}/es`,
+        en: `${baseUrl}/en`,
+        it: `${baseUrl}/it`,
+      }),
     },
     openGraph: {
       type: "website",
@@ -58,13 +64,7 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
       index: true,
       follow: true,
     },
-    keywords: [
-      locale === "es" ? "automatización" : locale === "it" ? "automazione" : "automation",
-      "chatbots",
-      "WhatsApp",
-      "voicebots",
-      smeWord,
-    ],
+    keywords: keywordsByLocale[locale as keyof typeof keywordsByLocale] ?? keywordsByLocale.es,
   }
 }
 
@@ -91,20 +91,20 @@ export default async function LocaleLayout({  children,
       <noscript>
         {locale === "es" && (
           <p>
-            Evolve2Digital (E2D) ayuda a PYMEs a automatizar ventas y operaciones con IA: voicebots, chatbots de
-            WhatsApp y flujos n8n. Más ventas, menos tareas.
+            Evolve2Digital (E2D) desarrolla software a medida e integra IA para PYMEs de 10 a 50 empleados:
+            aplicaciones web, ERP/CRM y automatización de procesos. Sin SaaS genérico: tu software, tu negocio.
           </p>
         )}
         {locale === "en" && (
           <p>
-            Evolve2Digital (E2D) helps SMEs automate sales and operations with AI: voicebots, WhatsApp chatbots and n8n
-            flows. More sales, fewer tasks.
+            Evolve2Digital (E2D) builds custom software and integrates AI for SMEs of 10 to 50 employees: web apps,
+            ERP/CRM and process automation. No generic SaaS: your software, your business.
           </p>
         )}
         {locale === "it" && (
           <p>
-            Evolve2Digital (E2D) aiuta le PMI ad automatizzare vendite e operazioni con l’IA: voicebot, chatbot
-            WhatsApp e flussi n8n. Più vendite, meno compiti.
+            Evolve2Digital (E2D) sviluppa software su misura e integra l’IA per PMI di 10-50 dipendenti: applicazioni
+            web, ERP/CRM e automazione dei processi. Niente SaaS generico: il tuo software, il tuo business.
           </p>
         )}
       </noscript>

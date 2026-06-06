@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import CookiesClientPage from "./CookiesClientPage"
 
 interface CookiesPageProps {
@@ -28,11 +29,11 @@ export async function generateMetadata({ params }: CookiesPageProps): Promise<Me
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
       canonical: `${baseUrl}/${locale}/cookies`,
-      languages: {
+      languages: buildHreflangLanguages({
         es: `${baseUrl}/es/cookies`,
         en: `${baseUrl}/en/cookies`,
         it: `${baseUrl}/it/cookies`,
-      },
+      }),
     },
     openGraph: {
       type: "website",

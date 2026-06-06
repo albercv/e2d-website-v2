@@ -5,19 +5,14 @@
     "projects": "Progetti",
     "about": "Chi sono",
     "blog": "Blog",
+    "faq": "FAQs",
     "contact": "Contatto"
   },
   "hero": {
-    "title": "Automatizza la tua azienda: più vendite, meno compiti",
-    "subtitle": "Agenti vocali, chatbot WhatsApp e automazioni che trasformano qualsiasi business. Soluzioni su misura per aziende che vogliono crescere.",
-    "cta": "Prenota una demo",
-    "ctaSecondary": "Vedi progetti",
-    "stats": {
-      "moreAppointments": "Più appuntamenti",
-      "missedCalls": "Chiamate perse",
-      "noShows": "No-show",
-      "tasksPerWeek": "Compiti/settimana"
-    }
+    "title": "Software su misura per aziende che hanno smesso di crescere a causa dei loro strumenti",
+    "subtitle": "Costruiamo il sistema operativo della tua azienda, software che si adatta a come lavorate tu e il tuo team. Automazione e IA per PMI con valore reale.",
+    "cta": "Parliamone — 20 min →",
+    "ctaSecondary": "Vedi progetti"
   },
   "services": {
     "title": "Servizi che trasformano la tua impresa",
@@ -167,6 +162,10 @@
         "title": "Cookie di Marketing",
         "description": "Utilizzati per mostrare annunci rilevanti e misurare le campagne. Include Apollo.io per l'identificazione dei visitatori."
       },
+      "aiChat": {
+        "title": "Assistente IA",
+        "description": "Abilita il pannello chat con IA. I tuoi messaggi vengono inviati a DeepSeek e le ricerche sono elaborate con embedding di OpenAI."
+      },
       "required": "Richieste",
       "cancel": "Annulla",
       "save": "Salva preferenze"
@@ -199,7 +198,57 @@
       },
       "contact": {
         "title": "Contatto"
+      },
+      "aiChat": {
+        "title": "Assistente IA",
+        "description": "Se interagisci con l'assistente IA, i tuoi messaggi vengono inviati a DeepSeek (LLM) e le query di ricerca sono vettorializzate con embedding di OpenAI per individuare contenuti rilevanti dalla nostra base di conoscenza. Conserviamo le conversazioni per 90 giorni, dopo i quali vengono eliminate automaticamente. I dati di contatto che decidi di condividere sono conservati come record commerciale."
       }
+    }
+  },
+  "chat": {
+    "openLabel": "Chatta con l'assistente IA",
+    "title": "Assistente E2D",
+    "subtitle": "Powered by IA — chiedimi di automazione",
+    "placeholder": "Scrivi la tua domanda…",
+    "send": "Invia",
+    "thinking": "Sto pensando…",
+    "errorGeneric": "Qualcosa è andato storto. Riprova tra un momento o contattaci su WhatsApp.",
+    "errorRateLimit": "Hai raggiunto il limite orario. Riprova più tardi o scrivici su WhatsApp.",
+    "disclaimer": "L'assistente può sbagliare. Per questioni critiche, contattaci direttamente.",
+    "fallbackContactCTA": "Contattaci via WhatsApp o email",
+    "newConversation": "Nuova conversazione",
+    "close": "Chiudi",
+    "initialMessage": "Ciao! Sono l'assistente di E2D. Come posso aiutarti?",
+    "leadForm": {
+      "open": "Lascia i tuoi dati",
+      "title": "Lascia i tuoi dati",
+      "subtitle": "Alberto ti risponderà personalmente. Senza impegno.",
+      "name": "Nome",
+      "email": "Email",
+      "phone": "Telefono",
+      "company": "Azienda",
+      "intent": "Di cosa vuoi parlare",
+      "intentOptions": {
+        "voicebot": "Voicebot",
+        "chatbot": "Chatbot / WhatsApp",
+        "automation": "Automazione dei processi",
+        "web": "Sviluppo web",
+        "crm": "CRM / integrazione",
+        "budget": "Preventivo",
+        "other": "Altro"
+      },
+      "message": "Raccontaci brevemente cosa ti serve (opzionale)",
+      "consent": "Accetto l'informativa sulla privacy",
+      "submit": "Invia",
+      "sending": "Invio in corso…",
+      "successTitle": "Ricevuto",
+      "successBody": "Alberto ti risponderà a breve. Nel frattempo puoi continuare a chattare con il bot.",
+      "errorTitle": "Non siamo riusciti a inviarlo",
+      "errorBody": "Riprova tra un momento, oppure scrivi direttamente ad Alberto:",
+      "close": "Chiudi",
+      "requiredEmail": "L'email è obbligatoria",
+      "invalidEmail": "Email non valida",
+      "requiredConsent": "Abbiamo bisogno del tuo consenso"
     }
   }
 }

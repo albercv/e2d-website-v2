@@ -90,6 +90,12 @@ export function AdminDashboardTabs({ posts }: { posts: AdminPostRow[] }) {
             </TabsList>
 
             <div className="flex items-center gap-2">
+              <Link href="/admin/prompts">
+                <Button variant="outline">Prompts del agente</Button>
+              </Link>
+              <Link href="/admin/embeddings">
+                <Button variant="outline">Embeddings (RAG)</Button>
+              </Link>
               <form action="/api/admin/logout" method="post">
                 <Button variant="outline" type="submit">
                   Salir

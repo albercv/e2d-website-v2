@@ -18,6 +18,10 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
+
+# local docker overrides (developer-specific compose tweaks)
+docker-compose.override.yml
 
 # vercel
 .vercel
@@ -102,3 +106,6 @@ docs/mcp-usage.md
 data/oauth.sqlite
 data/oauth.sqlite-shm
 data/oauth.sqlite-wal
+
+# CodeGraph index — local code-intelligence DB, not source
+.codegraph/

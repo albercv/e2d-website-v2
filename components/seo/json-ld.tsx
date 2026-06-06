@@ -109,16 +109,15 @@ export function WebsiteSchema({ locale }: WebsiteSchemaProps) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "E2D - Evolve2Digital",
-    url: `https://evolve2digital.com/${locale}`,
+    // url del WebSite = raíz canónica (ancla del Sitelinks Searchbox), no /locale.
+    url: "https://evolve2digital.com",
     description:
       locale === "es"
-        ? "Automatiza tu empresa: más ventas, menos tareas. Especialistas en automatización para PYMEs españolas."
-        : "Automate your company: more sales, fewer tasks. Automation specialists for Spanish companies",
-    inLanguage: locale === "es" ? "es-ES" : "en-US",
-    isPartOf: {
-      "@type": "WebSite",
-      url: "https://evolve2digital.com",
-    },
+        ? "Desarrollo de software a medida e integración de IA para PYMEs de 10 a 50 empleados. Tu software, tu negocio."
+        : locale === "it"
+          ? "Sviluppo di software su misura e integrazione IA per PMI di 10-50 dipendenti. Il tuo software, il tuo business."
+          : "Custom software development and AI integration for SMEs of 10 to 50 employees. Your software, your business.",
+    inLanguage: locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US",
     about: {
       "@type": "Organization",
       name: "E2D - Evolve2Digital",
@@ -154,7 +153,9 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: item.url,
+      // Google exige URLs absolutas en BreadcrumbList; con rutas relativas
+      // (`/es`, `/es/blog`) descarta el rich result en silencio.
+      item: /^https?:\/\//.test(item.url) ? item.url : `https://evolve2digital.com${item.url}`,
     })),
   }
 

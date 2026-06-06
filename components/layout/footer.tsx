@@ -2,11 +2,13 @@
 
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
+import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 
 export function Footer() {
   const locale = useLocale()
   const tNav = useTranslations("navigation")
   const tFooter = useTranslations("footer")
+  const whatsappHref = getWhatsAppHref()
 
   return (
     <footer className="border-t border-border bg-background/80 backdrop-blur">
@@ -37,16 +39,18 @@ export function Footer() {
                     {tFooter("contact")}
                   </a>
                 </p>
-                <p>
-                  <a 
-                    href="https://wa.me/34123456789"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-foreground transition-colors flex items-center gap-1"
-                  >
-                    📱 WhatsApp
-                  </a>
-                </p>
+                {whatsappHref && (
+                  <p>
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-foreground transition-colors flex items-center gap-1"
+                    >
+                      📱 WhatsApp
+                    </a>
+                  </p>
+                )}
               </div>
             </div>
 
