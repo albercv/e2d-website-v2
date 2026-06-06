@@ -109,3 +109,6 @@ data/oauth.sqlite-wal
 
 # CodeGraph index — local code-intelligence DB, not source
 .codegraph/
+
+# Active local todo — planning scratch, not shared
+tasks/todo.md
