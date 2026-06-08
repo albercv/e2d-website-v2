@@ -35,11 +35,20 @@ export const metadata: Metadata = {
     siteName: "E2D - Evolve2Digital",
     title: "E2D - Software a medida para PYMEs",
     description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
+    images: [
+      {
+        url: "https://evolve2digital.com/og-head.gif",
+        width: 1200,
+        height: 630,
+        alt: "Evolve2Digital",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "E2D - Software a medida para PYMEs",
     description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
+    images: ["https://evolve2digital.com/og-head.gif"],
   },
   robots: {
     index: true,

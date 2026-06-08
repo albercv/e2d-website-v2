@@ -54,11 +54,20 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
       siteName: "E2D - Evolve2Digital",
       title: titleByLocale[locale as keyof typeof titleByLocale] ?? titleByLocale.es,
       description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
+      images: [
+        {
+          url: `${baseUrl}/og-head.gif`,
+          width: 1200,
+          height: 630,
+          alt: "Evolve2Digital",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: titleByLocale[locale as keyof typeof titleByLocale] ?? titleByLocale.es,
       description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
+      images: [`${baseUrl}/og-head.gif`],
     },
     robots: {
       index: true,
