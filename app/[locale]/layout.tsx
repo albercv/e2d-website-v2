@@ -56,7 +56,7 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
       description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
       images: [
         {
-          url: `${baseUrl}/og-head.gif`,
+          url: `${baseUrl}/og-head.jpg`,
           width: 1200,
           height: 630,
           alt: "Evolve2Digital",
@@ -67,7 +67,7 @@ export function generateMetadata({ params: { locale } }: { params: { locale: str
       card: "summary_large_image",
       title: titleByLocale[locale as keyof typeof titleByLocale] ?? titleByLocale.es,
       description: descriptionByLocale[locale as keyof typeof descriptionByLocale] ?? descriptionByLocale.es,
-      images: [`${baseUrl}/og-head.gif`],
+      images: [`${baseUrl}/og-head.jpg`],
     },
     robots: {
       index: true,
