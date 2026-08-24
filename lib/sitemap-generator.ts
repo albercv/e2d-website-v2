@@ -265,7 +265,7 @@ export class SitemapGenerator {
    * Generate legal pages
    */
   private generateLegalPages(): SitemapEntry[] {
-    const legalPages = ["legal", "privacy"]
+    const legalPages = ["legal", "privacy", "cookies"]
     const pages: SitemapEntry[] = []
 
     this.config.supportedLocales.forEach(locale => {
