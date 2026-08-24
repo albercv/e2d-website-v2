@@ -40,8 +40,14 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['images.unsplash.com', 'via.placeholder.com'],
-    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
+    ],
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [390, 640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [64, 128, 256, 400],
+    minimumCacheTTL: 2678400, // 31 días — los uploads son inmutables por slug-key
   },
   // Optimizaciones agresivas de rendimiento
   experimental: {

@@ -22,6 +22,7 @@ export function BlogCard({ post }: BlogCardProps) {
               height={225}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               unoptimized={post.cover.includes(".svg")}
+              sizes="(max-width: 768px) 100vw, 400px"
             />
           </div>
         )}

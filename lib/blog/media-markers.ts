@@ -12,17 +12,34 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;")
 }
 
+// Emite <img> plano cuando no hay dims resueltas (comportamiento histórico,
+// byte-idéntico) o, si las hay, una versión con width/height intrínsecos +
+// srcset optimizado vía /_next/image, para evitar CLS y servir tamaños
+// responsive en vez del fichero original sin comprimir.
+function buildImageTag(url: string, altE: string, dims?: { width: number; height: number }): string {
+  if (!dims) return `<img src="${url}" alt="${altE}" />`
+  const enc = encodeURIComponent(url)
+  const widths = [640, 828, 1200]
+  const srcset = widths.map((w) => `/_next/image?url=${enc}&w=${w}&q=75 ${w}w`).join(", ")
+  return (
+    `<img src="/_next/image?url=${enc}&w=828&q=75" srcset="${srcset}" ` +
+    `sizes="(max-width: 768px) 100vw, 720px" width="${dims.width}" height="${dims.height}" ` +
+    `alt="${altE}" loading="lazy" decoding="async" />`
+  )
+}
+
 function buildFigure(
   kind: MediaKind,
   url: string,
   alt: string,
-  caption: string
+  caption: string,
+  dims?: { width: number; height: number }
 ): string {
   const altE = escapeHtml(alt)
   const capE = escapeHtml(caption)
   const captionTag = capE ? `<figcaption>${capE}</figcaption>` : ""
   if (kind === "image") {
-    return `<figure><img src="${url}" alt="${altE}" />${captionTag}</figure>`
+    return `<figure>${buildImageTag(url, altE, dims)}${captionTag}</figure>`
   }
   return `<figure><video src="${url}" controls preload="metadata" aria-label="${altE}"></video>${captionTag}</figure>`
 }
@@ -102,7 +119,8 @@ export function tokenize(input: string): Segment[] {
 export function expandMarkers(
   body: string,
   meta: MediaMeta,
-  translationKey: string
+  translationKey: string,
+  dims?: Record<string, { width: number; height: number }>
 ): string {
   const segs = tokenize(body)
   return segs
@@ -114,7 +132,7 @@ export function expandMarkers(
         if (!entry) return buildMissing(kind, name, "not_found")
         if (entry.kind !== kind) return buildMissing(kind, name, "kind_mismatch")
         const url = `/uploads/${translationKey}/${name}.${entry.ext}`
-        return buildFigure(kind, url, entry.alt, entry.caption)
+        return buildFigure(kind, url, entry.alt, entry.caption, dims?.[name])
       })
       return withMedia.replace(CONTACT_RE, "<ContactCTA />")
     })

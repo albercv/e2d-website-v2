@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom'
 
+// jest-environment-jsdom no expone TextDecoder/TextEncoder como globals (a
+// diferencia de Node), y `image-size` (usado por lib/blog/media-dimensions.ts)
+// los usa a nivel de módulo. Sin este polyfill, cualquier test que ejercite
+// getCompiledPost bajo jsdom revienta con "TextDecoder is not defined" al
+// importar image-size, aunque el código nunca llegue a leer un fichero real.
+if (typeof global.TextDecoder === 'undefined' || typeof global.TextEncoder === 'undefined') {
+  const { TextDecoder, TextEncoder } = require('util')
+  global.TextDecoder = global.TextDecoder || TextDecoder
+  global.TextEncoder = global.TextEncoder || TextEncoder
+}
+
 // Nota histórica: hasta 2026-05-09 este fichero hacía `delete process.env.BLOG_POSTS_DIR`
 // para mitigar BUG-13 (el `.env` inyectaba el path de producción y los tests
 // sobreescribían CONTENT_ROOT pero no BLOG_POSTS_DIR). Ese workaround ya no es
