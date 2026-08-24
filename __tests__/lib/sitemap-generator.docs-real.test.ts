@@ -37,16 +37,25 @@ describe("docs pages in sitemap", () => {
     expect(securityUrls).toEqual([])
   })
 
-  it("emits valid docs slugs: principles, architecture, components, i18n, seo, gdpr, performance, deployment", async () => {
-    const validSlugs = ["principles", "architecture", "components", "i18n", "seo", "gdpr", "performance", "deployment"]
+  it("emits only docs with real content: principles, architecture", async () => {
+    // Stubs (components/i18n/seo/gdpr/performance/deployment) are noindexed
+    // in page metadata (audit C4) and must not appear in the sitemap.
+    const indexedSlugs = ["principles", "architecture"]
+    const stubSlugs = ["components", "i18n", "seo", "gdpr", "performance", "deployment"]
     const sitemap = await mod.generateAISitemap()
     const docUrls = sitemap
       .map((e: any) => e.url)
       .filter((u: string) => /\/docs\/[a-z0-9-]+$/.test(u))
 
-    for (const slug of validSlugs) {
+    for (const slug of indexedSlugs) {
       for (const locale of ["es", "en", "it"]) {
         expect(docUrls).toContain(`https://evolve2digital.com/${locale}/docs/${slug}`)
+      }
+    }
+
+    for (const slug of stubSlugs) {
+      for (const locale of ["es", "en", "it"]) {
+        expect(docUrls).not.toContain(`https://evolve2digital.com/${locale}/docs/${slug}`)
       }
     }
   })

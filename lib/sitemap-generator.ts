@@ -233,18 +233,9 @@ export class SitemapGenerator {
    * Generate documentation pages
    */
   private generateDocumentationPages(): SitemapEntry[] {
-    // Must match validSlugs in app/[locale]/docs/[slug]/page.tsx exactly.
-    // "security" was never a valid slug — remove it. Add components, i18n, seo.
-    const docSlugs = [
-      "principles",
-      "architecture",
-      "components",
-      "i18n",
-      "seo",
-      "gdpr",
-      "performance",
-      "deployment",
-    ]
+    // Only docs with real content. Stubs (components/i18n/seo/gdpr/performance/
+    // deployment) are noindexed in the page metadata and must not be sitemapped.
+    const docSlugs = ["principles", "architecture"]
 
     const pages: SitemapEntry[] = []
 
