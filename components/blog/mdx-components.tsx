@@ -164,12 +164,14 @@ function FigureComponent({
   )
 }
 
-// Stat — número grande con etiqueta. Ideal para resultados cuantificables
-function StatComponent({ value, label }: { value: string; label: string }) {
+// Stat — número grande con etiqueta. `source` atribuye el dato (McKinsey, INE…)
+// y se emite como <cite> para que la atribución sobreviva al render (GEO/E-E-A-T).
+function StatComponent({ value, label, source }: { value: string; label: string; source?: string }) {
   return (
     <div className="my-4 inline-flex flex-col items-start rounded-lg border border-border bg-muted/30 px-6 py-4 not-prose">
       <span className="text-3xl font-bold text-[#05b4ba] leading-none">{value}</span>
       <span className="mt-1 text-sm text-muted-foreground">{label}</span>
+      {source && <cite className="mt-1 text-xs text-muted-foreground/70 not-italic">{source}</cite>}
     </div>
   )
 }

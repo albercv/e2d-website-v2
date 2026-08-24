@@ -121,24 +121,26 @@ export function CookieBanner() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="fixed bottom-0 left-0 right-0 z-50 p-4"
+            className="fixed bottom-0 left-0 right-0 z-50 p-2 sm:p-4"
             data-ignore-cls="true"
           >
             <Card className="mx-auto max-w-4xl bg-card/95 backdrop-blur-sm border-border">
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <Cookie className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+              <div className="p-3 sm:p-6">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <Cookie className="hidden sm:block h-6 w-6 text-primary mt-1 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg mb-2">{t("title")}</h3>
-                    <p className="text-muted-foreground mb-4 text-sm leading-relaxed">{t("description")}</p>
-                    <div className="flex flex-wrap gap-3">
-                      <Button onClick={handleAcceptAll} className="bg-primary hover:bg-primary/90">
+                    <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2">{t("title")}</h3>
+                    <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none">
+                      {t("description")}
+                    </p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
+                      <Button size="sm" onClick={handleAcceptAll} className="bg-primary hover:bg-primary/90">
                         {t("acceptAll")}
                       </Button>
-                      <Button variant="outline" onClick={handleRejectAll}>
+                      <Button size="sm" variant="outline" onClick={handleRejectAll}>
                         {t("rejectAll")}
                       </Button>
-                      <Button variant="ghost" onClick={() => setShowSettings(true)} className="gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setShowSettings(true)} className="gap-2">
                         <Settings className="h-4 w-4" />
                         {t("customize")}
                       </Button>
