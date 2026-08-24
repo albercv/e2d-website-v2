@@ -1,6 +1,7 @@
 import { listPostsFromDisk, resolvePostCovers } from "@/lib/blog/posts-runtime"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
-import { paginatePosts } from "@/app/[locale]/blog/pagination"
+import { buildBlogListUrl, paginatePosts } from "@/app/[locale]/blog/pagination"
+import { normalizeQuery, searchPosts } from "@/lib/blog/search"
 import { BlogList } from "@/components/blog/blog-list"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic"
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
 const PAGINATION_LABELS: Record<string, string> = {
@@ -22,7 +23,8 @@ const PAGINATION_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params, searchParams }: BlogPageProps): Promise<Metadata> {
   const { locale } = await params
-  const { page: pageParam } = await searchParams
+  const { page: pageParam, q: qParam } = await searchParams
+  const query = normalizeQuery(qParam)
 
   const titles: Record<string, string> = {
     es: "Blog - E2D | Automatización y Tecnología",
@@ -42,8 +44,9 @@ export async function generateMetadata({ params, searchParams }: BlogPageProps):
 
   const all = await listPostsFromDisk()
   const filtered = all.filter((post) => post.locale === locale && post.published)
-  const { page } = paginatePosts(filtered, pageParam)
-  const canonicalUrl = page > 1 ? `${baseUrl}/${locale}/blog?page=${page}` : `${baseUrl}/${locale}/blog`
+  const { page } = paginatePosts(searchPosts(filtered, query), pageParam)
+  // Resultados de búsqueda: no indexar y canonical a la lista sin query.
+  const canonicalUrl = `${baseUrl}${buildBlogListUrl(locale, { page: query ? undefined : page })}`
 
   return {
     title: titles[locale] ?? titles.es,
@@ -70,7 +73,7 @@ export async function generateMetadata({ params, searchParams }: BlogPageProps):
       description: descriptions[locale] ?? descriptions.es,
     },
     robots: {
-      index: true,
+      index: !query,
       follow: true,
     },
     keywords: [
@@ -86,7 +89,8 @@ export async function generateMetadata({ params, searchParams }: BlogPageProps):
 
 export default async function BlogPage({ params, searchParams }: BlogPageProps) {
   const { locale } = await params
-  const { page: pageParam } = await searchParams
+  const { page: pageParam, q: qParam } = await searchParams
+  const query = normalizeQuery(qParam)
 
   if (!["es", "en", "it"].includes(locale)) {
     notFound()
@@ -96,22 +100,22 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
   const filtered = all
     .filter((post) => post.locale === locale && post.published)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  const { pagePosts, totalPages, page } = paginatePosts(filtered, pageParam)
+  const { pagePosts, totalPages, page } = paginatePosts(searchPosts(filtered, query), pageParam)
   const posts = await resolvePostCovers(pagePosts)
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <BlogList posts={posts} locale={locale} />
+        <BlogList posts={posts} locale={locale} query={query} />
         {totalPages > 1 && (
           <nav aria-label={PAGINATION_LABELS[locale] ?? PAGINATION_LABELS.es} className="flex justify-center gap-2 pb-16">
             {page > 1 && (
-              <a href={`/${locale}/blog?page=${page - 1}`} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">←</a>
+              <a href={buildBlogListUrl(locale, { page: page - 1, q: query })} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">←</a>
             )}
             <span className="px-4 py-2 text-muted-foreground">{page} / {totalPages}</span>
             {page < totalPages && (
-              <a href={`/${locale}/blog?page=${page + 1}`} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">→</a>
+              <a href={buildBlogListUrl(locale, { page: page + 1, q: query })} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">→</a>
             )}
           </nav>
         )}
