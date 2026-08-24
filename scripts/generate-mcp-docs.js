@@ -19,8 +19,10 @@ const path = require('path')
  * Configuración del generador
  */
 const CONFIG = {
-  mcpApiDir: path.join(process.cwd(), 'app/api/mcp'),
-  docsDir: path.join(process.cwd(), 'docs'),
+  // CONTENT_ROOT: cuando se importa desde una route del standalone, cwd es
+  // .next/standalone y ni app/ ni docs/ existen ahí.
+  mcpApiDir: path.join(process.env.CONTENT_ROOT || process.cwd(), 'app/api/mcp'),
+  docsDir: path.join(process.env.CONTENT_ROOT || process.cwd(), 'docs'),
   outputFiles: {
     usage: 'mcp-usage.md',
     examples: 'mcp-examples.md',

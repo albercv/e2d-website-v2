@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server"
 import { promises as fs } from "fs"
 import path from "path"
+import { fromProjectRoot } from "@/lib/server/project-root"
 
 // Los entregables del mapa de arquitectura viven en staging/architecture/
-// (fuera de .next), igual que content/: en producción PM2 arranca el
-// standalone con cwd .next/standalone, así que CONTENT_ROOT es la única
-// forma de resolver la raíz real del repo.
+// (fuera de .next), igual que content/.
 export function getArchitectureDir(): string {
-  const root = process.env.CONTENT_ROOT || process.cwd()
-  return path.resolve(root, "staging", "architecture")
+  return fromProjectRoot("staging", "architecture")
 }
-
 type ArchitectureFile = "index.html" | "index-3d.html" | "architecture.json"
 
 const CONTENT_TYPES: Record<ArchitectureFile, string> = {
