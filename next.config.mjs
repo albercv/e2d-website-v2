@@ -172,6 +172,36 @@ const nextConfig = {
     return config;
   },
 
+  // Audit H1: security headers served from the app so they survive nginx
+  // config drift. CSP starts as Report-Only — GA4/Apollo/Next inline scripts
+  // need observation before enforcement.
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://assets.apollo.io",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https:",
+      "connect-src 'self' https://www.google-analytics.com https://*.apollo.io",
+      "media-src 'self'",
+      "frame-ancestors 'self'",
+    ].join("; ")
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), browsing-topics=()" },
+          { key: "Content-Security-Policy-Report-Only", value: csp },
+        ],
+      },
+    ]
+  },
+
   // Permanent redirects for legacy non-locale blog URLs (pre-[locale] routing,
   // Dec 2025). Legacy slugs ai-solutions / e2d-transformation / blog have no
   // matching MDX, so redirect to the ES blog index rather than /es/blog/:slug
