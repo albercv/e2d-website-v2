@@ -10,7 +10,7 @@ import { useLocale } from "next-intl"
  * 
  * This implementation uses a multi-layered approach to ensure compatibility with Next.js SSR:
  * 1. ClientOnly wrapper prevents hydration mismatches
- * 2. Dynamic import with ssr: false prevents server-side rendering
+ * 2. Dynamic import with SSR disabled prevents server-side rendering
  * 3. Comprehensive error boundary for production stability
  * 4. Mobile-optimized loading states
  */
@@ -47,7 +47,6 @@ export const AIAgentModalLazy = dynamic(
 export const ProjectsSectionLazy = dynamic(
   () => import("@/components/sections/projects-section").then((mod) => ({ default: mod.ProjectsSection })),
   {
-    ssr: false,
     loading: () => <SectionFallback message="Cargando proyectos..." />,
   },
 )
@@ -55,7 +54,6 @@ export const ProjectsSectionLazy = dynamic(
 export const AboutSectionLazy = dynamic(
   () => import("@/components/sections/about-section").then((mod) => ({ default: mod.AboutSection })),
   {
-    ssr: false,
     loading: () => <SectionFallback message="Cargando información..." />,
   },
 )
@@ -63,7 +61,6 @@ export const AboutSectionLazy = dynamic(
 export const ProcessSectionLazy = dynamic(
   () => import("@/components/sections/process-section").then((mod) => ({ default: mod.ProcessSection })),
   {
-    ssr: false,
     loading: () => <SectionFallback message="Cargando proceso..." />,
   },
 )
@@ -72,7 +69,6 @@ export const ProcessSectionLazy = dynamic(
 export const FaqSectionLazy = dynamic(
   () => import("@/components/sections/faq-section").then((mod) => ({ default: mod.FaqSection })),
   {
-    ssr: false,
     loading: () => <SectionFallback message="..." />,
   },
 )
@@ -81,7 +77,6 @@ export const FaqSectionLazy = dynamic(
 export const AdaptSectionLazy = dynamic(
   () => import("@/components/sections/adapt-section").then((mod) => ({ default: mod.AdaptSection })),
   {
-    ssr: false,
     loading: () => <AdaptLoadingFallback />,
    },
 )
