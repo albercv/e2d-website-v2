@@ -188,6 +188,11 @@ const nextConfig = {
         destination: "/es/blog",
         permanent: true,
       },
+      {
+        source: "/rss.xml",
+        destination: "/es/rss.xml",
+        permanent: true,
+      },
     ]
   },
 }
