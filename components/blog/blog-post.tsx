@@ -102,6 +102,7 @@ export function BlogPost({ post }: BlogPostProps) {
                   className="w-full h-full object-cover"
                   unoptimized={post.cover.includes(".svg")}
                   priority
+                  sizes="(max-width: 768px) 100vw, 800px"
                 />
               </figure>
             )}
