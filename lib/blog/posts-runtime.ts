@@ -204,8 +204,25 @@ export async function getCompiledPost(
   if (!post) return null
   const { readMeta } = await import("./media-meta")
   const { expandMarkers, resolveCover } = await import("./media-markers")
+  const { readImageDimensions } = await import("./media-dimensions")
   const meta = await readMeta(post.translationKey)
-  const expandedBody = expandMarkers(post.body.raw, meta, post.translationKey)
+  // Probe intrinsic dimensions for every image marker referenced by this
+  // post (read-only, mtime-cached — see media-dimensions.ts). A missing or
+  // corrupt file resolves to `null` and is simply omitted from the map, so
+  // expandMarkers falls back to the plain <img> for that entry.
+  const uploadsRoot = process.env.MEDIA_UPLOADS_ROOT || path.join(process.cwd(), "public", "uploads")
+  const dims: Record<string, { width: number; height: number }> = {}
+  await Promise.all(
+    Object.entries(meta.files)
+      .filter(([, entry]) => entry.kind === "image")
+      .map(async ([name, entry]) => {
+        const d = await readImageDimensions(
+          path.join(uploadsRoot, post.translationKey, `${name}.${entry.ext}`)
+        )
+        if (d) dims[name] = d
+      })
+  )
+  const expandedBody = expandMarkers(post.body.raw, meta, post.translationKey, dims)
   const cover = resolveCover(post.cover, meta, post.translationKey)
   // Lazy import: next-mdx-remote/serialize es ESM puro y Jest peta al cargarlo
   // en tests que no compilan MDX. Importar dentro de la función mantiene el
