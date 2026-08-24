@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { main as generateMCPDocs } from '@/scripts/generate-mcp-docs'
+import { isCronAuthorized } from '@/lib/server/cron-auth'
 
 export async function GET(request: NextRequest) {
-  // Verificar autorización (Vercel Cron secret)
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isCronAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   
