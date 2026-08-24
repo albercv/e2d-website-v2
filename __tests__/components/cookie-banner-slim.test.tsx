@@ -22,6 +22,6 @@ describe("cookie banner mobile footprint", () => {
 
   it("uses compact padding on mobile", () => {
     const { container } = renderBanner()
-    expect(container.innerHTML).toContain("p-3")
+    expect(container.innerHTML).toContain("p-3 sm:p-6")
   })
 })
