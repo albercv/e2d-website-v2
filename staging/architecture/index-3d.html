@@ -1,0 +1,4588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>E2D — Mapa de Arquitectura 3D</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb; --page: #f4f4f1; --ink: #0b0b0b; --ink-2: #52514e;
+  --muted: #898781; --grid: #e1e0d9; --baseline: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --c-web: #2a78d6; --c-api: #eb6834; --c-service: #1baf7a; --c-job: #eda100;
+  --c-mcp: #e87ba4; --c-data: #008300; --c-auth: #4a3aa7; --c-external: #e34948;
+  --c-infra: #898781; --sel: #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --page: #0b0b10; --ink: #ffffff; --ink-2: #c3c2b7;
+    --muted: #898781; --grid: #2c2c2a; --baseline: #383835; --ring: rgba(255,255,255,0.10);
+    --c-web: #3987e5; --c-api: #d95926; --c-service: #199e70; --c-job: #c98500;
+    --c-mcp: #d55181; --c-data: #008300; --c-auth: #9085e9; --c-external: #e66767;
+    --c-infra: #898781; --sel: #3987e5;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19; --page: #0b0b10; --ink: #ffffff; --ink-2: #c3c2b7;
+  --muted: #898781; --grid: #2c2c2a; --baseline: #383835; --ring: rgba(255,255,255,0.10);
+  --c-web: #3987e5; --c-api: #d95926; --c-service: #199e70; --c-job: #c98500;
+  --c-mcp: #d55181; --c-data: #008300; --c-auth: #9085e9; --c-external: #e66767;
+  --c-infra: #898781; --sel: #3987e5;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--page); color: var(--ink); display: flex; flex-direction: column;
+  overflow: hidden;
+}
+header.appbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--surface-1); border-bottom: 1px solid var(--grid);
+  z-index: 5;
+}
+header.appbar h1 { font-size: 16px; margin: 0; font-weight: 650; }
+header.appbar .meta { color: var(--muted); font-size: 12px; }
+header.appbar .spacer { flex: 1; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls input[type="search"] {
+  padding: 6px 10px; border: 1px solid var(--baseline); border-radius: 8px;
+  background: var(--page); color: var(--ink); min-width: 170px; font: inherit;
+}
+.btn {
+  padding: 6px 10px; border: 1px solid var(--baseline); border-radius: 8px;
+  background: var(--surface-1); color: var(--ink); cursor: pointer; font: inherit;
+  text-decoration: none; display: inline-flex; align-items: center;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn[aria-pressed="true"] { outline: 2px solid var(--sel); }
+main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; position: relative; min-width: 0; }
+#c3d { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+#c3d.dragging { cursor: grabbing; }
+#legend {
+  position: absolute; left: 12px; top: 12px;
+  background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+  border: 1px solid var(--grid); border-radius: 10px;
+  padding: 8px 10px; font-size: 12px; max-width: 200px; backdrop-filter: blur(4px);
+}
+#legend .lg-title { font-weight: 650; margin-bottom: 4px; }
+#legend label { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 1px 0; color: var(--ink-2); }
+#legend .chip { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 6px currentColor; }
+#hint { position: absolute; left: 12px; bottom: 10px; color: var(--muted); font-size: 11.5px; pointer-events: none; }
+#side {
+  width: 360px; flex: none; display: flex; flex-direction: column; min-height: 0;
+  background: var(--surface-1); border-left: 1px solid var(--grid);
+}
+#side .tabs { display: flex; border-bottom: 1px solid var(--grid); }
+#side .tabs button {
+  flex: 1; padding: 9px 6px; border: 0; background: none; color: var(--ink-2);
+  cursor: pointer; font: inherit; font-weight: 600; border-bottom: 2px solid transparent;
+}
+#side .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sel); }
+#side .panel { flex: 1; overflow: auto; padding: 12px; display: none; }
+#side .panel.active { display: block; }
+.flow-item { border: 1px solid var(--grid); border-radius: 10px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
+.flow-item:hover { border-color: var(--ink-2); }
+.flow-item.selected { border-color: var(--sel); outline: 1px solid var(--sel); }
+.flow-item h3 { margin: 0 0 3px; font-size: 13.5px; }
+.flow-item .trigger { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--ink-2); }
+.flow-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 12.5px; }
+.badge {
+  display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 650;
+  border: 1px solid var(--baseline); color: var(--ink-2); vertical-align: 1px;
+}
+.badge.high { border-color: #0ca30c; color: #0ca30c; }
+.badge.medium { border-color: #fab219; color: #a97400; }
+:root[data-theme="dark"] .badge.medium { color: #fab219; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.medium { color: #fab219; } }
+.badge.low { border-color: #d03b3b; color: #d03b3b; }
+.steps { margin: 8px 0 0; padding: 0; list-style: none; }
+.steps li { display: flex; gap: 8px; padding: 5px 0; border-top: 1px dashed var(--grid); font-size: 12.5px; }
+.steps .n {
+  flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--sel); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700;
+}
+.steps .who { font-weight: 650; }
+.ev { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); word-break: break-all; }
+#detail h2 { margin: 0 0 2px; font-size: 15px; }
+#detail .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+#detail dl { margin: 0; font-size: 12.5px; }
+#detail dt { font-weight: 650; margin-top: 8px; color: var(--ink-2); }
+#detail dd { margin: 2px 0 0; }
+#detail ul { margin: 2px 0 0; padding-left: 16px; }
+.placeholder { color: var(--muted); font-size: 12.5px; }
+#limits h2 { font-size: 14px; margin: 0 0 6px; }
+#limits h3 { font-size: 12.5px; margin: 12px 0 4px; color: var(--ink-2); }
+#limits ul { margin: 0; padding-left: 16px; font-size: 12.5px; color: var(--ink-2); }
+#limits li { margin: 3px 0; }
+#sideToggle { display: none; }
+@media (max-width: 900px) {
+  #side {
+    position: fixed; right: 0; top: 0; bottom: 0; z-index: 30; width: min(92vw, 360px);
+    transform: translateX(100%); transition: transform .2s ease; box-shadow: -4px 0 16px var(--ring);
+  }
+  #side.open { transform: none; }
+  #sideToggle { display: inline-block; }
+  #legend { max-width: 150px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <h1>E2D — Arquitectura 3D</h1>
+  <span class="meta" id="metaLine"></span>
+  <span class="spacer"></span>
+  <div class="controls">
+    <input id="search" type="search" placeholder="Buscar componente…" aria-label="Buscar componente">
+    <button class="btn" id="zoomIn" title="Acercar">+</button>
+    <button class="btn" id="zoomOut" title="Alejar">−</button>
+    <button class="btn" id="autoRotate" title="Auto-rotación" aria-pressed="true">◐ Giro</button>
+    <button class="btn" id="resetView" title="Restaurar vista completa">⟲ Vista</button>
+    <a class="btn" href="/admin/architecture" title="Vista 2D">▦ 2D</a>
+    <button class="btn" id="sideToggle" aria-expanded="false">Panel</button>
+  </div>
+</header>
+<main>
+  <div id="stage">
+    <canvas id="c3d"></canvas>
+    <div id="legend"><div class="lg-title">Tipos</div><div id="legendItems"></div></div>
+    <div id="hint">arrastra: rotar · rueda: zoom · clic: detalles</div>
+  </div>
+  <aside id="side">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="flows">Flujos</button>
+      <button role="tab" aria-selected="false" data-tab="detail">Componente</button>
+      <button role="tab" aria-selected="false" data-tab="limits">Limitaciones</button>
+    </div>
+    <div class="panel active" id="flows" role="tabpanel"></div>
+    <div class="panel" id="detail" role="tabpanel"><p class="placeholder">Haz clic en un orbe para ver sus detalles y evidencias.</p></div>
+    <div class="panel" id="limits" role="tabpanel"></div>
+  </aside>
+</main>
+
+<script type="application/json" id="architecture-data">{
+ "meta": {
+  "project": "e2d-website-v2 (Evolve2Digital)",
+  "snapshotCommit": "cafc9576e66fda79f064c436164c5c8e90c76b4b",
+  "generatedAt": "2026-08-04",
+  "generator": "análisis estático asistido (Claude Code)",
+  "layers": [
+   {
+    "id": "clientes",
+    "label": "Clientes"
+   },
+   {
+    "id": "edge",
+    "label": "Edge / Infra"
+   },
+   {
+    "id": "web",
+    "label": "Web pública"
+   },
+   {
+    "id": "api",
+    "label": "API pública"
+   },
+   {
+    "id": "admin",
+    "label": "Admin"
+   },
+   {
+    "id": "mcp",
+    "label": "MCP / OAuth"
+   },
+   {
+    "id": "dominio",
+    "label": "Dominio (lib)"
+   },
+   {
+    "id": "datos",
+    "label": "Datos"
+   },
+   {
+    "id": "jobs",
+    "label": "Build / Jobs"
+   },
+   {
+    "id": "externos",
+    "label": "Externos"
+   }
+  ],
+  "analyzedDirs": [
+   "app/",
+   "components/",
+   "lib/",
+   "scripts/",
+   "content/",
+   "messages/",
+   "docs/",
+   "__tests__/",
+   "raíz (package.json, middleware.ts, next.config.mjs, docker-compose.yml, ecosystem.config.js, i18n.ts)",
+   "/etc/nginx/sites-available/evolve2digital (config VPS, fuera del repo)"
+  ],
+  "excludedDirs": [
+   "node_modules/",
+   ".next/",
+   ".git/",
+   ".contentlayer/",
+   "coverage/",
+   "data/ (SQLite runtime)",
+   "logs/ (artefactos runtime)",
+   "public/uploads y binarios",
+   ".claude/worktrees"
+  ],
+  "limitations": {
+   "dynamic": [
+    "Los clientes MCP reales (Claude.ai, ChatGPT) y su secuencia exacta de llamadas no son verificables estáticamente; se infiere del handler y de logs nginx.",
+    "GA4 solo se activa con NODE_ENV=production y consentimiento del banner GDPR; el envío efectivo de eventos no es verificable en el código.",
+    "El webhook de alertas de crawlers (lib/ai-crawler-monitor.ts:289) solo actúa si config.webhookUrl está definido en runtime.",
+    "Los procesos ferdy-tripwire y posts-watchdog corren en PM2 pero no están declarados en ecosystem.config.js (arranque ad-hoc).",
+    "El estado de jobs de embeddings y el rate-limiting de chat/crawlers viven en memoria de proceso: se pierden con cada restart de PM2."
+   ],
+   "blindSpots": [
+    "appointments.create es un stub: genera id sintético y console.log; no persiste ni integra calendario/CRM aunque su respuesta prometa emails (app/api/mcp/tools/appointments/create/route.ts:344-384).",
+    "Los webhooks a api.evolve2digital.com (budget, agent.query) apuntan a servicios eliminados; el código degrada con errores controlados.",
+    "chat_usage existe solo en SQL (0002_chat_usage.sql), fuera del schema Drizzle; la migración 0004 no existe en la secuencia.",
+    "Checkout provisional referenciado en tests (__tests__/api) usa Map en memoria; no se ha modelado por falta de evidencia directa en app/.",
+    "chat:retention y apollo:sync están definidos en package.json pero NO en el crontab del VPS: la cola apollo_sync_queue no se drena automáticamente.",
+    "Contentlayer sigue en next.config.mjs (withContentlayer) como resto legacy; el blog ya no lo usa (lee de disco en runtime)."
+   ]
+  }
+ },
+ "nodes": [
+  {
+   "id": "client:browser",
+   "label": "Navegador (usuarios)",
+   "type": "external",
+   "module": "clientes",
+   "layer": "clientes",
+   "description": "Visitantes de evolve2digital.com: páginas públicas, chat y panel admin.",
+   "tooltip": "Usuarios web",
+   "sourceFiles": [],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "client:ai-assistants",
+   "label": "Asistentes IA (Claude.ai, ChatGPT)",
+   "type": "external",
+   "module": "clientes",
+   "layer": "clientes",
+   "description": "Clientes MCP remotos que consumen /sse y /mcp con OAuth 2.1. CORS de /mcp permite chatgpt.com/chat.openai.com/platform.openai.com.",
+   "tooltip": "Clientes MCP",
+   "sourceFiles": [
+    {
+     "path": "app/mcp/route.ts",
+     "symbol": "CORS allowlist",
+     "lines": "12-16"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "La identidad del cliente concreto se infiere de la config CORS y de logs; no es verificable solo con código."
+   ]
+  },
+  {
+   "id": "client:crawlers",
+   "label": "Crawlers IA / SEO",
+   "type": "external",
+   "module": "clientes",
+   "layer": "clientes",
+   "description": "GPTBot, ClaudeBot, Googlebot, Bingbot… detectados y rate-limitados por el middleware.",
+   "tooltip": "Bots que indexan el sitio",
+   "sourceFiles": [
+    {
+     "path": "middleware.ts",
+     "symbol": "CRAWLER_RATE_LIMITS",
+     "lines": "27-34"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "client:cron",
+   "label": "Crontab VPS",
+   "type": "scheduler",
+   "module": "clientes",
+   "layer": "clientes",
+   "description": "Cron del servidor: llama a los 3 endpoints /api/cron/* con Bearer CRON_SECRET y ejecuta backups rsync.",
+   "tooltip": "Disparador programado",
+   "sourceFiles": [
+    {
+     "path": "vercel.json",
+     "symbol": "crons (declaración espejo)",
+     "lines": "14-27"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "El crontab real vive en el VPS (crontab -l), fuera del repo; vercel.json es la declaración espejo."
+   ]
+  },
+  {
+   "id": "infra:nginx",
+   "label": "Nginx (reverse proxy)",
+   "type": "edge",
+   "module": "infra",
+   "layer": "edge",
+   "description": "TLS, redirects www→apex, proxy_pass a 127.0.0.1:3003, alias /uploads/ → /var/lib/e2d-uploads/, timeouts SSE 300s.",
+   "tooltip": "Puerta de entrada HTTP",
+   "sourceFiles": [
+    {
+     "path": "/etc/nginx/sites-available/evolve2digital",
+     "symbol": "location / y location /uploads/",
+     "lines": "36-58"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Config fuera del repo (VPS)."
+   ]
+  },
+  {
+   "id": "infra:middleware",
+   "label": "Middleware Next.js",
+   "type": "edge",
+   "module": "infra",
+   "layer": "edge",
+   "description": "Doble rol: guard de sesión admin (JWT HS256 vía crypto.subtle) y logging/rate-limit/seguridad de crawlers IA en casi todo el sitio.",
+   "tooltip": "Guard admin + seguridad crawlers",
+   "sourceFiles": [
+    {
+     "path": "middleware.ts",
+     "symbol": "middleware()",
+     "lines": "118-233"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "/api/admin/rebuild está en PUBLIC_PATHS (middleware.ts:12): su auth es API key en el handler, no cookie."
+   ]
+  },
+  {
+   "id": "infra:pm2",
+   "label": "PM2 · server standalone",
+   "type": "process",
+   "module": "infra",
+   "layer": "edge",
+   "description": "Proceso e2d: .next/standalone/server.js en puerto 3003 con CONTENT_ROOT, BLOG_POSTS_DIR, MEDIA_UPLOADS_ROOT y OAUTH_DB_DIR apuntando a rutas persistentes.",
+   "tooltip": "Runtime Node en producción",
+   "sourceFiles": [
+    {
+     "path": "ecosystem.config.js",
+     "symbol": "apps[e2d]",
+     "lines": "2-47"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "infra:watchdogs",
+   "label": "Watchdogs de contenido",
+   "type": "worker",
+   "module": "infra",
+   "layer": "edge",
+   "description": "ferdy-tripwire (cada 180s) y posts-watchdog: vigilan que los .mdx de producción no desaparezcan; dump forense en logs/ si falta alguno.",
+   "tooltip": "Vigilancia anti-borrado de posts",
+   "sourceFiles": [
+    {
+     "path": "scripts/ferdy-tripwire.sh",
+     "symbol": "loop principal",
+     "lines": "1-40"
+    },
+    {
+     "path": "scripts/posts-fs-watchdog.sh",
+     "symbol": "watchdog",
+     "lines": "1-40"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Corren en PM2 pero no están declarados en ecosystem.config.js."
+   ]
+  },
+  {
+   "id": "web:home",
+   "label": "Home + secciones",
+   "type": "page",
+   "module": "web",
+   "layer": "web",
+   "description": "Landing por locale: Hero (Three.js/ogl), Services, Projects, About, FAQ; monta ChatPanel.",
+   "tooltip": "Página principal",
+   "sourceFiles": [
+    {
+     "path": "app/[locale]/page.tsx",
+     "symbol": "HomePage",
+     "lines": "9-36"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:blog",
+   "label": "Blog (lista + post)",
+   "type": "page",
+   "module": "blog",
+   "layer": "web",
+   "description": "force-dynamic: lee posts de disco en cada request; el post compila MDX en runtime con next-mdx-remote y genera metadata OG/hreflang.",
+   "tooltip": "Blog runtime, sin rebuild",
+   "sourceFiles": [
+    {
+     "path": "app/[locale]/blog/page.tsx",
+     "symbol": "dynamic=force-dynamic",
+     "lines": "9"
+    },
+    {
+     "path": "app/[locale]/blog/[slug]/page.tsx",
+     "symbol": "BlogPostPage + generateMetadata",
+     "lines": "11-102"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:docs",
+   "label": "Docs",
+   "type": "page",
+   "module": "docs",
+   "layer": "web",
+   "description": "8 slugs × 3 locales con generateStaticParams; el contenido está embebido en componentes TSX, no lee de docs/.",
+   "tooltip": "Documentación pública",
+   "sourceFiles": [
+    {
+     "path": "app/[locale]/docs/[slug]/page.tsx",
+     "symbol": "generateStaticParams",
+     "lines": "13-15"
+    },
+    {
+     "path": "components/docs/docs-content.tsx",
+     "symbol": "DocsContent",
+     "lines": "1-50"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:services",
+   "label": "Landings servicios (/es)",
+   "type": "page",
+   "module": "web",
+   "layer": "web",
+   "description": "6 landings de producto/consultoría solo en español, fuera del segmento [locale].",
+   "tooltip": "Páginas de venta",
+   "sourceFiles": [
+    {
+     "path": "app/es/servicios/agente-ia-chatbot/page.tsx",
+     "symbol": "página",
+     "lines": "26"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:legal",
+   "label": "Legal / Privacy / Cookies",
+   "type": "page",
+   "module": "web",
+   "layer": "web",
+   "description": "Páginas legales por locale (wrappers server de componentes client).",
+   "tooltip": "Páginas legales",
+   "sourceFiles": [
+    {
+     "path": "app/[locale]/legal/page.tsx",
+     "symbol": "página",
+     "lines": "64"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:chat-panel",
+   "label": "ChatPanel (client)",
+   "type": "component",
+   "module": "chat",
+   "layer": "web",
+   "description": "Widget de chat con streaming SSE (useChatStream), captura de lead y fallback WhatsApp.",
+   "tooltip": "Chat público",
+   "sourceFiles": [
+    {
+     "path": "components/chat/chat-panel.tsx",
+     "symbol": "ChatPanel",
+     "lines": "242-350"
+    },
+    {
+     "path": "components/chat/use-chat-stream.ts",
+     "symbol": "useChatStream",
+     "lines": "83-160"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:contact",
+   "label": "Contacto (modal + CTA)",
+   "type": "component",
+   "module": "web",
+   "layer": "web",
+   "description": "ContactModal (WhatsApp + mailto), FloatingContactButton global y ContactCTA para el marker [contact] del blog.",
+   "tooltip": "Conversión a contacto",
+   "sourceFiles": [
+    {
+     "path": "components/contact/contact-modal.tsx",
+     "symbol": "ContactModal",
+     "lines": "16-69"
+    },
+    {
+     "path": "components/blog/ContactCTA.tsx",
+     "symbol": "ContactCTA",
+     "lines": "9-32"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "web:analytics",
+   "label": "GoogleAnalytics + track()",
+   "type": "component",
+   "module": "analytics",
+   "layer": "web",
+   "description": "Script GA4 gated a producción y helper track() para eventos (chat, contacto, CTA).",
+   "tooltip": "Instrumentación GA4",
+   "sourceFiles": [
+    {
+     "path": "components/analytics/google-analytics.tsx",
+     "symbol": "GoogleAnalytics",
+     "lines": "7-26"
+    },
+    {
+     "path": "lib/analytics/track.ts",
+     "symbol": "track",
+     "lines": "6-9"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "seo:endpoints",
+   "label": "Endpoints SEO dinámicos",
+   "type": "seo",
+   "module": "seo",
+   "layer": "web",
+   "description": "sitemap.xml, robots.txt, RSS /feed/[locale], llms.txt y llms-full.txt: todos force-dynamic leyendo posts de disco.",
+   "tooltip": "SEO servido en runtime",
+   "sourceFiles": [
+    {
+     "path": "app/sitemap.ts",
+     "symbol": "dynamic=force-dynamic",
+     "lines": "7-14"
+    },
+    {
+     "path": "app/robots.ts",
+     "symbol": "robots",
+     "lines": "59"
+    },
+    {
+     "path": "app/feed/[locale]/route.ts",
+     "symbol": "GET",
+     "lines": "119"
+    },
+    {
+     "path": "app/llms.txt/route.ts",
+     "symbol": "GET",
+     "lines": "33"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "seo:jsonld",
+   "label": "JSON-LD schemas",
+   "type": "seo",
+   "module": "seo",
+   "layer": "web",
+   "description": "Organization, Service, Website, Breadcrumb, BlogPost y Person schema inyectados desde layouts y páginas.",
+   "tooltip": "Datos estructurados",
+   "sourceFiles": [
+    {
+     "path": "components/seo/json-ld.tsx",
+     "symbol": "OrganizationSchema…BlogPostSchema",
+     "lines": "7-186"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "seo:images",
+   "label": "Rutas imagen force-static (12)",
+   "type": "seo",
+   "module": "seo",
+   "layer": "web",
+   "description": "12 rutas app/images/*/route.ts que sirven placeholders base64 con cache immutable de 1 año.",
+   "tooltip": "Imágenes servidas como rutas",
+   "sourceFiles": [
+    {
+     "path": "app/images/agent-base.png/route.ts",
+     "symbol": "GET (patrón repetido ×12)",
+     "lines": "10-21"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "seo:merchant",
+   "label": "Feed OpenAI merchant",
+   "type": "seo",
+   "module": "seo",
+   "layer": "web",
+   "description": "Feed JSON de productos para el ecosistema de shopping de OpenAI.",
+   "tooltip": "Catálogo de productos",
+   "sourceFiles": [
+    {
+     "path": "app/feeds/openai-merchant.json/route.ts",
+     "symbol": "GET",
+     "lines": "1-40"
+    },
+    {
+     "path": "lib/merchant/products.ts",
+     "symbol": "productos",
+     "lines": "1-40"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:chat",
+   "label": "POST /api/chat (SSE)",
+   "type": "api",
+   "module": "chat",
+   "layer": "api",
+   "description": "Pipeline del chat: sesión → persistir mensaje → extracción de lead → RAG top-K → stream DeepSeek → persistir respuesta + telemetría de coste.",
+   "tooltip": "Endpoint principal del chat",
+   "sourceFiles": [
+    {
+     "path": "app/api/chat/route.ts",
+     "symbol": "POST",
+     "lines": "268-313"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:chat-aux",
+   "label": "/api/chat/session + /lead",
+   "type": "api",
+   "module": "chat",
+   "layer": "api",
+   "description": "Bootstrap de sesión (cookies e2d_chat_session, e2d_user_uuid) y captura explícita de lead con consentimiento zod literal(true).",
+   "tooltip": "Sesión y lead del chat",
+   "sourceFiles": [
+    {
+     "path": "app/api/chat/session/route.ts",
+     "symbol": "GET",
+     "lines": "17"
+    },
+    {
+     "path": "app/api/chat/lead/route.ts",
+     "symbol": "POST",
+     "lines": "67"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:cron",
+   "label": "Endpoints /api/cron/*",
+   "type": "api",
+   "module": "jobs",
+   "layer": "api",
+   "description": "regenerate-seo (horario), regenerate-mcp (cada 6h), integrity-check (diario); auth Bearer CRON_SECRET.",
+   "tooltip": "Tareas programadas vía HTTP",
+   "sourceFiles": [
+    {
+     "path": "app/api/cron/regenerate-seo/route.ts",
+     "symbol": "GET",
+     "lines": "4-9"
+    },
+    {
+     "path": "app/api/cron/regenerate-mcp/route.ts",
+     "symbol": "GET",
+     "lines": "4-9"
+    },
+    {
+     "path": "app/api/cron/integrity-check/route.ts",
+     "symbol": "GET",
+     "lines": "6-11"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:budget",
+   "label": "/api/auth/budget (muerto)",
+   "type": "api",
+   "module": "web",
+   "layer": "api",
+   "description": "Form de presupuesto que reenvía a un webhook n8n eliminado; error controlado con timeout.",
+   "tooltip": "Ruta a servicio eliminado",
+   "sourceFiles": [
+    {
+     "path": "app/api/auth/budget/route.ts",
+     "symbol": "POST → E2D_BUDGET_WEBHOOK_URL",
+     "lines": "122-193"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "El upstream (api.evolve2digital.com) ya no existe: siempre degrada."
+   ]
+  },
+  {
+   "id": "admin:ui-posts",
+   "label": "Admin · posts",
+   "type": "page",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Dashboard (lista de posts desde disco), editor /admin/edit y creación /admin/new.",
+   "tooltip": "Gestión de posts MDX",
+   "sourceFiles": [
+    {
+     "path": "app/admin/page.tsx",
+     "symbol": "AdminPage",
+     "lines": "6"
+    },
+    {
+     "path": "app/admin/new/page.tsx",
+     "symbol": "NewPost",
+     "lines": "19"
+    },
+    {
+     "path": "app/admin/edit/page.tsx",
+     "symbol": "EditPost",
+     "lines": "12"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "admin:ui-chat",
+   "label": "Admin · chat",
+   "type": "page",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Lista de conversaciones y detalle (mensajes + lead + estado Apollo), server components con Drizzle directo.",
+   "tooltip": "Supervisión del chat",
+   "sourceFiles": [
+    {
+     "path": "app/admin/chat/page.tsx",
+     "symbol": "página",
+     "lines": "181"
+    },
+    {
+     "path": "app/admin/chat/[id]/page.tsx",
+     "symbol": "detalle",
+     "lines": "209"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "admin:ui-embeddings",
+   "label": "Admin · embeddings",
+   "type": "page",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Lista kb_documents, inspector de chunks, tester de retrieval y panel de rebuild con botones Incremental/Full.",
+   "tooltip": "Gestión del índice RAG",
+   "sourceFiles": [
+    {
+     "path": "app/admin/embeddings/page.tsx",
+     "symbol": "página",
+     "lines": "213"
+    },
+    {
+     "path": "app/admin/embeddings/rebuild-panel.tsx",
+     "symbol": "botones Incremental/Full",
+     "lines": "122-126"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "admin:ui-prompts",
+   "label": "Admin · prompts",
+   "type": "page",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Editor versionado del system prompt del chat por locale, con preview sin persistir y activación por Server Actions.",
+   "tooltip": "Prompts del chat",
+   "sourceFiles": [
+    {
+     "path": "app/admin/prompts/[locale]/page.tsx",
+     "symbol": "editor + historial",
+     "lines": "178"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "admin:ui-media",
+   "label": "Media upload form",
+   "type": "page",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Form pública-con-JWT (token de posts_request_upload en query): token-info → upload streaming → commit de _meta.json.",
+   "tooltip": "Subida de media del blog",
+   "sourceFiles": [
+    {
+     "path": "app/admin/media-upload/MediaUploadForm.tsx",
+     "symbol": "MediaUploadForm",
+     "lines": "76-214"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "auth:admin-session",
+   "label": "Auth admin (cookie JWT)",
+   "type": "auth",
+   "module": "auth",
+   "layer": "admin",
+   "description": "Login contra ADMIN_EMAIL/ADMIN_PASSWORD, cookie admin_session HS256 24h httpOnly; verificación en middleware.",
+   "tooltip": "Sistema de auth nº1",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/login/route.ts",
+     "symbol": "POST (firma JWT)",
+     "lines": "12-54"
+    },
+    {
+     "path": "middleware.ts",
+     "symbol": "verifyJwtHS256",
+     "lines": "84-116"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-posts",
+   "label": "/api/admin/posts",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "CRUD de ficheros MDX desde el panel (POST/PUT/DELETE).",
+   "tooltip": "Escritura de posts desde admin",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/posts/route.ts",
+     "symbol": "POST/PUT/DELETE",
+     "lines": "62-148"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-chat",
+   "label": "/api/admin/chat/*",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Listado y detalle de conversaciones con filtros zod.",
+   "tooltip": "API del admin de chat",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/chat/conversations/route.ts",
+     "symbol": "GET",
+     "lines": "89"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-embeddings",
+   "label": "/api/admin/embeddings",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Lista paginada + estado del job; POST dispara rebuild del índice; DELETE por documento; búsqueda top-K.",
+   "tooltip": "API del índice RAG",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/embeddings/route.ts",
+     "symbol": "GET/POST",
+     "lines": "136-183"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-prompts",
+   "label": "/api/admin/prompts",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Resumen por locale, creación de versiones draft, activación idempotente y preview.",
+   "tooltip": "API de prompts",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/prompts/route.ts",
+     "symbol": "GET/POST",
+     "lines": "38-49"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-media",
+   "label": "/api/admin/media/*",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "token-info (valida upload-token), upload (streaming con whitelist MIME, ≤1GB) y commit (_meta.json, cover tri-estado).",
+   "tooltip": "API de subida de media",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/media/upload/route.ts",
+     "symbol": "POST",
+     "lines": "13-53"
+    },
+    {
+     "path": "app/api/admin/media/upload/commit/route.ts",
+     "symbol": "POST",
+     "lines": "61-126"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-rebuild",
+   "label": "/api/admin/rebuild",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Spawnea rebuild-and-restart.js detached con lock .build.lock (TTL 30 min); responde 202. Auth por E2D_MCP_API_KEY (público en middleware).",
+   "tooltip": "Disparador de rebuild",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/rebuild/route.ts",
+     "symbol": "POST + requireApiKey",
+     "lines": "49-138"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "api:admin-crawler",
+   "label": "/api/admin/ai-crawler-*",
+   "type": "api",
+   "module": "admin",
+   "layer": "admin",
+   "description": "Estadísticas de crawlers y gestión de la config de seguridad (estado in-memory).",
+   "tooltip": "Monitor de crawlers",
+   "sourceFiles": [
+    {
+     "path": "app/api/admin/ai-crawler-monitor/route.ts",
+     "symbol": "GET/POST",
+     "lines": "11-67"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "mcp:transport",
+   "label": "Transporte MCP (/sse, /mcp)",
+   "type": "transport",
+   "module": "mcp",
+   "layer": "mcp",
+   "description": "Streamable HTTP JSON-RPC 2.0 stateless en POST /sse y POST /mcp (mismo handler); GET /sse es un stream informativo custom.",
+   "tooltip": "Entrada MCP",
+   "sourceFiles": [
+    {
+     "path": "app/sse/route.ts",
+     "symbol": "POST",
+     "lines": "129-155"
+    },
+    {
+     "path": "app/mcp/route.ts",
+     "symbol": "POST",
+     "lines": "72-106"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "mcp:rpc",
+   "label": "rpc-handler (11 tools)",
+   "type": "mcp",
+   "module": "mcp",
+   "layer": "mcp",
+   "description": "Handler JSON-RPC hand-rolled (initialize, tools/list, tools/call), protocolVersion 2025-03-26, scopes por tool; 11 tools posts_*.",
+   "tooltip": "Núcleo MCP",
+   "sourceFiles": [
+    {
+     "path": "lib/mcp/rpc-handler.ts",
+     "symbol": "handleRpcCall + toolsList",
+     "lines": "112-816"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "mcp:rest",
+   "label": "REST /api/mcp/** + manifest",
+   "type": "mcp",
+   "module": "mcp",
+   "layer": "mcp",
+   "description": "Capa REST paralela: un endpoint por tool (search, fetch, posts/*, agent, appointments) + manifest de 762 líneas.",
+   "tooltip": "MCP estilo REST",
+   "sourceFiles": [
+    {
+     "path": "app/api/mcp/manifest/route.ts",
+     "symbol": "manifest",
+     "lines": "1-762"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "mcp:tool-appointments",
+   "label": "appointments.create (stub)",
+   "type": "mcp",
+   "module": "mcp",
+   "layer": "mcp",
+   "description": "Valida y responde con id sintético y nextSteps i18n, pero processAppointment() no persiste ni integra nada (TODOs).",
+   "tooltip": "Tool sin backend real",
+   "sourceFiles": [
+    {
+     "path": "app/api/mcp/tools/appointments/create/route.ts",
+     "symbol": "processAppointment",
+     "lines": "344-384"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "La respuesta promete emails/calendario que el código no envía."
+   ]
+  },
+  {
+   "id": "mcp:tool-agent",
+   "label": "agent.query (webhook muerto)",
+   "type": "mcp",
+   "module": "mcp",
+   "layer": "mcp",
+   "description": "Delegaba a un webhook n8n externo eliminado; timeout 30s y degradación silenciosa a null.",
+   "tooltip": "Tool a servicio eliminado",
+   "sourceFiles": [
+    {
+     "path": "app/api/mcp/tools/agent/query/route.ts",
+     "symbol": "fetch E2D_AGENT_WEBHOOK_URL",
+     "lines": "42-88"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "auth:oauth",
+   "label": "OAuth 2.1 AS",
+   "type": "auth",
+   "module": "auth",
+   "layer": "mcp",
+   "description": "Authorization server propio: /authorize (PKCE S256), /token (code + refresh, RFC 8707 resource), /register (DCR), .well-known × 2, consent con CSRF.",
+   "tooltip": "Sistema de auth nº2 (MCP)",
+   "sourceFiles": [
+    {
+     "path": "app/token/route.ts",
+     "symbol": "grants",
+     "lines": "50-133"
+    },
+    {
+     "path": "app/register/route.ts",
+     "symbol": "DCR",
+     "lines": "92-101"
+    },
+    {
+     "path": "app/.well-known/oauth-authorization-server/route.ts",
+     "symbol": "metadata",
+     "lines": "3"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:oauth-jwt",
+   "label": "JWT access/upload tokens",
+   "type": "auth",
+   "module": "auth",
+   "layer": "mcp",
+   "description": "Firma/verificación de access tokens (aud=resource) y upload-tokens de media (JWT_SECRET ≥32 chars).",
+   "tooltip": "Tokens firmados",
+   "sourceFiles": [
+    {
+     "path": "lib/oauth-jwt.ts",
+     "symbol": "signUploadToken / verifyUploadToken",
+     "lines": "19-77"
+    },
+    {
+     "path": "lib/mcp-oauth.ts",
+     "symbol": "requireOAuthScopes",
+     "lines": "13-42"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:posts-runtime",
+   "label": "posts-runtime (lectura)",
+   "type": "service",
+   "module": "blog",
+   "layer": "dominio",
+   "description": "listPostsFromDisk con cache por fingerprint (mtime+size), walk de symlinks, parse gray-matter y compilación MDX runtime (getCompiledPost).",
+   "tooltip": "El blog lee de disco en cada request",
+   "sourceFiles": [
+    {
+     "path": "lib/blog/posts-runtime.ts",
+     "symbol": "listPostsFromDisk / getCompiledPost",
+     "lines": "48-227"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:posts-write",
+   "label": "posts-write (escritura)",
+   "type": "service",
+   "module": "blog",
+   "layer": "dominio",
+   "description": "createPost atómico multi-locale, soft-delete a papelera, updates de body/frontmatter y triggerRebuild.",
+   "tooltip": "Escritura de posts",
+   "sourceFiles": [
+    {
+     "path": "lib/blog/posts-write.ts",
+     "symbol": "createPost / deletePost / triggerRebuild",
+     "lines": "139-368"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:media",
+   "label": "Media (storage/meta/markers)",
+   "type": "service",
+   "module": "blog",
+   "layer": "dominio",
+   "description": "saveMediaFile a MEDIA_UPLOADS_ROOT, _meta.json con lock TTL 30s, expandMarkers ([image:x], [video:x], [contact]) y resolveCover.",
+   "tooltip": "Media del blog",
+   "sourceFiles": [
+    {
+     "path": "lib/blog/media-storage.ts",
+     "symbol": "saveMediaFile",
+     "lines": "88-141"
+    },
+    {
+     "path": "lib/blog/media-markers.ts",
+     "symbol": "expandMarkers / resolveCover",
+     "lines": "102-146"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:chat-core",
+   "label": "Chat core",
+   "type": "service",
+   "module": "chat",
+   "layer": "dominio",
+   "description": "Sesión (cookies), rate-limit 30/h in-memory, ensamblado de mensajes (buildMessages), extracción implícita de lead y telemetría de coste.",
+   "tooltip": "Lógica del chat",
+   "sourceFiles": [
+    {
+     "path": "lib/chat/session.ts",
+     "symbol": "cookies",
+     "lines": "19-85"
+    },
+    {
+     "path": "lib/chat/rate-limiter.ts",
+     "symbol": "límite",
+     "lines": "13-35"
+    },
+    {
+     "path": "lib/chat/prompt.ts",
+     "symbol": "buildMessages",
+     "lines": "178"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:retriever",
+   "label": "Retriever RAG",
+   "type": "service",
+   "module": "rag",
+   "layer": "dominio",
+   "description": "SQL crudo pgvector (embedding <=> $vec) sobre kb_chunks con filtro por locale; RAG_TOP_K default 5.",
+   "tooltip": "Recuperación semántica",
+   "sourceFiles": [
+    {
+     "path": "lib/chat/retriever.ts",
+     "symbol": "retrieveContext",
+     "lines": "69-102"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:rag-indexer",
+   "label": "Indexador RAG",
+   "type": "service",
+   "module": "rag",
+   "layer": "dominio",
+   "description": "rebuildIndex: hash de contenido → chunking 500/50 tokens → embeddings OpenAI batch 100 → upsert docs + replace chunks en tx.",
+   "tooltip": "Construcción del índice",
+   "sourceFiles": [
+    {
+     "path": "lib/rag/indexer.ts",
+     "symbol": "rebuildIndex",
+     "lines": "5-40"
+    },
+    {
+     "path": "lib/rag/sources.ts",
+     "symbol": "readAllSources",
+     "lines": "32-193"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:leads",
+   "label": "lead-service",
+   "type": "service",
+   "module": "leads",
+   "layer": "dominio",
+   "description": "captureLead: insert en chat_leads → encolar apollo_sync_queue → email a admin; fallos externos degradan a warnings.",
+   "tooltip": "Captura de leads",
+   "sourceFiles": [
+    {
+     "path": "lib/leads/lead-service.ts",
+     "symbol": "captureLead",
+     "lines": "46-145"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:apollo-sync",
+   "label": "apollo-sync (drenaje)",
+   "type": "service",
+   "module": "leads",
+   "layer": "dominio",
+   "description": "drainApolloQueue: batch 25, máx 5 intentos, marca failed; usa apollo-client con backoff y Retry-After.",
+   "tooltip": "Sincronización a CRM",
+   "sourceFiles": [
+    {
+     "path": "lib/leads/apollo-sync.ts",
+     "symbol": "drainApolloQueue",
+     "lines": "43-165"
+    },
+    {
+     "path": "lib/leads/apollo-client.ts",
+     "symbol": "createOrUpdateContact",
+     "lines": "17-189"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:email",
+   "label": "resend-client",
+   "type": "service",
+   "module": "email",
+   "layer": "dominio",
+   "description": "Envío de emails transaccionales vía Resend (notificación de lead al admin).",
+   "tooltip": "Email saliente",
+   "sourceFiles": [
+    {
+     "path": "lib/email/resend-client.ts",
+     "symbol": "sendEmail",
+     "lines": "10-124"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:prompt-store",
+   "label": "prompt-store",
+   "type": "service",
+   "module": "chat",
+   "layer": "dominio",
+   "description": "System prompts versionados por locale en DB con cache 60s y fallback hardcodeado si la DB cae.",
+   "tooltip": "Prompts versionados",
+   "sourceFiles": [
+    {
+     "path": "lib/chat/prompt-store.ts",
+     "symbol": "loadActivePromptBody / activateVersion",
+     "lines": "26-231"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:seo-lib",
+   "label": "Generadores SEO",
+   "type": "service",
+   "module": "seo",
+   "layer": "dominio",
+   "description": "sitemap-generator, rss-generator, hreflang regional unificado y json-ld-generator compartidos por los endpoints.",
+   "tooltip": "Lógica SEO compartida",
+   "sourceFiles": [
+    {
+     "path": "lib/sitemap-generator.ts",
+     "symbol": "generateAISitemap",
+     "lines": "1-60"
+    },
+    {
+     "path": "lib/seo/hreflang.ts",
+     "symbol": "buildHreflangLanguages",
+     "lines": "1-40"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "svc:crawler-sec",
+   "label": "Crawler security/monitor",
+   "type": "service",
+   "module": "infra",
+   "layer": "dominio",
+   "description": "Detección de crawlers IA, análisis de seguridad, rate-limits por UA y alertas vía webhook opcional.",
+   "tooltip": "Seguridad de crawlers",
+   "sourceFiles": [
+    {
+     "path": "lib/ai-crawler-security.ts",
+     "symbol": "analyzeRequest",
+     "lines": "1-60"
+    },
+    {
+     "path": "lib/ai-crawler-monitor.ts",
+     "symbol": "sendAlertNotifications",
+     "lines": "289-313"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "db:postgres",
+   "label": "PostgreSQL 16 + pgvector",
+   "type": "database",
+   "module": "datos",
+   "layer": "datos",
+   "description": "Docker e2d-db en 127.0.0.1:5436. Tablas: chat_sessions, chat_messages, kb_documents, kb_chunks (vector 1536, IVFFlat), chat_leads, apollo_sync_queue, system_prompts, chat_usage (+_migrations).",
+   "tooltip": "DB principal (chat, RAG, leads)",
+   "sourceFiles": [
+    {
+     "path": "lib/db/schema.ts",
+     "symbol": "pgTable × 7",
+     "lines": "24-154"
+    },
+    {
+     "path": "docker-compose.yml",
+     "symbol": "e2d-db",
+     "lines": "2-18"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "chat_usage solo existe en SQL (0002), no en el schema Drizzle; la migración 0004 no existe."
+   ]
+  },
+  {
+   "id": "db:oauth",
+   "label": "SQLite OAuth",
+   "type": "database",
+   "module": "datos",
+   "layer": "datos",
+   "description": "better-sqlite3 con clientes DCR, códigos y refresh tokens; en /var/lib/e2d-oauth (OAUTH_DB_DIR) para sobrevivir builds (BUG-18).",
+   "tooltip": "Estado OAuth persistente",
+   "sourceFiles": [
+    {
+     "path": "lib/oauth-db.ts",
+     "symbol": "clientes/códigos/refresh",
+     "lines": "1-60"
+    },
+    {
+     "path": "ecosystem.config.js",
+     "symbol": "OAUTH_DB_DIR",
+     "lines": "31"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "store:posts",
+   "label": "Posts MDX (disco)",
+   "type": "storage",
+   "module": "datos",
+   "layer": "datos",
+   "description": "content/posts → symlink a /var/lib/e2d-content/posts (runtime, MCP) + content/*.mdx versionados en repo; excluidos del tracing standalone (BUG-16).",
+   "tooltip": "Fuente de verdad del blog",
+   "sourceFiles": [
+    {
+     "path": "next.config.mjs",
+     "symbol": "outputFileTracingExcludes",
+     "lines": "30-33"
+    },
+    {
+     "path": "ecosystem.config.js",
+     "symbol": "BLOG_POSTS_DIR",
+     "lines": "25"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "store:uploads",
+   "label": "Uploads media",
+   "type": "storage",
+   "module": "datos",
+   "layer": "datos",
+   "description": "/var/lib/e2d-uploads con <translationKey>/<name>.<ext> + _meta.json; servido por nginx como /uploads/.",
+   "tooltip": "Media del blog",
+   "sourceFiles": [
+    {
+     "path": "lib/blog/media-storage.ts",
+     "symbol": "getRoot",
+     "lines": "88"
+    },
+    {
+     "path": "ecosystem.config.js",
+     "symbol": "MEDIA_UPLOADS_ROOT",
+     "lines": "14"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "job:build",
+   "label": "Pipeline de build",
+   "type": "build",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "4 fases: limpieza standalone → pull-content (archivo/GitHub) → next build → ai-indexing (docs MCP + report) → sync-static-files al standalone.",
+   "tooltip": "npm run build",
+   "sourceFiles": [
+    {
+     "path": "package.json",
+     "symbol": "scripts.build",
+     "lines": "6-7"
+    },
+    {
+     "path": "scripts/sync-static-files.js",
+     "symbol": "copias",
+     "lines": "8-41"
+    },
+    {
+     "path": "scripts/generate-mcp-docs.js",
+     "symbol": "main",
+     "lines": "391-423"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "job:rebuild",
+   "label": "rebuild-and-restart.js",
+   "type": "build",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "BUILD_COMMAND (npm run build) + RESTART_COMMAND (pm2 restart e2d); log en build.log; libera .build.lock al terminar; ~3 min de degradación visual del sitio durante el build in-place.",
+   "tooltip": "Rebuild con restart",
+   "sourceFiles": [
+    {
+     "path": "scripts/rebuild-and-restart.js",
+     "symbol": "runCommand",
+     "lines": "21-96"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "job:rag-cli",
+   "label": "build-rag-index (CLI)",
+   "type": "job",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "npm run rag:index con flags --full/--locale/--source; lo spawnea el job tracker del admin o se lanza manual.",
+   "tooltip": "Reindexado RAG",
+   "sourceFiles": [
+    {
+     "path": "scripts/build-rag-index.ts",
+     "symbol": "main",
+     "lines": "25-50"
+    },
+    {
+     "path": "lib/admin/embedding-jobs.ts",
+     "symbol": "startRebuild (spawn)",
+     "lines": "97-109"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "job:retention",
+   "label": "chat-retention (manual)",
+   "type": "job",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "Purga chat_messages >90 días y sesiones huérfanas en tx; preserva leads/cola/usage. No está en el crontab.",
+   "tooltip": "Retención GDPR del chat",
+   "sourceFiles": [
+    {
+     "path": "lib/chat/retention.ts",
+     "symbol": "purgeOldData",
+     "lines": "6-98"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Definido pero sin programar: solo ejecución manual."
+   ]
+  },
+  {
+   "id": "job:apollo-cli",
+   "label": "apollo:sync (manual)",
+   "type": "job",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "CLI cron-friendly que drena apollo_sync_queue. No está en el crontab: la cola no se vacía sola.",
+   "tooltip": "Drenaje de cola a Apollo",
+   "sourceFiles": [
+    {
+     "path": "scripts/sync-leads-to-apollo.ts",
+     "symbol": "main",
+     "lines": "18"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Definido pero sin programar."
+   ]
+  },
+  {
+   "id": "job:backups",
+   "label": "Backups + purga (cron)",
+   "type": "job",
+   "module": "jobs",
+   "layer": "jobs",
+   "description": "rsync diario de posts (retención 14d) y OAuth (30d) a /var/backups, más purga de papelera >30 días.",
+   "tooltip": "Copias de seguridad",
+   "sourceFiles": [
+    {
+     "path": "scripts/posts-trash-purge.sh",
+     "symbol": "purga",
+     "lines": "1-30"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Las líneas rsync viven en el crontab del VPS, fuera del repo."
+   ]
+  },
+  {
+   "id": "ext:deepseek",
+   "label": "DeepSeek API",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "LLM del chat: streamCompletion contra api.deepseek.com, modelo deepseek-chat.",
+   "tooltip": "LLM del chat público",
+   "sourceFiles": [
+    {
+     "path": "lib/chat/deepseek.ts",
+     "symbol": "streamCompletion",
+     "lines": "18-89"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:openai",
+   "label": "OpenAI Embeddings",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "text-embedding-3-small (1536d) para indexado y queries RAG; batch 100, 3 reintentos.",
+   "tooltip": "Embeddings",
+   "sourceFiles": [
+    {
+     "path": "lib/rag/embeddings.ts",
+     "symbol": "embedQuery / embedBatch",
+     "lines": "13-121"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:apollo",
+   "label": "Apollo.io",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "CRM: POST /api/v1/contacts con APOLLO_API_KEY; backoff y Retry-After.",
+   "tooltip": "CRM de leads",
+   "sourceFiles": [
+    {
+     "path": "lib/leads/apollo-client.ts",
+     "symbol": "createOrUpdateContact",
+     "lines": "17-189"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:resend",
+   "label": "Resend",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "api.resend.com/emails para notificación de leads al admin.",
+   "tooltip": "Email transaccional",
+   "sourceFiles": [
+    {
+     "path": "lib/email/resend-client.ts",
+     "symbol": "POST /emails",
+     "lines": "10-124"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:ga4",
+   "label": "Google Analytics 4",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "gtag con NEXT_PUBLIC_GA_MEASUREMENT_ID, solo producción y condicionado al consent GDPR.",
+   "tooltip": "Analítica",
+   "sourceFiles": [
+    {
+     "path": "components/analytics/google-analytics.tsx",
+     "symbol": "gated NODE_ENV",
+     "lines": "24-26"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:whatsapp",
+   "label": "WhatsApp (wa.me)",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "Enlaces wa.me construidos desde NEXT_PUBLIC_WHATSAPP_NUMBER; número también hardcodeado en fallbacks del chat.",
+   "tooltip": "Canal de contacto",
+   "sourceFiles": [
+    {
+     "path": "lib/contact/whatsapp.ts",
+     "symbol": "getWhatsAppHref",
+     "lines": "4-9"
+    },
+    {
+     "path": "app/api/chat/route.ts",
+     "symbol": "wa.me hardcodeado",
+     "lines": "55"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "ext:dead",
+   "label": "api.evolve2digital.com (†)",
+   "type": "external",
+   "module": "externos",
+   "layer": "externos",
+   "description": "Webhooks n8n eliminados (budget, userMessage): el código aún los referencia con degradación controlada.",
+   "tooltip": "Servicios eliminados",
+   "sourceFiles": [
+    {
+     "path": "app/api/auth/budget/route.ts",
+     "symbol": "fallback URL",
+     "lines": "136-139"
+    },
+    {
+     "path": "app/api/mcp/tools/agent/query/route.ts",
+     "symbol": "fallback URL",
+     "lines": "42-60"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "El destino no existe; toda llamada falla y se degrada."
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "id": "edge:browser-nginx",
+   "source": "client:browser",
+   "target": "infra:nginx",
+   "type": "calls",
+   "label": "HTTPS",
+   "evidence": [
+    {
+     "path": "/etc/nginx/sites-available/evolve2digital",
+     "symbol": "server 443",
+     "lines": "1-58"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:assistants-nginx",
+   "source": "client:ai-assistants",
+   "target": "infra:nginx",
+   "type": "calls",
+   "label": "MCP + OAuth",
+   "evidence": [
+    {
+     "path": "/etc/nginx/sites-available/evolve2digital",
+     "symbol": "proxy catch-all",
+     "lines": "43"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:crawlers-nginx",
+   "source": "client:crawlers",
+   "target": "infra:nginx",
+   "type": "calls",
+   "label": "Crawling",
+   "evidence": [
+    {
+     "path": "middleware.ts",
+     "symbol": "isAICrawler",
+     "lines": "125"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:cron-api",
+   "source": "client:cron",
+   "target": "api:cron",
+   "type": "schedules",
+   "label": "curl Bearer CRON_SECRET",
+   "evidence": [
+    {
+     "path": "vercel.json",
+     "symbol": "crons",
+     "lines": "14-27"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Crontab real verificado en el VPS con los mismos 3 endpoints."
+   ]
+  },
+  {
+   "id": "edge:cron-backups",
+   "source": "client:cron",
+   "target": "job:backups",
+   "type": "schedules",
+   "label": "rsync + purga",
+   "evidence": [
+    {
+     "path": "scripts/posts-trash-purge.sh",
+     "symbol": "invocado por cron",
+     "lines": "1-30"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:nginx-pm2",
+   "source": "infra:nginx",
+   "target": "infra:pm2",
+   "type": "calls",
+   "label": "proxy 127.0.0.1:3003",
+   "evidence": [
+    {
+     "path": "/etc/nginx/sites-available/evolve2digital",
+     "symbol": "proxy_pass",
+     "lines": "43"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:nginx-uploads",
+   "source": "infra:nginx",
+   "target": "store:uploads",
+   "type": "reads",
+   "label": "alias /uploads/",
+   "evidence": [
+    {
+     "path": "/etc/nginx/sites-available/evolve2digital",
+     "symbol": "location /uploads/",
+     "lines": "36-37"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:pm2-middleware",
+   "source": "infra:pm2",
+   "target": "infra:middleware",
+   "type": "calls",
+   "label": "toda request",
+   "evidence": [
+    {
+     "path": "middleware.ts",
+     "symbol": "config.matcher",
+     "lines": "224-233"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:middleware-adminauth",
+   "source": "infra:middleware",
+   "target": "auth:admin-session",
+   "type": "authenticates",
+   "label": "verifica admin_session",
+   "evidence": [
+    {
+     "path": "middleware.ts",
+     "symbol": "guard /admin",
+     "lines": "164-192"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:middleware-crawlersec",
+   "source": "infra:middleware",
+   "target": "svc:crawler-sec",
+   "type": "calls",
+   "label": "analyzeRequest + log",
+   "evidence": [
+    {
+     "path": "middleware.ts",
+     "symbol": "imports + uso",
+     "lines": "3-4,131"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:watchdogs-posts",
+   "source": "infra:watchdogs",
+   "target": "store:posts",
+   "type": "reads",
+   "label": "vigila .mdx",
+   "evidence": [
+    {
+     "path": "scripts/ferdy-tripwire.sh",
+     "symbol": "test -f",
+     "lines": "1-40"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:browser-home",
+   "source": "client:browser",
+   "target": "web:home",
+   "type": "calls",
+   "label": "GET /{locale}",
+   "evidence": [
+    {
+     "path": "app/[locale]/page.tsx",
+     "symbol": "HomePage",
+     "lines": "9-36"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:browser-blog",
+   "source": "client:browser",
+   "target": "web:blog",
+   "type": "calls",
+   "label": "GET /{locale}/blog",
+   "evidence": [
+    {
+     "path": "app/[locale]/blog/[slug]/page.tsx",
+     "symbol": "BlogPostPage",
+     "lines": "83-102"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:crawlers-seo",
+   "source": "client:crawlers",
+   "target": "seo:endpoints",
+   "type": "reads",
+   "label": "sitemap/robots/llms",
+   "evidence": [
+    {
+     "path": "app/robots.ts",
+     "symbol": "reglas por UA",
+     "lines": "5-61"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:home-chatpanel",
+   "source": "web:home",
+   "target": "web:chat-panel",
+   "type": "imports",
+   "label": "monta ChatPanel",
+   "evidence": [
+    {
+     "path": "app/[locale]/page.tsx",
+     "symbol": "ChatPanel",
+     "lines": "7"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:home-jsonld",
+   "source": "web:home",
+   "target": "seo:jsonld",
+   "type": "imports",
+   "label": "schemas en layout",
+   "evidence": [
+    {
+     "path": "app/[locale]/layout.tsx",
+     "symbol": "Organization/Service/Website",
+     "lines": "122-124"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:home-analytics",
+   "source": "web:home",
+   "target": "web:analytics",
+   "type": "imports",
+   "label": "GA en root layout",
+   "evidence": [
+    {
+     "path": "app/layout.tsx",
+     "symbol": "GoogleAnalytics",
+     "lines": "70-91"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:analytics-ga4",
+   "source": "web:analytics",
+   "target": "ext:ga4",
+   "type": "publishes",
+   "label": "gtag events",
+   "evidence": [
+    {
+     "path": "lib/analytics/track.ts",
+     "symbol": "track",
+     "lines": "6-9"
+    }
+   ],
+   "confidence": "medium",
+   "notes": [
+    "Solo en producción y con consent; el envío efectivo no es verificable estáticamente."
+   ]
+  },
+  {
+   "id": "edge:contact-whatsapp",
+   "source": "web:contact",
+   "target": "ext:whatsapp",
+   "type": "redirects",
+   "label": "wa.me link",
+   "evidence": [
+    {
+     "path": "components/contact/contact-modal.tsx",
+     "symbol": "botón WhatsApp",
+     "lines": "45-48"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:blog-postsruntime",
+   "source": "web:blog",
+   "target": "svc:posts-runtime",
+   "type": "calls",
+   "label": "listPostsFromDisk / getCompiledPost",
+   "evidence": [
+    {
+     "path": "app/[locale]/blog/[slug]/page.tsx",
+     "symbol": "getCompiledPost",
+     "lines": "86"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:blog-contactcta",
+   "source": "web:blog",
+   "target": "web:contact",
+   "type": "imports",
+   "label": "marker [contact] → CTA",
+   "evidence": [
+    {
+     "path": "lib/blog/media-markers.ts",
+     "symbol": "expandMarkers",
+     "lines": "102-122"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:seo-seolib",
+   "source": "seo:endpoints",
+   "target": "svc:seo-lib",
+   "type": "calls",
+   "label": "generateAISitemap etc.",
+   "evidence": [
+    {
+     "path": "app/sitemap.ts",
+     "symbol": "generateAISitemap",
+     "lines": "14"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:seo-postsruntime",
+   "source": "seo:endpoints",
+   "target": "svc:posts-runtime",
+   "type": "calls",
+   "label": "posts para feed/llms",
+   "evidence": [
+    {
+     "path": "app/feed/[locale]/route.ts",
+     "symbol": "listPostsFromDisk",
+     "lines": "119"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:seolib-postsruntime",
+   "source": "svc:seo-lib",
+   "target": "svc:posts-runtime",
+   "type": "calls",
+   "label": "posts para sitemap",
+   "evidence": [
+    {
+     "path": "lib/sitemap-generator.ts",
+     "symbol": "posts runtime",
+     "lines": "1-60"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:postsruntime-store",
+   "source": "svc:posts-runtime",
+   "target": "store:posts",
+   "type": "reads",
+   "label": "walk .mdx + fingerprint",
+   "evidence": [
+    {
+     "path": "lib/blog/posts-runtime.ts",
+     "symbol": "walkMdx / fingerprint",
+     "lines": "55-105"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:postsruntime-media",
+   "source": "svc:posts-runtime",
+   "target": "svc:media",
+   "type": "calls",
+   "label": "markers + covers",
+   "evidence": [
+    {
+     "path": "lib/blog/posts-runtime.ts",
+     "symbol": "import media-meta/markers",
+     "lines": "177-208"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:media-uploadsstore",
+   "source": "svc:media",
+   "target": "store:uploads",
+   "type": "writes",
+   "label": "binarios + _meta.json",
+   "evidence": [
+    {
+     "path": "lib/blog/media-storage.ts",
+     "symbol": "saveMediaFile",
+     "lines": "105-141"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:chatpanel-apichat",
+   "source": "web:chat-panel",
+   "target": "api:chat",
+   "type": "calls",
+   "label": "POST /api/chat (SSE)",
+   "evidence": [
+    {
+     "path": "components/chat/use-chat-stream.ts",
+     "symbol": "fetch /api/chat",
+     "lines": "160"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:chatpanel-apiaux",
+   "source": "web:chat-panel",
+   "target": "api:chat-aux",
+   "type": "calls",
+   "label": "sesión + lead",
+   "evidence": [
+    {
+     "path": "components/chat/chat-panel.tsx",
+     "symbol": "GET /api/chat/session",
+     "lines": "279"
+    },
+    {
+     "path": "components/chat/lead-capture-form.tsx",
+     "symbol": "fetch /api/chat/lead",
+     "lines": "58"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apichat-chatcore",
+   "source": "api:chat",
+   "target": "svc:chat-core",
+   "type": "calls",
+   "label": "sesión/límites/prompt",
+   "evidence": [
+    {
+     "path": "app/api/chat/route.ts",
+     "symbol": "buildMessages + telemetría",
+     "lines": "22-208"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apichat-retriever",
+   "source": "api:chat",
+   "target": "svc:retriever",
+   "type": "calls",
+   "label": "RAG top-K",
+   "evidence": [
+    {
+     "path": "app/api/chat/route.ts",
+     "symbol": "retrieveContext",
+     "lines": "268-313"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apichat-deepseek",
+   "source": "api:chat",
+   "target": "ext:deepseek",
+   "type": "calls",
+   "label": "streamCompletion",
+   "evidence": [
+    {
+     "path": "lib/chat/deepseek.ts",
+     "symbol": "streamCompletion",
+     "lines": "89"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apichat-db",
+   "source": "api:chat",
+   "target": "db:postgres",
+   "type": "writes",
+   "label": "mensajes + usage",
+   "evidence": [
+    {
+     "path": "app/api/chat/route.ts",
+     "symbol": "persistencia + recordStreamResponseUsage",
+     "lines": "208"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:retriever-db",
+   "source": "svc:retriever",
+   "target": "db:postgres",
+   "type": "reads",
+   "label": "kb_chunks <=> vec",
+   "evidence": [
+    {
+     "path": "lib/chat/retriever.ts",
+     "symbol": "SQL pgvector",
+     "lines": "89-102"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:retriever-openai",
+   "source": "svc:retriever",
+   "target": "ext:openai",
+   "type": "calls",
+   "label": "embedQuery",
+   "evidence": [
+    {
+     "path": "lib/rag/embeddings.ts",
+     "symbol": "embedQuery",
+     "lines": "30"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:chatcore-promptstore",
+   "source": "svc:chat-core",
+   "target": "svc:prompt-store",
+   "type": "calls",
+   "label": "prompt activo",
+   "evidence": [
+    {
+     "path": "lib/chat/prompt.ts",
+     "symbol": "loadActivePromptBody",
+     "lines": "35-178"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:promptstore-db",
+   "source": "svc:prompt-store",
+   "target": "db:postgres",
+   "type": "reads",
+   "label": "system_prompts",
+   "evidence": [
+    {
+     "path": "lib/chat/prompt-store.ts",
+     "symbol": "queries Drizzle",
+     "lines": "81-231"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiaux-leads",
+   "source": "api:chat-aux",
+   "target": "svc:leads",
+   "type": "calls",
+   "label": "captureLead",
+   "evidence": [
+    {
+     "path": "app/api/chat/lead/route.ts",
+     "symbol": "captureLead",
+     "lines": "67"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apichat-leads",
+   "source": "api:chat",
+   "target": "svc:leads",
+   "type": "calls",
+   "label": "lead implícito (regex)",
+   "evidence": [
+    {
+     "path": "lib/chat/lead-extractor.ts",
+     "symbol": "intents",
+     "lines": "21"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:leads-db",
+   "source": "svc:leads",
+   "target": "db:postgres",
+   "type": "writes",
+   "label": "chat_leads + cola Apollo",
+   "evidence": [
+    {
+     "path": "lib/leads/lead-service.ts",
+     "symbol": "insertLead / enqueueApollo",
+     "lines": "46-67"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:leads-email",
+   "source": "svc:leads",
+   "target": "svc:email",
+   "type": "calls",
+   "label": "notifica al admin",
+   "evidence": [
+    {
+     "path": "lib/leads/lead-service.ts",
+     "symbol": "trySendEmail",
+     "lines": "111"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:email-resend",
+   "source": "svc:email",
+   "target": "ext:resend",
+   "type": "calls",
+   "label": "POST /emails",
+   "evidence": [
+    {
+     "path": "lib/email/resend-client.ts",
+     "symbol": "fetch api.resend.com",
+     "lines": "10-124"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apollosync-db",
+   "source": "svc:apollo-sync",
+   "target": "db:postgres",
+   "type": "writes",
+   "label": "drena apollo_sync_queue",
+   "evidence": [
+    {
+     "path": "lib/leads/apollo-sync.ts",
+     "symbol": "drainApolloQueue",
+     "lines": "43-165"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apollosync-apollo",
+   "source": "svc:apollo-sync",
+   "target": "ext:apollo",
+   "type": "calls",
+   "label": "contacts upsert",
+   "evidence": [
+    {
+     "path": "lib/leads/apollo-client.ts",
+     "symbol": "createOrUpdateContact",
+     "lines": "159"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:budget-dead",
+   "source": "api:budget",
+   "target": "ext:dead",
+   "type": "calls",
+   "label": "webhook budget (†)",
+   "evidence": [
+    {
+     "path": "app/api/auth/budget/route.ts",
+     "symbol": "fetch webhook",
+     "lines": "136-139"
+    }
+   ],
+   "confidence": "high",
+   "notes": [
+    "Destino eliminado: siempre falla con degradación controlada."
+   ]
+  },
+  {
+   "id": "edge:browser-adminui",
+   "source": "client:browser",
+   "target": "admin:ui-posts",
+   "type": "calls",
+   "label": "GET /admin",
+   "evidence": [
+    {
+     "path": "app/admin/page.tsx",
+     "symbol": "AdminPage",
+     "lines": "6"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminui-login",
+   "source": "admin:ui-posts",
+   "target": "auth:admin-session",
+   "type": "authenticates",
+   "label": "login → cookie",
+   "evidence": [
+    {
+     "path": "app/admin/login/page.tsx",
+     "symbol": "POST /api/admin/login",
+     "lines": "61"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminposts-api",
+   "source": "admin:ui-posts",
+   "target": "api:admin-posts",
+   "type": "calls",
+   "label": "CRUD MDX",
+   "evidence": [
+    {
+     "path": "app/admin/new/page.tsx",
+     "symbol": "POST /api/admin/posts",
+     "lines": "19"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminposts-store",
+   "source": "api:admin-posts",
+   "target": "store:posts",
+   "type": "writes",
+   "label": "ficheros MDX",
+   "evidence": [
+    {
+     "path": "app/api/admin/posts/route.ts",
+     "symbol": "POST/PUT/DELETE",
+     "lines": "62-148"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminchat-api",
+   "source": "admin:ui-chat",
+   "target": "api:admin-chat",
+   "type": "calls",
+   "label": "conversaciones",
+   "evidence": [
+    {
+     "path": "app/api/admin/chat/conversations/route.ts",
+     "symbol": "GET",
+     "lines": "89"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminchatui-db",
+   "source": "admin:ui-chat",
+   "target": "db:postgres",
+   "type": "reads",
+   "label": "Drizzle directo (RSC)",
+   "evidence": [
+    {
+     "path": "app/admin/chat/page.tsx",
+     "symbol": "server component",
+     "lines": "181"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminchat-db",
+   "source": "api:admin-chat",
+   "target": "db:postgres",
+   "type": "reads",
+   "label": "sesiones/mensajes/leads",
+   "evidence": [
+    {
+     "path": "app/api/admin/chat/conversations/[id]/route.ts",
+     "symbol": "GET",
+     "lines": "68"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminembeddings-api",
+   "source": "admin:ui-embeddings",
+   "target": "api:admin-embeddings",
+   "type": "calls",
+   "label": "rebuild + polling",
+   "evidence": [
+    {
+     "path": "app/admin/embeddings/rebuild-panel.tsx",
+     "symbol": "trigger(full)",
+     "lines": "64-126"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminembeddings-job",
+   "source": "api:admin-embeddings",
+   "target": "job:rag-cli",
+   "type": "triggers",
+   "label": "spawn npm run rag:index",
+   "evidence": [
+    {
+     "path": "lib/admin/embedding-jobs.ts",
+     "symbol": "startRebuild",
+     "lines": "97-109"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminembeddings-db",
+   "source": "api:admin-embeddings",
+   "target": "db:postgres",
+   "type": "reads",
+   "label": "kb_documents + búsqueda",
+   "evidence": [
+    {
+     "path": "app/api/admin/embeddings/route.ts",
+     "symbol": "GET",
+     "lines": "136"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminprompts-api",
+   "source": "admin:ui-prompts",
+   "target": "api:admin-prompts",
+   "type": "calls",
+   "label": "versiones + preview",
+   "evidence": [
+    {
+     "path": "app/admin/prompts/preview-island.tsx",
+     "symbol": "POST preview",
+     "lines": "38"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminprompts-store",
+   "source": "api:admin-prompts",
+   "target": "svc:prompt-store",
+   "type": "calls",
+   "label": "CRUD + activar",
+   "evidence": [
+    {
+     "path": "lib/chat/prompt-store.ts",
+     "symbol": "createVersion / activateVersion",
+     "lines": "162-187"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminmedia-api",
+   "source": "admin:ui-media",
+   "target": "api:admin-media",
+   "type": "calls",
+   "label": "token→upload→commit",
+   "evidence": [
+    {
+     "path": "app/admin/media-upload/MediaUploadForm.tsx",
+     "symbol": "flujo 3 pasos",
+     "lines": "91-214"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminmedia-jwt",
+   "source": "api:admin-media",
+   "target": "svc:oauth-jwt",
+   "type": "authenticates",
+   "label": "verifyUploadToken",
+   "evidence": [
+    {
+     "path": "app/api/admin/media/upload/commit/route.ts",
+     "symbol": "verifica token",
+     "lines": "65"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadminmedia-media",
+   "source": "api:admin-media",
+   "target": "svc:media",
+   "type": "calls",
+   "label": "saveMediaFile + _meta",
+   "evidence": [
+    {
+     "path": "app/api/admin/media/upload/route.ts",
+     "symbol": "streaming a disco",
+     "lines": "34"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:adminrebuild-job",
+   "source": "api:admin-rebuild",
+   "target": "job:rebuild",
+   "type": "triggers",
+   "label": "spawn detached + lock",
+   "evidence": [
+    {
+     "path": "app/api/admin/rebuild/route.ts",
+     "symbol": "spawn",
+     "lines": "127-138"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apiadmincrawler-svc",
+   "source": "api:admin-crawler",
+   "target": "svc:crawler-sec",
+   "type": "calls",
+   "label": "stats + config",
+   "evidence": [
+    {
+     "path": "app/api/admin/ai-crawler-security/route.ts",
+     "symbol": "GET/POST/DELETE",
+     "lines": "10-216"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:assistants-transport",
+   "source": "client:ai-assistants",
+   "target": "mcp:transport",
+   "type": "calls",
+   "label": "JSON-RPC tools/call",
+   "evidence": [
+    {
+     "path": "app/sse/route.ts",
+     "symbol": "POST",
+     "lines": "129"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:assistants-oauth",
+   "source": "client:ai-assistants",
+   "target": "auth:oauth",
+   "type": "authenticates",
+   "label": "DCR + PKCE + token",
+   "evidence": [
+    {
+     "path": "app/register/route.ts",
+     "symbol": "DCR",
+     "lines": "92-101"
+    },
+    {
+     "path": "app/token/route.ts",
+     "symbol": "grants",
+     "lines": "50-133"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:transport-rpc",
+   "source": "mcp:transport",
+   "target": "mcp:rpc",
+   "type": "calls",
+   "label": "handleRpcCall",
+   "evidence": [
+    {
+     "path": "app/sse/route.ts",
+     "symbol": "delegación",
+     "lines": "129-155"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:transport-jwt",
+   "source": "mcp:transport",
+   "target": "svc:oauth-jwt",
+   "type": "authenticates",
+   "label": "Bearer + scopes",
+   "evidence": [
+    {
+     "path": "lib/mcp-oauth.ts",
+     "symbol": "requireOAuthScopes",
+     "lines": "13-42"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:oauth-oauthdb",
+   "source": "auth:oauth",
+   "target": "db:oauth",
+   "type": "writes",
+   "label": "clients/codes/refresh",
+   "evidence": [
+    {
+     "path": "lib/oauth-db.ts",
+     "symbol": "persistencia",
+     "lines": "1-60"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rpc-postswrite",
+   "source": "mcp:rpc",
+   "target": "svc:posts-write",
+   "type": "calls",
+   "label": "posts_create/delete/update",
+   "evidence": [
+    {
+     "path": "lib/mcp/rpc-handler.ts",
+     "symbol": "tools/call dispatch",
+     "lines": "464-816"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rpc-postsruntime",
+   "source": "mcp:rpc",
+   "target": "svc:posts-runtime",
+   "type": "calls",
+   "label": "posts_search/get",
+   "evidence": [
+    {
+     "path": "lib/blog/posts.ts",
+     "symbol": "searchPosts / getPost",
+     "lines": "118-194"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rpc-media",
+   "source": "mcp:rpc",
+   "target": "svc:media",
+   "type": "calls",
+   "label": "list_media/set_cover/validate",
+   "evidence": [
+    {
+     "path": "lib/blog/media-cover.ts",
+     "symbol": "setCover",
+     "lines": "24"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rpc-jwt-upload",
+   "source": "mcp:rpc",
+   "target": "svc:oauth-jwt",
+   "type": "calls",
+   "label": "posts_request_upload firma token",
+   "evidence": [
+    {
+     "path": "lib/oauth-jwt.ts",
+     "symbol": "signUploadToken",
+     "lines": "65"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:postswrite-store",
+   "source": "svc:posts-write",
+   "target": "store:posts",
+   "type": "writes",
+   "label": "MDX atómico + papelera",
+   "evidence": [
+    {
+     "path": "lib/blog/posts-write.ts",
+     "symbol": "atomicWriteFile / softDeleteFile",
+     "lines": "67-94"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:postswrite-rebuild",
+   "source": "svc:posts-write",
+   "target": "api:admin-rebuild",
+   "type": "calls",
+   "label": "triggerRebuild (ADMIN_REBUILD_URL)",
+   "evidence": [
+    {
+     "path": "lib/blog/posts-write.ts",
+     "symbol": "triggerRebuild",
+     "lines": "320-368"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rest-rpcshared",
+   "source": "mcp:rest",
+   "target": "svc:posts-write",
+   "type": "calls",
+   "label": "mismos servicios de dominio",
+   "evidence": [
+    {
+     "path": "app/api/mcp/tools/posts/create/route.ts",
+     "symbol": "getPostsDir + write",
+     "lines": "135-165"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rest-jwt",
+   "source": "mcp:rest",
+   "target": "svc:oauth-jwt",
+   "type": "authenticates",
+   "label": "scopes por endpoint",
+   "evidence": [
+    {
+     "path": "app/api/mcp/tools/posts/create/route.ts",
+     "symbol": "requireOAuthScopes posts:write",
+     "lines": "70"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:agent-dead",
+   "source": "mcp:tool-agent",
+   "target": "ext:dead",
+   "type": "calls",
+   "label": "webhook userMessage (†)",
+   "evidence": [
+    {
+     "path": "app/api/mcp/tools/agent/query/route.ts",
+     "symbol": "fetch webhook",
+     "lines": "42-88"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:cron-build",
+   "source": "api:cron",
+   "target": "job:build",
+   "type": "triggers",
+   "label": "regeneración SEO/MCP docs",
+   "evidence": [
+    {
+     "path": "app/api/cron/regenerate-seo/route.ts",
+     "symbol": "GET",
+     "lines": "4"
+    }
+   ],
+   "confidence": "medium",
+   "notes": [
+    "Regeneran artefactos concretos (docs/report), no el build completo."
+   ]
+  },
+  {
+   "id": "edge:ragcli-indexer",
+   "source": "job:rag-cli",
+   "target": "svc:rag-indexer",
+   "type": "calls",
+   "label": "rebuildIndex",
+   "evidence": [
+    {
+     "path": "scripts/build-rag-index.ts",
+     "symbol": "main",
+     "lines": "50"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:indexer-sources",
+   "source": "svc:rag-indexer",
+   "target": "store:posts",
+   "type": "reads",
+   "label": "blog + servicios + FAQs",
+   "evidence": [
+    {
+     "path": "lib/rag/sources.ts",
+     "symbol": "readAllSources",
+     "lines": "32-193"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:indexer-openai",
+   "source": "svc:rag-indexer",
+   "target": "ext:openai",
+   "type": "calls",
+   "label": "embedBatch 100",
+   "evidence": [
+    {
+     "path": "lib/rag/embeddings.ts",
+     "symbol": "embedBatch",
+     "lines": "35"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:indexer-db",
+   "source": "svc:rag-indexer",
+   "target": "db:postgres",
+   "type": "writes",
+   "label": "kb_documents + kb_chunks",
+   "evidence": [
+    {
+     "path": "lib/rag/indexer.ts",
+     "symbol": "upsert + replace en tx",
+     "lines": "40"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:retention-db",
+   "source": "job:retention",
+   "target": "db:postgres",
+   "type": "writes",
+   "label": "purga mensajes >90d",
+   "evidence": [
+    {
+     "path": "lib/chat/retention.ts",
+     "symbol": "purgeOldData",
+     "lines": "66-98"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:apollocli-sync",
+   "source": "job:apollo-cli",
+   "target": "svc:apollo-sync",
+   "type": "calls",
+   "label": "drainApolloQueue",
+   "evidence": [
+    {
+     "path": "scripts/sync-leads-to-apollo.ts",
+     "symbol": "main",
+     "lines": "18"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:rebuild-build",
+   "source": "job:rebuild",
+   "target": "job:build",
+   "type": "triggers",
+   "label": "npm run build + pm2 restart",
+   "evidence": [
+    {
+     "path": "scripts/rebuild-and-restart.js",
+     "symbol": "BUILD_COMMAND/RESTART_COMMAND",
+     "lines": "21-22"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:build-store",
+   "source": "job:build",
+   "target": "store:posts",
+   "type": "reads",
+   "label": "pull-content + tracing excl.",
+   "evidence": [
+    {
+     "path": "scripts/pull-content.js",
+     "symbol": "main",
+     "lines": "168"
+    },
+    {
+     "path": "next.config.mjs",
+     "symbol": "outputFileTracingExcludes",
+     "lines": "30-33"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:backups-posts",
+   "source": "job:backups",
+   "target": "store:posts",
+   "type": "reads",
+   "label": "rsync diario",
+   "evidence": [
+    {
+     "path": "scripts/posts-trash-purge.sh",
+     "symbol": "purga papelera",
+     "lines": "1-30"
+    }
+   ],
+   "confidence": "high",
+   "notes": []
+  },
+  {
+   "id": "edge:backups-oauth",
+   "source": "job:backups",
+   "target": "db:oauth",
+   "type": "reads",
+   "label": "rsync 30d",
+   "evidence": [
+    {
+     "path": "/var/spool (crontab VPS)",
+     "symbol": "línea rsync e2d-oauth",
+     "lines": ""
+    }
+   ],
+   "confidence": "medium",
+   "notes": [
+    "Evidencia en crontab del VPS, fuera del repo."
+   ]
+  }
+ ],
+ "flows": [
+  {
+   "id": "flow:blog-render",
+   "name": "Render de un post del blog",
+   "description": "Recorrido de una petición pública de post: proxy, middleware, lectura runtime de disco con cache por fingerprint y compilación MDX por request. Sin build previo.",
+   "trigger": "GET /{locale}/blog/{slug}",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "client:browser",
+     "action": "Solicita la página del post",
+     "evidence": []
+    },
+    {
+     "order": 2,
+     "nodeId": "infra:nginx",
+     "action": "Proxy a 127.0.0.1:3003",
+     "evidence": [
+      {
+       "path": "/etc/nginx/sites-available/evolve2digital",
+       "symbol": "proxy_pass",
+       "lines": "43"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "infra:middleware",
+     "action": "Logging de crawlers + persistencia NEXT_LOCALE",
+     "evidence": [
+      {
+       "path": "middleware.ts",
+       "symbol": "middleware()",
+       "lines": "118-207"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "web:blog",
+     "action": "Página force-dynamic: metadata OG/hreflang + render",
+     "evidence": [
+      {
+       "path": "app/[locale]/blog/[slug]/page.tsx",
+       "symbol": "generateMetadata + BlogPostPage",
+       "lines": "23-102"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "svc:posts-runtime",
+     "action": "listPostsFromDisk (fingerprint) + getCompiledPost (next-mdx-remote)",
+     "evidence": [
+      {
+       "path": "lib/blog/posts-runtime.ts",
+       "symbol": "getCompiledPost",
+       "lines": "194-227"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "store:posts",
+     "action": "Lee el .mdx del symlink a /var/lib/e2d-content/posts",
+     "evidence": [
+      {
+       "path": "lib/blog/posts-runtime.ts",
+       "symbol": "walkMdx (symlinks)",
+       "lines": "55-89"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:chat-rag",
+   "name": "Mensaje de chat con RAG",
+   "description": "Del widget público al LLM: sesión, persistencia, recuperación semántica en pgvector y streaming de DeepSeek con telemetría de coste.",
+   "trigger": "POST /api/chat",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "web:chat-panel",
+     "action": "useChatStream envía el mensaje por SSE",
+     "evidence": [
+      {
+       "path": "components/chat/use-chat-stream.ts",
+       "symbol": "fetch /api/chat",
+       "lines": "160"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "api:chat",
+     "action": "Valida sesión y rate-limit, persiste mensaje del usuario",
+     "evidence": [
+      {
+       "path": "app/api/chat/route.ts",
+       "symbol": "POST",
+       "lines": "268-313"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "svc:chat-core",
+     "action": "buildMessages con prompt activo versionado",
+     "evidence": [
+      {
+       "path": "lib/chat/prompt.ts",
+       "symbol": "buildMessages",
+       "lines": "178"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "svc:retriever",
+     "action": "embedQuery + top-K coseno sobre kb_chunks (filtro locale)",
+     "evidence": [
+      {
+       "path": "lib/chat/retriever.ts",
+       "symbol": "SQL pgvector",
+       "lines": "69-102"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "ext:deepseek",
+     "action": "streamCompletion (deepseek-chat)",
+     "evidence": [
+      {
+       "path": "lib/chat/deepseek.ts",
+       "symbol": "streamCompletion",
+       "lines": "89"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "db:postgres",
+     "action": "Persiste respuesta + chat_usage (tokens/coste)",
+     "evidence": [
+      {
+       "path": "app/api/chat/route.ts",
+       "symbol": "recordStreamResponseUsage",
+       "lines": "208"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:lead-capture",
+   "name": "Captura de lead",
+   "description": "Lead explícito desde el form del chat: validación con consentimiento obligatorio, insert, encolado a Apollo y email al admin con degradación a warnings.",
+   "trigger": "POST /api/chat/lead",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "web:chat-panel",
+     "action": "LeadCaptureForm envía nombre/contacto + consent",
+     "evidence": [
+      {
+       "path": "components/chat/lead-capture-form.tsx",
+       "symbol": "fetch /api/chat/lead",
+       "lines": "58"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "api:chat-aux",
+     "action": "Valida zod con consent literal(true)",
+     "evidence": [
+      {
+       "path": "app/api/chat/lead/route.ts",
+       "symbol": "POST",
+       "lines": "67"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "svc:leads",
+     "action": "captureLead: insert + encolar + email",
+     "evidence": [
+      {
+       "path": "lib/leads/lead-service.ts",
+       "symbol": "captureLead",
+       "lines": "145"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "db:postgres",
+     "action": "INSERT chat_leads + apollo_sync_queue (pending)",
+     "evidence": [
+      {
+       "path": "lib/leads/lead-service.ts",
+       "symbol": "insertLead / enqueueApollo",
+       "lines": "46-67"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "svc:email",
+     "action": "buildConsultationEmail + sendEmail",
+     "evidence": [
+      {
+       "path": "lib/leads/lead-service.ts",
+       "symbol": "trySendEmail",
+       "lines": "111"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "ext:resend",
+     "action": "Entrega a ADMIN_EMAIL",
+     "evidence": [
+      {
+       "path": "lib/email/resend-client.ts",
+       "symbol": "POST /emails",
+       "lines": "124"
+      }
+     ]
+    }
+   ],
+   "notes": [
+    "El drenaje posterior de la cola a Apollo.io no está programado (apollo:sync manual)."
+   ]
+  },
+  {
+   "id": "flow:mcp-oauth",
+   "name": "Conexión OAuth de un asistente IA",
+   "description": "Alta y autorización de un cliente MCP: registro dinámico, authorize con PKCE S256, canje de código con resource indicator y acceso bearer con scopes.",
+   "trigger": "POST /register → GET /authorize → POST /token",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "client:ai-assistants",
+     "action": "Descubre metadata en .well-known",
+     "evidence": [
+      {
+       "path": "app/.well-known/oauth-authorization-server/route.ts",
+       "symbol": "metadata",
+       "lines": "3"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "auth:oauth",
+     "action": "DCR (cliente público) + authorize PKCE + consent CSRF",
+     "evidence": [
+      {
+       "path": "app/register/route.ts",
+       "symbol": "POST",
+       "lines": "92-101"
+      },
+      {
+       "path": "app/authorize/route.ts",
+       "symbol": "cookies PKCE",
+       "lines": "47-65"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "db:oauth",
+     "action": "Persiste cliente, código y refresh token",
+     "evidence": [
+      {
+       "path": "lib/oauth-db.ts",
+       "symbol": "persistencia",
+       "lines": "1-60"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "svc:oauth-jwt",
+     "action": "Emite access token JWT (aud = resource)",
+     "evidence": [
+      {
+       "path": "app/token/route.ts",
+       "symbol": "aud = resource",
+       "lines": "91"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "mcp:transport",
+     "action": "Requests JSON-RPC con Bearer; scopes por tool",
+     "evidence": [
+      {
+       "path": "lib/mcp-oauth.ts",
+       "symbol": "requireOAuthScopes",
+       "lines": "13-42"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:post-publish-mcp",
+   "name": "Publicar post desde Claude.ai (MCP)",
+   "description": "posts_create escribe el MDX en el volumen persistente; el post es visible al instante porque blog/sitemap/RSS leen de disco en runtime. No requiere rebuild.",
+   "trigger": "tools/call posts_create (POST /sse)",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "client:ai-assistants",
+     "action": "tools/call posts_create con scope posts:write",
+     "evidence": [
+      {
+       "path": "lib/mcp/rpc-handler.ts",
+       "symbol": "posts_create",
+       "lines": "156"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "mcp:transport",
+     "action": "Valida Bearer y delega en handleRpcCall",
+     "evidence": [
+      {
+       "path": "app/sse/route.ts",
+       "symbol": "POST",
+       "lines": "129-155"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "mcp:rpc",
+     "action": "Dispatch del tool con scope enforcement",
+     "evidence": [
+      {
+       "path": "lib/mcp/rpc-handler.ts",
+       "symbol": "requireScope + dispatch",
+       "lines": "42-816"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "svc:posts-write",
+     "action": "createPost atómico multi-locale con translationKey",
+     "evidence": [
+      {
+       "path": "lib/blog/posts-write.ts",
+       "symbol": "createPost",
+       "lines": "139-207"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "store:posts",
+     "action": "Escribe .mdx en BLOG_POSTS_DIR persistente",
+     "evidence": [
+      {
+       "path": "ecosystem.config.js",
+       "symbol": "BLOG_POSTS_DIR",
+       "lines": "25"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "svc:posts-runtime",
+     "action": "El siguiente request invalida cache por fingerprint y sirve el post",
+     "evidence": [
+      {
+       "path": "lib/blog/posts-runtime.ts",
+       "symbol": "fingerprint",
+       "lines": "93-105"
+      }
+     ]
+    }
+   ],
+   "notes": [
+    "Si el cliente llama además a posts_rebuild, se dispara el flujo de rebuild completo (innecesario para contenido)."
+   ]
+  },
+  {
+   "id": "flow:media-upload",
+   "name": "Subida de media del blog",
+   "description": "Token JWT emitido por MCP, form pública con token en query, subida streaming con whitelist MIME y commit de metadatos (_meta.json, cover tri-estado).",
+   "trigger": "tools/call posts_request_upload → form /admin/media-upload",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "mcp:rpc",
+     "action": "posts_request_upload firma upload-token (JWT_SECRET)",
+     "evidence": [
+      {
+       "path": "lib/oauth-jwt.ts",
+       "symbol": "signUploadToken",
+       "lines": "65"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "admin:ui-media",
+     "action": "Form lee ?token= y pide token-info (siblings + media)",
+     "evidence": [
+      {
+       "path": "app/admin/media-upload/MediaUploadForm.tsx",
+       "symbol": "flujo",
+       "lines": "91-97"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "api:admin-media",
+     "action": "upload streaming (MIME whitelist, ≤1GB) + commit _meta.json",
+     "evidence": [
+      {
+       "path": "app/api/admin/media/upload/route.ts",
+       "symbol": "POST",
+       "lines": "13-53"
+      },
+      {
+       "path": "app/api/admin/media/upload/commit/route.ts",
+       "symbol": "POST",
+       "lines": "61-126"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "svc:media",
+     "action": "saveMediaFile a <root>/<translationKey>/",
+     "evidence": [
+      {
+       "path": "lib/blog/media-storage.ts",
+       "symbol": "saveMediaFile",
+       "lines": "105-141"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "store:uploads",
+     "action": "Binario + _meta.json en /var/lib/e2d-uploads",
+     "evidence": [
+      {
+       "path": "ecosystem.config.js",
+       "symbol": "MEDIA_UPLOADS_ROOT",
+       "lines": "14"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "infra:nginx",
+     "action": "Sirve /uploads/<key>/<name> por alias estático",
+     "evidence": [
+      {
+       "path": "/etc/nginx/sites-available/evolve2digital",
+       "symbol": "location /uploads/",
+       "lines": "36-37"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:rebuild",
+   "name": "Rebuild completo del sitio",
+   "description": "Build in-place con lock y restart de PM2. Durante ~3 min los estáticos del standalone no coinciden con el HTML servido (web sin estilos).",
+   "trigger": "POST /api/admin/rebuild (Bearer E2D_MCP_API_KEY) o tools/call posts_rebuild",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "api:admin-rebuild",
+     "action": "requireApiKey + lock .build.lock (TTL 30 min)",
+     "evidence": [
+      {
+       "path": "app/api/admin/rebuild/route.ts",
+       "symbol": "requireApiKey + lock",
+       "lines": "18-67"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "job:rebuild",
+     "action": "spawn detached de rebuild-and-restart.js (202 inmediato)",
+     "evidence": [
+      {
+       "path": "app/api/admin/rebuild/route.ts",
+       "symbol": "spawn",
+       "lines": "127-138"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "job:build",
+     "action": "npm run build: pull-content → next build → ai-indexing → sync-static",
+     "evidence": [
+      {
+       "path": "package.json",
+       "symbol": "scripts.build",
+       "lines": "7"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "infra:pm2",
+     "action": "pm2 restart e2d y libera el lock",
+     "evidence": [
+      {
+       "path": "scripts/rebuild-and-restart.js",
+       "symbol": "RESTART_COMMAND + releaseLock",
+       "lines": "22-96"
+      }
+     ]
+    }
+   ],
+   "notes": [
+    "Claude.ai lo dispara tras subir posts por la descripción obsoleta del tool posts_rebuild (fix pendiente)."
+   ]
+  },
+  {
+   "id": "flow:rag-reindex",
+   "name": "Reindexado RAG desde el admin",
+   "description": "Botones Incremental/Full: el endpoint valida y spawnea el CLI, que lee fuentes, trocea, pide embeddings a OpenAI y reemplaza chunks en transacción por documento.",
+   "trigger": "POST /api/admin/embeddings {full}",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "admin:ui-embeddings",
+     "action": "Botón Incremental (hash-diff) o Full (--full)",
+     "evidence": [
+      {
+       "path": "app/admin/embeddings/rebuild-panel.tsx",
+       "symbol": "trigger",
+       "lines": "122-126"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "api:admin-embeddings",
+     "action": "Valida zod y llama startRebuild (job singleton in-memory)",
+     "evidence": [
+      {
+       "path": "app/api/admin/embeddings/route.ts",
+       "symbol": "POST",
+       "lines": "168-183"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "job:rag-cli",
+     "action": "spawn npm run rag:index con flags",
+     "evidence": [
+      {
+       "path": "lib/admin/embedding-jobs.ts",
+       "symbol": "startRebuild",
+       "lines": "97-109"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "svc:rag-indexer",
+     "action": "readAllSources → chunk 500/50 → skip por content_hash",
+     "evidence": [
+      {
+       "path": "lib/rag/indexer.ts",
+       "symbol": "rebuildIndex",
+       "lines": "5-40"
+      }
+     ]
+    },
+    {
+     "order": 5,
+     "nodeId": "ext:openai",
+     "action": "embedBatch (100 por request, 3 reintentos)",
+     "evidence": [
+      {
+       "path": "lib/rag/embeddings.ts",
+       "symbol": "embedBatch",
+       "lines": "35"
+      }
+     ]
+    },
+    {
+     "order": 6,
+     "nodeId": "db:postgres",
+     "action": "Upsert kb_documents + replace kb_chunks en tx",
+     "evidence": [
+      {
+       "path": "lib/rag/indexer.ts",
+       "symbol": "tx por documento",
+       "lines": "40"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:admin-login",
+   "name": "Login de administrador",
+   "description": "Credenciales de entorno → JWT HS256 en cookie httpOnly 24h → verificación en middleware Edge en cada request a /admin y /api/admin.",
+   "trigger": "POST /api/admin/login",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "client:browser",
+     "action": "Form de login envía email/password",
+     "evidence": [
+      {
+       "path": "app/admin/login/page.tsx",
+       "symbol": "form",
+       "lines": "61"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "auth:admin-session",
+     "action": "Compara contra ADMIN_EMAIL/ADMIN_PASSWORD y firma JWT 24h",
+     "evidence": [
+      {
+       "path": "app/api/admin/login/route.ts",
+       "symbol": "POST",
+       "lines": "12-54"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "infra:middleware",
+     "action": "verifyJwtHS256 (crypto.subtle) en cada request admin",
+     "evidence": [
+      {
+       "path": "middleware.ts",
+       "symbol": "verifyJwtHS256",
+       "lines": "84-116"
+      }
+     ]
+    },
+    {
+     "order": 4,
+     "nodeId": "admin:ui-posts",
+     "action": "Acceso al panel; sin token → redirect a login localizado",
+     "evidence": [
+      {
+       "path": "middleware.ts",
+       "symbol": "redirect",
+       "lines": "168-186"
+      }
+     ]
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "flow:cron-regen",
+   "name": "Regeneración programada (cron)",
+   "description": "El crontab del VPS golpea los endpoints internos con Bearer CRON_SECRET para regenerar artefactos SEO/MCP y chequear integridad.",
+   "trigger": "cron → GET /api/cron/{regenerate-seo|regenerate-mcp|integrity-check}",
+   "confidence": "high",
+   "steps": [
+    {
+     "order": 1,
+     "nodeId": "client:cron",
+     "action": "curl 127.0.0.1:3003 con Bearer CRON_SECRET",
+     "evidence": [
+      {
+       "path": "vercel.json",
+       "symbol": "crons (espejo)",
+       "lines": "14-27"
+      }
+     ]
+    },
+    {
+     "order": 2,
+     "nodeId": "api:cron",
+     "action": "Valida el secret y ejecuta la regeneración",
+     "evidence": [
+      {
+       "path": "app/api/cron/regenerate-seo/route.ts",
+       "symbol": "auth + GET",
+       "lines": "4-9"
+      }
+     ]
+    },
+    {
+     "order": 3,
+     "nodeId": "job:build",
+     "action": "Regenera docs MCP / report (subset del pipeline)",
+     "evidence": [
+      {
+       "path": "scripts/generate-mcp-docs.js",
+       "symbol": "main",
+       "lines": "391-423"
+      }
+     ]
+    }
+   ],
+   "notes": [
+    "El CRON_SECRET aparece literal en el crontab del VPS."
+   ]
+  }
+ ]
+}</script>
+
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("architecture-data").textContent);
+  var META = DATA.meta || {};
+
+  var GROUP_OF = {
+    webapp: "infra", page: "web", web: "web", seo: "web", component: "web",
+    api: "api", controller: "api", service: "service", module: "service",
+    database: "data", storage: "data", repository: "data", config: "data",
+    auth: "auth", job: "job", build: "job", worker: "job", scheduler: "job",
+    external: "external", client: "external", mcp: "mcp", transport: "mcp",
+    edge: "infra", infra: "infra", process: "infra"
+  };
+  var GROUP_LABEL = {
+    web: "Web pública / SEO", api: "API / handlers", service: "Servicios de dominio",
+    job: "Build / jobs", mcp: "MCP", data: "Datos / almacenamiento",
+    auth: "Autenticación", external: "Sistemas externos", infra: "Infraestructura"
+  };
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  var GROUP_VAR = {
+    web: "--c-web", api: "--c-api", service: "--c-service", job: "--c-job",
+    mcp: "--c-mcp", data: "--c-data", auth: "--c-auth", external: "--c-external", infra: "--c-infra"
+  };
+  var colors = {};
+  function refreshColors() {
+    Object.keys(GROUP_VAR).forEach(function (g) { colors[g] = cssVar(GROUP_VAR[g]) || "#888"; });
+    colors._ink = cssVar("--ink") || "#111";
+    colors._muted = cssVar("--muted") || "#888";
+    colors._page = cssVar("--page") || "#fff";
+    colors._sel = cssVar("--sel") || "#2a78d6";
+    colors._grid = cssVar("--grid") || "#ddd";
+  }
+
+  var nodeById = {};
+  DATA.nodes.forEach(function (n) { nodeById[n.id] = n; n._group = GROUP_OF[n.type] || "service"; });
+
+  /* -------------------------------------------------- layout 3D: anillos */
+  var layers = {};
+  DATA.nodes.forEach(function (n) {
+    var l = n.layer || "otros";
+    (layers[l] = layers[l] || []).push(n);
+  });
+  var layerOrder = (META.layers || []).filter(function (l) { return layers[l.id]; });
+  Object.keys(layers).forEach(function (id) {
+    if (!layerOrder.some(function (l) { return l.id === id; })) layerOrder.push({ id: id, label: id });
+  });
+  var SPACING = 340;
+  var x0 = -((layerOrder.length - 1) * SPACING) / 2;
+  function frac(v) { return v - Math.floor(v); }
+  layerOrder.forEach(function (layer, i) {
+    var list = layers[layer.id];
+    list.sort(function (a, b) { return (a._group + a.label).localeCompare(b._group + b.label); });
+    var r = list.length === 1 ? 0 : Math.max(110, list.length * 30 / (2 * Math.PI) * 2.9);
+    layer._x = x0 + i * SPACING; layer._r = r;
+    // Nube orgánica determinista: espiral de ángulo áureo + radio y profundidad
+    // irregulares (hashes por índice) — nada de anillos perfectos.
+    list.forEach(function (n, j) {
+      var th = j * 2.39996 + i * 0.7;
+      var rr = list.length === 1 ? 0 : r * (0.35 + 0.75 * frac(j * 0.6180339 + i * 0.31));
+      var xJit = (frac(j * 0.4142 + i * 0.17) - 0.5) * 150;
+      n._p = { x: layer._x + xJit, y: rr * Math.cos(th), z: rr * Math.sin(th) };
+      n._r = n.type === "database" || n.type === "storage" ? 17 : 13;
+    });
+  });
+
+  // Importancia de cada arista: cuántos flujos la recorren (pasos consecutivos).
+  var edgeUse = {};
+  DATA.flows.forEach(function (f) {
+    for (var i = 0; i < f.steps.length - 1; i++) {
+      var a = f.steps[i].nodeId, b = f.steps[i + 1].nodeId;
+      DATA.edges.forEach(function (e) {
+        if ((e.source === a && e.target === b) || (e.source === b && e.target === a)) {
+          edgeUse[e.id] = (edgeUse[e.id] || 0) + 1;
+        }
+      });
+    }
+  });
+  DATA.edges.forEach(function (e) { e._w = 1 + Math.min(3, edgeUse[e.id] || 0); }); // 1..4
+
+  /* ------------------------------------------------------------- cámara */
+  var cam = { yaw: 0.9, pitch: 0.28, dist: 0, fov: 900 };
+  var FIT_DIST = (layerOrder.length * SPACING) * 1.05 + 500;
+  cam.dist = FIT_DIST;
+  var auto = true, lastInteract = 0;
+
+  function project(p, W, H) {
+    var cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+    var cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    var x = p.x * cy + p.z * sy;
+    var z1 = -p.x * sy + p.z * cy;
+    var y = p.y * cp - z1 * sp;
+    var z = p.y * sp + z1 * cp + cam.dist;
+    if (z < 60) z = 60;
+    var s = cam.fov / z;
+    return { x: W / 2 + x * s, y: H / 2 + y * s, s: s, z: z };
+  }
+
+  /* ------------------------------------------------------------- estado */
+  var activeGroups = {}; var searchQ = "";
+  var selNode = null, selFlow = null, hoverNode = null;
+  var flowNodeSet = {}, flowEdgeSet = {}, flowGhost = [];
+
+  function nodeVisible(n) { return activeGroups[n._group] !== false; }
+  function nodeMatches(n) {
+    if (!searchQ) return true;
+    return (n.label + " " + n.id + " " + (n.module || "")).toLowerCase().indexOf(searchQ) >= 0;
+  }
+  function isDimmed(n) {
+    if (searchQ && !nodeMatches(n)) return true;
+    if (selFlow) return !flowNodeSet[n.id];
+    if (selNode) {
+      if (n.id === selNode) return false;
+      return !DATA.edges.some(function (e) {
+        return (e.source === selNode && e.target === n.id) || (e.target === selNode && e.source === n.id);
+      });
+    }
+    return false;
+  }
+
+  /* -------------------------------------------------------------- render */
+  var canvas = document.getElementById("c3d");
+  var ctx = canvas.getContext("2d");
+  var dpr = Math.max(1, window.devicePixelRatio || 1);
+  var W = 0, H = 0;
+  function resize() {
+    var r = canvas.getBoundingClientRect();
+    W = Math.max(1, r.width || canvas.parentNode.clientWidth || window.innerWidth || 1200);
+    H = Math.max(1, r.height || canvas.parentNode.clientHeight || (window.innerHeight - 60) || 800);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dirty = true;
+  }
+
+  var stars = [];
+  for (var i = 0; i < 160; i++) {
+    stars.push({ x: Math.random(), y: Math.random(), a: 0.15 + Math.random() * 0.4, r: Math.random() * 1.3 + 0.3, tw: Math.random() * 6.28 });
+  }
+  var dirty = true;
+
+  /* ---------------------------------------------- sprites pre-renderizados
+     shadowBlur por orbe/partícula en cada frame mata el framerate; un sprite
+     offscreen por color se dibuja una vez y luego es un drawImage barato. */
+  var sprites = {};
+  function makeOrbSprite(col) {
+    var S = 128, c = document.createElement("canvas");
+    c.width = c.height = S;
+    var g = c.getContext("2d");
+    if (!g) return c;
+    var cx = S / 2;
+    // halo exterior (la "atmósfera" de la estrella)
+    var halo = g.createRadialGradient(cx, cx, S * 0.16, cx, cx, cx);
+    halo.addColorStop(0, col);
+    halo.addColorStop(0.45, colToAlpha(col, 0.28));
+    halo.addColorStop(1, colToAlpha(col, 0));
+    g.fillStyle = halo;
+    g.beginPath(); g.arc(cx, cx, cx, 0, 7); g.fill();
+    // cuerpo
+    var body = g.createRadialGradient(cx - S * 0.07, cx - S * 0.07, S * 0.02, cx, cx, S * 0.2);
+    body.addColorStop(0, "#ffffff");
+    body.addColorStop(0.5, col);
+    body.addColorStop(1, colToAlpha(col, 0.85));
+    g.fillStyle = body;
+    g.beginPath(); g.arc(cx, cx, S * 0.2, 0, 7); g.fill();
+    return c;
+  }
+  function makeSpikeSprite(col) {
+    var S = 160, c = document.createElement("canvas");
+    c.width = c.height = S;
+    var g = c.getContext("2d");
+    if (!g) return c;
+    var cx = S / 2;
+    g.translate(cx, cx);
+    for (var k = 0; k < 4; k++) {
+      var lg = g.createLinearGradient(0, 0, cx, 0);
+      lg.addColorStop(0, colToAlpha("#ffffff", 0.9));
+      lg.addColorStop(0.25, colToAlpha(col, 0.5));
+      lg.addColorStop(1, colToAlpha(col, 0));
+      g.fillStyle = lg;
+      g.beginPath();
+      g.moveTo(0, -1.6); g.lineTo(cx, 0); g.lineTo(0, 1.6);
+      g.closePath(); g.fill();
+      g.rotate(Math.PI / 2);
+    }
+    return c;
+  }
+  function makeParticleSprite(col) {
+    var S = 32, c = document.createElement("canvas");
+    c.width = c.height = S;
+    var g = c.getContext("2d");
+    if (!g) return c;
+    var cx = S / 2;
+    var gr = g.createRadialGradient(cx, cx, 0, cx, cx, cx);
+    gr.addColorStop(0, "#ffffff");
+    gr.addColorStop(0.35, col);
+    gr.addColorStop(1, colToAlpha(col, 0));
+    g.fillStyle = gr;
+    g.beginPath(); g.arc(cx, cx, cx, 0, 7); g.fill();
+    return c;
+  }
+  function colToAlpha(col, a) {
+    // acepta #rgb/#rrggbb; fallback: devuelve tal cual
+    var m = /^#([0-9a-f]{6})$/i.exec(col.trim());
+    if (!m) {
+      var m3 = /^#([0-9a-f]{3})$/i.exec(col.trim());
+      if (!m3) return col;
+      var s3 = m3[1];
+      m = [null, s3[0] + s3[0] + s3[1] + s3[1] + s3[2] + s3[2]];
+    }
+    var v = parseInt(m[1], 16);
+    return "rgba(" + (v >> 16) + "," + ((v >> 8) & 255) + "," + (v & 255) + "," + a + ")";
+  }
+  function mixHex(a, b, f) {
+    var pa = /^#([0-9a-f]{6})$/i.exec(a.trim()), pb = /^#([0-9a-f]{6})$/i.exec(b.trim());
+    if (!pa || !pb) return a;
+    var va = parseInt(pa[1], 16), vb = parseInt(pb[1], 16);
+    function ch(sa, sb) { return Math.round(sa + (sb - sa) * f); }
+    var r = ch(va >> 16, vb >> 16), g = ch((va >> 8) & 255, (vb >> 8) & 255), bl = ch(va & 255, vb & 255);
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1);
+  }
+  function isDark() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ||
+      (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches &&
+       document.documentElement.getAttribute("data-theme") !== "light");
+  }
+  function rebuildSprites() {
+    sprites = {};
+    // Estética "estrella": todas casi blancas (luz estelar), con un tinte muy
+    // sutil del color de su tipo para no perder la identidad del todo.
+    // En tema claro la base vira a azul-gris para que contraste con el fondo.
+    var base = isDark() ? "#f4f6ff" : "#5a6b85";
+    Object.keys(GROUP_VAR).forEach(function (g) {
+      var starCol = mixHex(base, colors[g], isDark() ? 0.22 : 0.35);
+      sprites[g] = { orb: makeOrbSprite(starCol), spike: makeSpikeSprite(starCol), particle: makeParticleSprite(starCol) };
+    });
+    sprites._sel = { orb: makeOrbSprite(colors._sel), spike: makeSpikeSprite(colors._sel), particle: makeParticleSprite(mixHex(base, colors._sel, 0.4)) };
+    sprites._energy = makeParticleSprite(energyColor());
+  }
+
+  // fases de pulso por nodo y offsets de partículas por arista (deterministas)
+  DATA.nodes.forEach(function (n, i) { n._phase = (i * 2.399) % 6.283; });
+  DATA.edges.forEach(function (e, i) { e._off = (i * 0.618) % 1; });
+
+  function qBezier(a, m, b, t) {
+    var u = 1 - t;
+    return { x: u * u * a.x + 2 * u * t * m.x + t * t * b.x, y: u * u * a.y + 2 * u * t * m.y + t * t * b.y };
+  }
+  function jrand(seed) { return frac(Math.sin(seed * 12.9898) * 43758.5453); }
+  function energyColor() { return isDark() ? "#59e8ff" : "#0a93c4"; }
+  // Rayo eléctrico: tramo de la curva convertido en zigzag con jitter
+  // perpendicular que parpadea; glow ancho + núcleo blanco.
+  function drawBolt(a, m, b, t0, span, depth, w, hot, time) {
+    var SEGS = 7;
+    var flick = Math.floor(time * 14); // el zigzag cambia ~14 veces/s
+    var amp = (hot ? 9 : 4 + 1.6 * w) * (0.5 + 0.5 * depth);
+    var pts = [];
+    for (var s = 0; s <= SEGS; s++) {
+      var tt = t0 + span * (s / SEGS);
+      if (tt > 1) tt = 1;
+      var p = qBezier(a, m, b, tt);
+      if (s > 0 && s < SEGS) {
+        var nx = -(b.y - a.y), ny = (b.x - a.x);
+        var nl = Math.hypot(nx, ny) || 1;
+        var j = (jrand(s * 7.13 + flick * 1.7 + t0 * 91) - 0.5) * 2 * amp;
+        p = { x: p.x + (nx / nl) * j, y: p.y + (ny / nl) * j };
+      }
+      pts.push(p);
+    }
+    var flAlpha = 0.75 + 0.25 * jrand(flick * 3.3 + t0 * 17);
+    var baseA = (hot ? 1 : 0.5 + 0.12 * w) * (0.35 + 0.65 * depth) * flAlpha;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    // glow exterior
+    ctx.globalAlpha = baseA * 0.45;
+    ctx.strokeStyle = energyColor();
+    ctx.lineWidth = (hot ? 7 : 3.5 + w) * (0.5 + 0.5 * depth);
+    ctx.beginPath();
+    pts.forEach(function (p, i) { i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); });
+    ctx.stroke();
+    // núcleo brillante
+    ctx.globalAlpha = baseA;
+    ctx.strokeStyle = isDark() ? "#ffffff" : "#d9f6ff";
+    ctx.lineWidth = (hot ? 2.2 : 1.4) * (0.5 + 0.5 * depth);
+    ctx.beginPath();
+    pts.forEach(function (p, i) { i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); });
+    ctx.stroke();
+    // chispa en cabeza del rayo
+    var head = pts[pts.length - 1];
+    var spr = sprites._energy;
+    if (spr) {
+      var ps = (hot ? 15 : 9 + w) * (0.5 + 0.5 * depth);
+      ctx.globalAlpha = baseA;
+      ctx.drawImage(spr, head.x - ps / 2, head.y - ps / 2, ps, ps);
+    }
+  }
+
+  function draw(time) {
+    refreshColorsOnce();
+    var t = (time || 0) / 1000;
+    ctx.clearRect(0, 0, W, H);
+    var dark = isDark();
+    if (dark) {
+      // campo de estrellas con titileo
+      stars.forEach(function (st) {
+        ctx.globalAlpha = st.a * (0.7 + 0.3 * Math.sin(t * 1.7 + st.tw));
+        ctx.fillStyle = "#9db4d8";
+        ctx.beginPath(); ctx.arc(st.x * W, st.y * H, st.r, 0, 7); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    var proj = {};
+    DATA.nodes.forEach(function (n) { if (nodeVisible(n)) proj[n.id] = project(n._p, W, H); });
+
+    // aristas: trazo tenue + partículas de energía viajando source→target
+    DATA.edges.forEach(function (e) {
+      var a = proj[e.source], b = proj[e.target];
+      if (!a || !b) return;
+      var na = nodeById[e.source], nb = nodeById[e.target];
+      var dim = isDimmed(na) || isDimmed(nb);
+      var inFlow = selFlow && flowEdgeSet[e.id];
+      var inSel = selNode && (e.source === selNode || e.target === selNode);
+      var hot = inFlow || inSel;
+      var focusMode = selFlow || selNode;
+      // peso 1..4 según cuántos flujos recorren la arista: las importantes
+      // se ven más gruesas, más brillantes y con más energía.
+      var w = e._w || 1;
+      var lineAlpha = hot ? 0.8 : (dim || focusMode ? 0.04 : 0.10 + 0.07 * w);
+      var depth = Math.min(1, 900 / ((a.z + b.z) / 2));
+      var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 30 * depth;
+      ctx.globalAlpha = lineAlpha * (0.4 + 0.6 * depth);
+      ctx.strokeStyle = hot ? colors._sel : colors._muted;
+      ctx.lineWidth = hot ? 1.2 + 0.6 * w : 0.4 + 0.5 * w;
+      if (e.confidence !== "high") ctx.setLineDash([5, 5]); else ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo(mx, my, b.x, b.y); ctx.stroke();
+      ctx.setLineDash([]);
+      // energía: RAYO eléctrico recorriendo la arista; más largo/intenso
+      // en aristas importantes; nada si atenuada
+      if (dim || (focusMode && !hot)) return;
+      var count = hot ? 2 : 1;
+      var speed = hot ? 0.4 : 0.12 + 0.03 * w;
+      var m = { x: mx, y: my };
+      var span = (hot ? 0.16 : 0.09 + 0.025 * w);
+      for (var k = 0; k < count; k++) {
+        var tp = (t * speed + e._off + k / count) % 1;
+        drawBolt(a, m, b, tp, span, depth, w, hot, t);
+      }
+      ctx.globalAlpha = 1;
+    });
+    // trazos punteados de flujo sin arista real en el grafo (+ rayo)
+    ctx.setLineDash([2, 6]);
+    flowGhost.forEach(function (g) {
+      var a = proj[g[0]], b = proj[g[1]];
+      if (!a || !b) return;
+      ctx.globalAlpha = 0.75; ctx.strokeStyle = colors._sel; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.setLineDash([]);
+      var m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      drawBolt(a, m, b, (t * 0.4) % 1, 0.14, 1, 2, true, t);
+      ctx.setLineDash([2, 6]);
+    });
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    // orbes-estrella, lejanos primero
+    var order = DATA.nodes.filter(function (n) { return proj[n.id]; })
+      .sort(function (a, b) { return proj[b.id].z - proj[a.id].z; });
+    order.forEach(function (n) {
+      var p = proj[n.id];
+      var pulse = 1 + 0.055 * Math.sin(t * 2.1 + n._phase);
+      var r = n._r * p.s * 1.6 * pulse;
+      var dim = isDimmed(n);
+      var hl = (selNode && n.id === selNode) || (selFlow && flowNodeSet[n.id]) || n.id === hoverNode;
+      var set = sprites[n._group] || sprites._sel;
+      ctx.globalAlpha = dim ? 0.08 : 1;
+      // destellos en cruz (rotación lenta) para nodos grandes o resaltados
+      if (!dim && (hl || n._r >= 17)) {
+        var ss = r * (hl ? 7 : 5.2);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(t * 0.12 + n._phase);
+        ctx.globalAlpha = (hl ? 0.8 : 0.4) * (0.8 + 0.2 * Math.sin(t * 2.1 + n._phase));
+        ctx.drawImage((hl ? sprites._sel : set).spike, -ss / 2, -ss / 2, ss, ss);
+        ctx.restore();
+        ctx.globalAlpha = dim ? 0.08 : 1;
+      }
+      // orbe (halo + cuerpo en el sprite; el sprite mide 128 y el cuerpo r=0.2*S,
+      // así que escalamos para que el CUERPO tenga radio r → factor 5)
+      var os = r * 5;
+      ctx.drawImage(set.orb, p.x - os / 2, p.y - os / 2, os, os);
+      if (hl) {
+        ctx.strokeStyle = colors._sel; ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r + 5, 0, 7); ctx.stroke();
+      }
+      if (n.confidence !== "high" && !dim) {
+        ctx.strokeStyle = colors._muted; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r + 8, 0, 7); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (!dim && (hl || p.s > 0.62)) {
+        ctx.globalAlpha = hl ? 1 : Math.min(1, (p.s - 0.55) * 4);
+        ctx.font = (hl ? "600 " : "") + Math.max(10, 11 * Math.min(p.s * 1.4, 1.25)) + "px system-ui, sans-serif";
+        ctx.fillStyle = colors._ink;
+        ctx.textAlign = "center";
+        ctx.fillText(n.label.length > 26 ? n.label.slice(0, 25) + "…" : n.label, p.x, p.y + r + 16);
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    // etiquetas de capa
+    ctx.font = "700 11px system-ui, sans-serif";
+    ctx.fillStyle = colors._muted;
+    ctx.textAlign = "center";
+    layerOrder.forEach(function (layer) {
+      var p = project({ x: layer._x, y: -(layer._r + 70), z: 0 }, W, H);
+      ctx.globalAlpha = 0.85;
+      ctx.fillText((layer.label || layer.id).toUpperCase(), p.x, p.y);
+    });
+    ctx.globalAlpha = 1;
+    lastProj = proj;
+  }
+
+  var lastProj = {};
+  var colorsFresh = false;
+  function refreshColorsOnce() { if (!colorsFresh) { refreshColors(); rebuildSprites(); colorsFresh = true; } }
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
+      colorsFresh = false; dirty = true;
+    });
+  }
+
+  // Animación continua: pulso de orbes y partículas corren siempre; la
+  // rotación automática solo cuando no se está interactuando.
+  function loop(ts) {
+    if (auto && ts - lastInteract > 1600) cam.yaw += 0.0022;
+    draw(ts);
+    requestAnimationFrame(loop);
+  }
+
+  /* --------------------------------------------------------- interacción */
+  var drag = null;
+  canvas.addEventListener("pointerdown", function (ev) {
+    drag = { x: ev.clientX, y: ev.clientY, yaw: cam.yaw, pitch: cam.pitch, moved: false };
+    canvas.classList.add("dragging");
+    canvas.setPointerCapture(ev.pointerId);
+  });
+  canvas.addEventListener("pointermove", function (ev) {
+    lastInteract = performance.now();
+    if (drag) {
+      var dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+      cam.yaw = drag.yaw + dx * 0.005;
+      cam.pitch = Math.max(-1.4, Math.min(1.4, drag.pitch + dy * 0.005));
+      dirty = true;
+    } else {
+      var hit = pick(ev);
+      if ((hit && hit.id) !== hoverNode) { hoverNode = hit ? hit.id : null; dirty = true; }
+      canvas.style.cursor = hit ? "pointer" : "";
+    }
+  });
+  canvas.addEventListener("pointerup", function (ev) {
+    canvas.classList.remove("dragging");
+    var wasDrag = drag && drag.moved;
+    drag = null;
+    if (!wasDrag) {
+      var hit = pick(ev);
+      if (hit) selectNode(hit.id); else clearSelection();
+    }
+  });
+  canvas.addEventListener("wheel", function (ev) {
+    ev.preventDefault();
+    lastInteract = performance.now();
+    cam.dist = Math.max(420, Math.min(FIT_DIST * 2.2, cam.dist * (ev.deltaY > 0 ? 1.1 : 1 / 1.1)));
+    dirty = true;
+  }, { passive: false });
+
+  function pick(ev) {
+    var r = canvas.getBoundingClientRect();
+    var mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    var best = null, bestD = 1e9;
+    DATA.nodes.forEach(function (n) {
+      var p = lastProj[n.id];
+      if (!p || isDimmed(n)) return;
+      var rad = n._r * p.s * 1.6 + 5;
+      var d = Math.hypot(p.x - mx, p.y - my);
+      if (d < rad && p.z < bestD) { bestD = p.z; best = n; }
+    });
+    return best;
+  }
+
+  document.getElementById("zoomIn").addEventListener("click", function () { cam.dist = Math.max(420, cam.dist / 1.2); dirty = true; });
+  document.getElementById("zoomOut").addEventListener("click", function () { cam.dist = Math.min(FIT_DIST * 2.2, cam.dist * 1.2); dirty = true; });
+  document.getElementById("resetView").addEventListener("click", function () {
+    clearSelection(); cam.yaw = 0.9; cam.pitch = 0.28; cam.dist = FIT_DIST; dirty = true;
+  });
+  var autoBtn = document.getElementById("autoRotate");
+  autoBtn.addEventListener("click", function () {
+    auto = !auto; autoBtn.setAttribute("aria-pressed", String(auto)); lastInteract = 0; dirty = true;
+  });
+
+  /* ------------------------------------------------------------ leyenda */
+  var legendItems = document.getElementById("legendItems");
+  refreshColors();
+  Object.keys(GROUP_LABEL).forEach(function (gid) {
+    if (!DATA.nodes.some(function (n) { return n._group === gid; })) return;
+    activeGroups[gid] = true;
+    var lab = document.createElement("label");
+    var cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = true;
+    cb.addEventListener("change", function () { activeGroups[gid] = cb.checked; dirty = true; });
+    var chip = document.createElement("span");
+    chip.className = "chip"; chip.style.background = "var(" + GROUP_VAR[gid] + ")"; chip.style.color = "var(" + GROUP_VAR[gid] + ")";
+    lab.appendChild(cb); lab.appendChild(chip); lab.appendChild(document.createTextNode(GROUP_LABEL[gid]));
+    legendItems.appendChild(lab);
+  });
+  document.getElementById("search").addEventListener("input", function (ev) {
+    searchQ = ev.target.value.trim().toLowerCase(); dirty = true;
+  });
+
+  /* --------------------------------------------------------- side panel */
+  var side = document.getElementById("side");
+  document.getElementById("sideToggle").addEventListener("click", function () {
+    side.classList.toggle("open");
+    this.setAttribute("aria-expanded", side.classList.contains("open") ? "true" : "false");
+  });
+  var tabs = side.querySelectorAll(".tabs button");
+  function showTab(id) {
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tab") === id ? "true" : "false"); });
+    side.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === id); });
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { showTab(b.getAttribute("data-tab")); }); });
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function evList(evs) {
+    if (!evs || !evs.length) return "";
+    return '<div class="ev">' + evs.map(function (e) {
+      return esc(e.path) + (e.symbol ? " · " + esc(e.symbol) : "") + (e.lines ? " · L" + esc(e.lines) : "");
+    }).join("<br>") + "</div>";
+  }
+
+  function clearSelection() {
+    selNode = null; selFlow = null; flowNodeSet = {}; flowEdgeSet = {}; flowGhost = [];
+    side.querySelectorAll(".flow-item").forEach(function (f) { f.classList.remove("selected"); });
+    dirty = true;
+  }
+
+  function selectNode(id) {
+    selFlow = null; flowNodeSet = {}; flowEdgeSet = {}; flowGhost = [];
+    side.querySelectorAll(".flow-item").forEach(function (f) { f.classList.remove("selected"); });
+    selNode = id; dirty = true;
+    var n = nodeById[id];
+    var files = (n.sourceFiles || []).map(function (f) {
+      return "<li><span class='ev'>" + esc(f.path) + (f.symbol ? " · " + esc(f.symbol) : "") + (f.lines ? " · L" + esc(f.lines) : "") + "</span></li>";
+    }).join("");
+    document.getElementById("detail").innerHTML =
+      "<h2>" + esc(n.label) + "</h2>" +
+      "<div class='sub'>" + esc(n.type) + " · módulo <b>" + esc(n.module || "—") + "</b> · " +
+      "<span class='badge " + esc(n.confidence) + "'>" + esc(n.confidence) + "</span></div>" +
+      "<dl><dt>Descripción</dt><dd>" + esc(n.description || n.tooltip || "—") + "</dd>" +
+      "<dt>Archivos de origen</dt><dd><ul>" + (files || "<li class='placeholder'>—</li>") + "</ul></dd>" +
+      (n.notes && n.notes.length ? "<dt>Notas / limitaciones</dt><dd><ul>" + n.notes.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></dd>" : "") +
+      "</dl>";
+    showTab("detail");
+    if (window.innerWidth <= 900) side.classList.add("open");
+  }
+
+  var flowsPanel = document.getElementById("flows");
+  DATA.flows.forEach(function (f) {
+    var div = document.createElement("div");
+    div.className = "flow-item";
+    div.innerHTML =
+      "<h3>" + esc(f.name) + " <span class='badge " + esc(f.confidence) + "'>" + esc(f.confidence) + "</span></h3>" +
+      "<div class='trigger'>" + esc(f.trigger) + "</div>" +
+      "<p>" + esc(f.description) + "</p>" +
+      "<ol class='steps' style='display:none'>" +
+      f.steps.map(function (s) {
+        var n = nodeById[s.nodeId];
+        return "<li><span class='n'>" + s.order + "</span><div><div class='who'>" + esc(n ? n.label : s.nodeId) + "</div>" +
+          "<div>" + esc(s.action) + "</div>" + evList(s.evidence) + "</div></li>";
+      }).join("") + "</ol>";
+    div.addEventListener("click", function () { selectFlow(f, div); });
+    flowsPanel.appendChild(div);
+  });
+
+  function selectFlow(f, div) {
+    var was = selFlow === f.id;
+    clearSelection();
+    flowsPanel.querySelectorAll(".steps").forEach(function (s) { s.style.display = "none"; });
+    if (was) return;
+    selNode = null; selFlow = f.id;
+    div.classList.add("selected");
+    div.querySelector(".steps").style.display = "";
+    f.steps.forEach(function (s) { flowNodeSet[s.nodeId] = true; });
+    for (var i = 0; i < f.steps.length - 1; i++) {
+      var a = f.steps[i].nodeId, b = f.steps[i + 1].nodeId, found = false;
+      DATA.edges.forEach(function (e) {
+        if ((e.source === a && e.target === b) || (e.source === b && e.target === a)) {
+          flowEdgeSet[e.id] = true; found = true;
+        }
+      });
+      if (!found) flowGhost.push([a, b]);
+    }
+    dirty = true;
+    showTab("flows");
+  }
+
+  /* -------------------------------------------------------- limitaciones */
+  var lim = document.getElementById("limits");
+  var softEdges = DATA.edges.filter(function (e) { return e.confidence !== "high"; });
+  var softNodes = DATA.nodes.filter(function (n) { return n.confidence !== "high"; });
+  lim.innerHTML =
+    "<h2>Limitaciones del análisis</h2>" +
+    "<h3>Relaciones con confianza media/baja (" + softEdges.length + ")</h3><ul>" +
+    (softEdges.map(function (e) {
+      return "<li><b>" + esc((nodeById[e.source] || {}).label || e.source) + " → " + esc((nodeById[e.target] || {}).label || e.target) + "</b> " +
+        "<span class='badge " + esc(e.confidence) + "'>" + esc(e.confidence) + "</span>" +
+        (e.notes && e.notes.length ? "<br>" + esc(e.notes.join(" ")) : "") + "</li>";
+    }).join("") || "<li>Ninguna.</li>") + "</ul>" +
+    (softNodes.length ? "<h3>Nodos con confianza media/baja</h3><ul>" +
+      softNodes.map(function (n) { return "<li><b>" + esc(n.label) + "</b></li>"; }).join("") + "</ul>" : "") +
+    "<h3>Comportamiento dinámico no verificable</h3><ul>" +
+    ((META.limitations && META.limitations.dynamic) || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" +
+    "<h3>Directorios excluidos</h3><ul>" +
+    ((META.excludedDirs) || []).map(function (x) { return "<li><span class='ev'>" + esc(x) + "</span></li>"; }).join("") + "</ul>" +
+    "<h3>Puntos ciegos del análisis estático</h3><ul>" +
+    ((META.limitations && META.limitations.blindSpots) || []).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+
+  /* ----------------------------------------------------------------- go */
+  document.getElementById("metaLine").textContent =
+    (META.snapshotCommit ? "commit " + META.snapshotCommit.slice(0, 10) : "") +
+    " · " + DATA.nodes.length + " nodos · " + DATA.edges.length + " aristas · " + DATA.flows.length + " flujos";
+  window.addEventListener("resize", resize);
+  resize();
+  if (ctx) requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
