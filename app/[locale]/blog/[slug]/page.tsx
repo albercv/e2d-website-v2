@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       url: canonical,
       images: [
         {
-          url: post.cover || "/placeholder.jpg",
+          url: post.cover || "/og-head.jpg",
           width: 1200,
           height: 630,
           alt: post.title,
@@ -70,7 +70,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       card: "summary_large_image",
       title: post.title,
       description,
-      images: [post.cover || "/placeholder.jpg"],
+      images: [post.cover || "/og-head.jpg"],
     },
     robots: {
       index: true,

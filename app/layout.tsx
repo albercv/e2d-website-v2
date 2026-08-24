@@ -19,6 +19,10 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  // Resuelve URLs relativas de OG/Twitter (ej. covers de blog `/uploads/...`) a
+  // absolutas. Sin esto, Next prepende el host de build (localhost:PORT) y las
+  // cards sociales apuntan a http://localhost:3003/... en producción.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://evolve2digital.com"),
   title: "E2D - Evolve2Digital | Software a medida para PYMEs",
   description:
     "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
@@ -35,11 +39,20 @@ export const metadata: Metadata = {
     siteName: "E2D - Evolve2Digital",
     title: "E2D - Software a medida para PYMEs",
     description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
+    images: [
+      {
+        url: "https://evolve2digital.com/og-head.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Evolve2Digital",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "E2D - Software a medida para PYMEs",
     description: "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados.",
+    images: ["https://evolve2digital.com/og-head.jpg"],
   },
   robots: {
     index: true,

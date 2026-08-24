@@ -96,6 +96,9 @@ export function AdminDashboardTabs({ posts }: { posts: AdminPostRow[] }) {
               <Link href="/admin/embeddings">
                 <Button variant="outline">Embeddings (RAG)</Button>
               </Link>
+              <Link href="/admin/architecture">
+                <Button variant="outline">Arquitectura</Button>
+              </Link>
               <form action="/api/admin/logout" method="post">
                 <Button variant="outline" type="submit">
                   Salir
