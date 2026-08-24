@@ -1,5 +1,6 @@
 import { listPostsFromDisk, resolvePostCovers } from "@/lib/blog/posts-runtime"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
+import { paginatePosts } from "@/app/[locale]/blog/pagination"
 import { BlogList } from "@/components/blog/blog-list"
 import { Navigation } from "@/components/layout/navigation"
 import { Footer } from "@/components/layout/footer"
@@ -10,10 +11,18 @@ export const dynamic = "force-dynamic"
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ page?: string }>
 }
 
-export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+const PAGINATION_LABELS: Record<string, string> = {
+  es: "Paginación",
+  en: "Pagination",
+  it: "Paginazione",
+}
+
+export async function generateMetadata({ params, searchParams }: BlogPageProps): Promise<Metadata> {
   const { locale } = await params
+  const { page: pageParam } = await searchParams
 
   const titles: Record<string, string> = {
     es: "Blog - E2D | Automatización y Tecnología",
@@ -31,11 +40,16 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   const ogLocale = locale === "es" ? "es_ES" : locale === "en" ? "en_US" : "it_IT"
   const smeWord = locale === "es" ? "PYME" : locale === "it" ? "PMI" : "SME"
 
+  const all = await listPostsFromDisk()
+  const filtered = all.filter((post) => post.locale === locale && post.published)
+  const { page } = paginatePosts(filtered, pageParam)
+  const canonicalUrl = page > 1 ? `${baseUrl}/${locale}/blog?page=${page}` : `${baseUrl}/${locale}/blog`
+
   return {
     title: titles[locale] ?? titles.es,
     description: descriptions[locale] ?? descriptions.es,
     alternates: {
-      canonical: `${baseUrl}/${locale}/blog`,
+      canonical: canonicalUrl,
       languages: buildHreflangLanguages({
         es: `${baseUrl}/es/blog`,
         en: `${baseUrl}/en/blog`,
@@ -70,8 +84,9 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
   }
 }
 
-export default async function BlogPage({ params }: BlogPageProps) {
+export default async function BlogPage({ params, searchParams }: BlogPageProps) {
   const { locale } = await params
+  const { page: pageParam } = await searchParams
 
   if (!["es", "en", "it"].includes(locale)) {
     notFound()
@@ -81,13 +96,25 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const filtered = all
     .filter((post) => post.locale === locale && post.published)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  const posts = await resolvePostCovers(filtered)
+  const { pagePosts, totalPages, page } = paginatePosts(filtered, pageParam)
+  const posts = await resolvePostCovers(pagePosts)
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
         <BlogList posts={posts} locale={locale} />
+        {totalPages > 1 && (
+          <nav aria-label={PAGINATION_LABELS[locale] ?? PAGINATION_LABELS.es} className="flex justify-center gap-2 pb-16">
+            {page > 1 && (
+              <a href={`/${locale}/blog?page=${page - 1}`} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">←</a>
+            )}
+            <span className="px-4 py-2 text-muted-foreground">{page} / {totalPages}</span>
+            {page < totalPages && (
+              <a href={`/${locale}/blog?page=${page + 1}`} className="px-4 py-2 rounded-md border border-border hover:border-[#05b4ba]">→</a>
+            )}
+          </nav>
+        )}
       </main>
       <Footer />
     </div>
