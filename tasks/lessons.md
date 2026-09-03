@@ -109,3 +109,6 @@ BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverag
 - La función `generateAlternateLanguages(path)` solo es válida para rutas uniformes entre locales (homepage, blog index, docs, legal) — NO para posts de blog.
 
 **Causa raíz del bug original**: `generateAlternateLanguages('/blog/' + post.slug)` generaba `/en/blog/<slug-es>` que 404. Visibles en GSC como "not found 404" con slugs de otros idiomas en la ruta equivocada.
+
+## 2026-09-03 — Pixel OpenAI: validar el catálogo de eventos antes de mapear
+Envié `generate_lead` (nombre GA) al pixel/Conversions API de OpenAI y lo rechazó: OpenAI solo acepta su catálogo cerrado (`lead_created`, `order_created`, `custom`...) y rechaza campos extra en `data`. Patrón: con cualquier API de terceros que tenga esquema cerrado, hacer un dry-run (`validate_only`) contra el endpoint real ANTES de escribir el mapeo, no después del build. Los tests unitarios con fetch mockeado no detectan un contrato equivocado.
