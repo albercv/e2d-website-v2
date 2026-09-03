@@ -53,22 +53,36 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
   })
   afterEach(() => jest.restoreAllMocks())
 
-  it("mirrors a persisted lead as appointment_scheduled + custom lead_form with shared ids", async () => {
+  it("mirrors a persisted lead as appointment_scheduled + custom lead_form keyed by leadId", async () => {
     leadOk()
     const res = await POST(makeRequest({ sourceUrl: "https://evolve2digital.com/es/blog/x" }))
     expect(res.status).toBe(200)
     expect(sendOaiqMock).toHaveBeenCalledTimes(2)
     expect(sendOaiqMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      eventId: `lead_${SESSION_ID}`,
+      eventId: "lead_lead-1",
       type: "appointment_scheduled",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
     }))
     expect(sendOaiqMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      eventId: `lead_${SESSION_ID}_lead_form`,
+      eventId: "lead_lead-1_lead_form",
       type: "custom",
       customEventName: "lead_form",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
     }))
+  })
+
+  it("accepts a lead without sessionId (contact modal) and passes none to the lead service", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sessionId: undefined }))
+    expect(res.status).toBe(200)
+    expect(captureLeadMock).toHaveBeenCalledWith(expect.not.objectContaining({ sessionId: expect.anything() }))
+    expect(sendOaiqMock.mock.calls[0][0].eventId).toBe("lead_lead-1")
+  })
+
+  it("still rejects a malformed sessionId", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sessionId: "nope" }))
+    expect(res.status).toBe(400)
   })
 
   it("does not mirror when the visitor has not granted marketing consent", async () => {
