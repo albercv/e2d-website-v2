@@ -184,11 +184,11 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://assets.apollo.io",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://assets.apollo.io https://bzrcdn.openai.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://www.google-analytics.com https://*.apollo.io",
+      "connect-src 'self' https://www.google-analytics.com https://*.apollo.io https://bzr.openai.com https://bzrcdn.openai.com",
       "media-src 'self'",
       "frame-ancestors 'self'",
     ].join("; ")

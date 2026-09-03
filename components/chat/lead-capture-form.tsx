@@ -44,6 +44,8 @@ function emptyState(prefillIntent?: string): FormState {
 function buildPayload(s: FormState, sessionId: string, locale: string): Record<string, unknown> {
   const payload: Record<string, unknown> = {
     sessionId, email: s.email.trim().toLowerCase(), consent: true, locale,
+    // Lets the server-side conversion mirror report the real landing page.
+    sourceUrl: window.location.href,
   }
   if (s.name.trim()) payload.name = s.name.trim()
   if (s.phone.trim()) payload.phone = s.phone.trim()
@@ -180,7 +182,12 @@ export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null
     const ok = await postLead(buildPayload(state, props.sessionId, props.locale))
     if (ok) {
       // Track the qualified lead — this is the primary conversion event.
-      track("generate_lead", { form_location: "chat", intent: state.intent || "", locale: props.locale })
+      // eventId matches the server mirror (lead route) so OpenAI dedupes both.
+      track(
+        "generate_lead",
+        { form_location: "chat", intent: state.intent || "", locale: props.locale },
+        { eventId: `lead_${props.sessionId}` },
+      )
     }
     setStatus(ok ? { kind: "success" } : { kind: "server" })
   }, [props.sessionId, props.locale, state])

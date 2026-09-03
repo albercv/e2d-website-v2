@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { captureLead } from "@/lib/leads/lead-service"
+import { sendOaiqConversion } from "@/lib/analytics/oaiq-server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,7 +32,11 @@ const BodySchema = z.object({
   message: z.string().trim().max(2000).optional(),
   consent: z.literal(true),
   locale: z.enum(SUPPORTED_LOCALES),
+  // Page the form was submitted from — becomes source_url on the OpenAI
+  // Conversions API mirror. Optional so older clients keep working.
+  sourceUrl: z.string().url().max(2048).optional(),
 })
+type LeadBody = z.infer<typeof BodySchema>
 
 const SERVER_MSG: Record<Locale, string> = {
   es: "No hemos podido procesar tu solicitud. Escríbenos por WhatsApp (+34 605 497 639) o email (hello@evolve2digital.com).",
@@ -51,6 +56,32 @@ function safeFallbackLocale(value: unknown): Locale {
     return value as Locale
   }
   return "es"
+}
+
+function fallbackSourceUrl(locale: Locale): string {
+  const base = process.env.NEXT_PUBLIC_BASE_URL ?? "https://evolve2digital.com"
+  return `${base}/${locale}`
+}
+
+// Server-side mirror of the browser generate_lead event. The event id is
+// derived from the chat session on both sides so OpenAI dedupes the pair.
+// Only real transport/HTTP failures become warnings; "not configured" is the
+// normal state until the API key lands in .env and must not add noise.
+async function mirrorLeadToOaiq(
+  lead: Pick<LeadBody, "sessionId" | "locale" | "sourceUrl">,
+  warnings: string[],
+): Promise<void> {
+  try {
+    const result = await sendOaiqConversion({
+      eventId: `lead_${lead.sessionId}`,
+      type: "generate_lead",
+      sourceUrl: lead.sourceUrl ?? fallbackSourceUrl(lead.locale),
+    })
+    if (result.sent || result.reason === "not_configured") return
+    warnings.push(`oaiq: ${result.reason}`)
+  } catch {
+    warnings.push("oaiq: network")
+  }
 }
 
 function badRequest(): NextResponse {
@@ -86,14 +117,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const result = await captureLead(input)
+    const { sourceUrl, ...leadInput } = input
+    const result = await captureLead(leadInput)
+    const warnings = [...result.warnings]
+    await mirrorLeadToOaiq({ sessionId: input.sessionId, locale: input.locale, sourceUrl }, warnings)
     return NextResponse.json(
       {
         ok: true,
         leadId: result.leadId,
         apolloQueued: result.apolloQueued,
         emailSent: result.emailSent,
-        warnings: result.warnings,
+        warnings,
       },
       { status: 200 },
     )
