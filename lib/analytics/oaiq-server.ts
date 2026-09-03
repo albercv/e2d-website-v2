@@ -3,6 +3,8 @@
 // every failure here is reported as a value, never thrown. The API key is
 // server-only — never expose it through NEXT_PUBLIC_.
 
+import type { OaiqUser } from "@/lib/analytics/oaiq-user-data"
+
 const EVENTS_ENDPOINT = "https://bzr.openai.com/v1/events"
 const TIMEOUT_MS = 3000
 
@@ -19,6 +21,10 @@ export interface OaiqConversionEvent {
   customEventName?: string
   sourceUrl: string
   timestampMs?: number
+  // OpenAI click id (the pixel stores it in the __oppref cookie). Lets the
+  // server event attribute to the ad click even if the pixel was blocked.
+  oppref?: string
+  user?: OaiqUser
 }
 
 export interface OaiqSendOptions {
@@ -41,6 +47,8 @@ function buildPayload(event: OaiqConversionEvent, opts: OaiqSendOptions): string
         timestamp_ms: event.timestampMs ?? Date.now(),
         source_url: event.sourceUrl,
         action_source: "web",
+        ...(event.oppref ? { oppref: event.oppref } : {}),
+        ...(event.user ? { user: event.user } : {}),
         data: { type: isCustom ? "custom" : "customer_action" },
       },
     ],

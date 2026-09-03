@@ -37,6 +37,22 @@ describe("LeadCaptureForm — OpenAI pixel wiring", () => {
     expect(opts).toEqual({ eventId: `lead_${SESSION_ID}` })
   })
 
+  it("sends marketingConsent=true when the visitor accepted marketing cookies", async () => {
+    localStorage.setItem("cookie-consent", JSON.stringify({ necessary: true, analytics: true, marketing: true }))
+    render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
+    await submitValidLead()
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.marketingConsent).toBe(true)
+  })
+
+  it("sends marketingConsent=false when marketing cookies were declined or never answered", async () => {
+    localStorage.removeItem("cookie-consent")
+    render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
+    await submitValidLead()
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.marketingConsent).toBe(false)
+  })
+
   it("sends the current page URL so the server mirror carries source_url", async () => {
     render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
     await submitValidLead()

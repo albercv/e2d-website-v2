@@ -83,6 +83,26 @@ describe("sendOaiqConversion", () => {
     })
   })
 
+  it("forwards oppref and user matching data when provided", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200 })
+    await sendOaiqConversion({
+      ...baseEvent,
+      oppref: "opp_123",
+      user: { emails_sha256: ["a".repeat(64)], ip_address: "81.45.1.1", user_agent: "UA/1" },
+    })
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
+    expect(body.events[0].oppref).toBe("opp_123")
+    expect(body.events[0].user).toEqual({ emails_sha256: ["a".repeat(64)], ip_address: "81.45.1.1", user_agent: "UA/1" })
+  })
+
+  it("omits oppref and user keys entirely when absent", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200 })
+    await sendOaiqConversion(baseEvent)
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
+    expect(body.events[0]).not.toHaveProperty("oppref")
+    expect(body.events[0]).not.toHaveProperty("user")
+  })
+
   it("defaults timestamp_ms to now", async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200 })
     const before = Date.now()

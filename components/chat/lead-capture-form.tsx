@@ -41,11 +41,23 @@ function emptyState(prefillIntent?: string): FormState {
   return { name: "", email: "", phone: "", company: "", intent, message: "", consent: false }
 }
 
+// Mirrors the banner's marketing flag so the server only forwards this lead
+// to ad platforms when the visitor opted in. Absent/malformed = no consent.
+function hasMarketingConsent(): boolean {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("cookie-consent") ?? "null") as { marketing?: boolean } | null
+    return parsed?.marketing === true
+  } catch {
+    return false
+  }
+}
+
 function buildPayload(s: FormState, sessionId: string, locale: string): Record<string, unknown> {
   const payload: Record<string, unknown> = {
     sessionId, email: s.email.trim().toLowerCase(), consent: true, locale,
     // Lets the server-side conversion mirror report the real landing page.
     sourceUrl: window.location.href,
+    marketingConsent: hasMarketingConsent(),
   }
   if (s.name.trim()) payload.name = s.name.trim()
   if (s.phone.trim()) payload.phone = s.phone.trim()

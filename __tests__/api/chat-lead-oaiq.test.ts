@@ -20,19 +20,25 @@ const sendOaiqMock = sendOaiqConversion as jest.Mock
 
 const SESSION_ID = "11111111-1111-4111-8111-111111111111"
 
-function makeRequest(extra: Record<string, unknown> = {}): NextRequest {
+function makeRequest(
+  extra: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
+): NextRequest {
   return new NextRequest("http://localhost/api/chat/lead", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify({
       sessionId: SESSION_ID,
       email: "lead@example.com",
       consent: true,
+      marketingConsent: true,
       locale: "es",
       ...extra,
     }),
   })
 }
+
+const EMAIL_SHA = "9fbdefe2837a03c9225be80e741f316f4d174d1732b719b6abb6477efc1ae9d2"
 
 function leadOk(warnings: string[] = []) {
   captureLeadMock.mockResolvedValue({ leadId: "lead-1", apolloQueued: true, emailSent: true, warnings })
@@ -52,16 +58,53 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
     const res = await POST(makeRequest({ sourceUrl: "https://evolve2digital.com/es/blog/x" }))
     expect(res.status).toBe(200)
     expect(sendOaiqMock).toHaveBeenCalledTimes(2)
-    expect(sendOaiqMock).toHaveBeenNthCalledWith(1, {
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
       eventId: `lead_${SESSION_ID}`,
       type: "appointment_scheduled",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
-    })
-    expect(sendOaiqMock).toHaveBeenNthCalledWith(2, {
+    }))
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
       eventId: `lead_${SESSION_ID}_lead_form`,
       type: "custom",
       customEventName: "lead_form",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
+    }))
+  })
+
+  it("does not mirror when the visitor has not granted marketing consent", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ marketingConsent: false }))
+    expect(res.status).toBe(200)
+    expect(sendOaiqMock).not.toHaveBeenCalled()
+  })
+
+  it("treats a missing marketingConsent (older clients) as no consent", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ marketingConsent: undefined }))
+    expect(res.status).toBe(200)
+    expect(sendOaiqMock).not.toHaveBeenCalled()
+  })
+
+  it("forwards the pixel's __oppref cookie as the event oppref", async () => {
+    leadOk()
+    await POST(makeRequest({}, { cookie: "__oppref=opp_abc; other=1" }))
+    expect(sendOaiqMock.mock.calls[0][0].oppref).toBe("opp_abc")
+    expect(sendOaiqMock.mock.calls[1][0].oppref).toBe("opp_abc")
+  })
+
+  it("omits oppref when the cookie is absent", async () => {
+    leadOk()
+    await POST(makeRequest())
+    expect(sendOaiqMock.mock.calls[0][0]).not.toHaveProperty("oppref")
+  })
+
+  it("attaches hashed email plus ip and user agent as user matching data", async () => {
+    leadOk()
+    await POST(makeRequest({}, { "x-forwarded-for": "81.45.1.1, 10.0.0.1", "user-agent": "UA/1" }))
+    expect(sendOaiqMock.mock.calls[0][0].user).toEqual({
+      emails_sha256: [EMAIL_SHA],
+      ip_address: "81.45.1.1",
+      user_agent: "UA/1",
     })
   })
 

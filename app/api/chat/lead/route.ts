@@ -13,8 +13,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
-import { captureLead } from "@/lib/leads/lead-service"
+import { captureLead, type CaptureLeadInput } from "@/lib/leads/lead-service"
 import { sendOaiqConversion, type OaiqConversionEvent } from "@/lib/analytics/oaiq-server"
+import { buildOaiqUser, type OaiqUser } from "@/lib/analytics/oaiq-user-data"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -35,6 +36,10 @@ const BodySchema = z.object({
   // Page the form was submitted from — becomes source_url on the OpenAI
   // Conversions API mirror. Optional so older clients keep working.
   sourceUrl: z.string().url().max(2048).optional(),
+  // Marketing-cookie consent as seen by the banner. The OpenAI mirror sends
+  // hashed identifiers to an ad platform, so it is gated on this flag;
+  // absent (older clients) means no consent.
+  marketingConsent: z.boolean().optional(),
 })
 type LeadBody = z.infer<typeof BodySchema>
 
@@ -50,12 +55,23 @@ const CONTACT = {
 } as const
 
 const SESSION_COOKIE = "e2d_chat_session"
+// Set by the OpenAI pixel SDK on our domain when the visitor lands from an ad.
+const OPPREF_COOKIE = "__oppref"
 
 function safeFallbackLocale(value: unknown): Locale {
   if (typeof value === "string" && (SUPPORTED_LOCALES as readonly string[]).includes(value)) {
     return value as Locale
   }
   return "es"
+}
+
+// Explicit pick: the lead service must not receive the analytics-only
+// fields (sourceUrl, marketingConsent) that ride along in the request body.
+function toCaptureInput(i: LeadBody): CaptureLeadInput {
+  return {
+    sessionId: i.sessionId, name: i.name, email: i.email, phone: i.phone, company: i.company,
+    intent: i.intent, message: i.message, consent: i.consent, locale: i.locale,
+  }
 }
 
 function fallbackSourceUrl(locale: Locale): string {
@@ -78,15 +94,26 @@ async function mirrorOne(event: OaiqConversionEvent, warnings: string[]): Promis
   }
 }
 
-async function mirrorLeadToOaiq(
-  lead: Pick<LeadBody, "sessionId" | "locale" | "sourceUrl">,
-  warnings: string[],
-): Promise<void> {
-  const eventId = `lead_${lead.sessionId}`
-  const sourceUrl = lead.sourceUrl ?? fallbackSourceUrl(lead.locale)
-  await mirrorOne({ eventId, type: "appointment_scheduled", sourceUrl }, warnings)
+interface MirrorContext {
+  oppref?: string
+  user: OaiqUser
+}
+
+function mirrorContextFromRequest(req: NextRequest, input: LeadBody): MirrorContext {
+  const forwarded = req.headers.get("x-forwarded-for")
+  const ipAddress = forwarded?.split(",")[0]?.trim() || undefined
+  const userAgent = req.headers.get("user-agent") ?? undefined
+  const oppref = req.cookies.get(OPPREF_COOKIE)?.value || undefined
+  return { oppref, user: buildOaiqUser({ email: input.email, phone: input.phone, ipAddress, userAgent }) }
+}
+
+async function mirrorLeadToOaiq(input: LeadBody, ctx: MirrorContext, warnings: string[]): Promise<void> {
+  const eventId = `lead_${input.sessionId}`
+  const sourceUrl = input.sourceUrl ?? fallbackSourceUrl(input.locale)
+  const shared = { sourceUrl, user: ctx.user, ...(ctx.oppref ? { oppref: ctx.oppref } : {}) }
+  await mirrorOne({ eventId, type: "appointment_scheduled", ...shared }, warnings)
   await mirrorOne(
-    { eventId: `${eventId}_lead_form`, type: "custom", customEventName: "lead_form", sourceUrl },
+    { eventId: `${eventId}_lead_form`, type: "custom", customEventName: "lead_form", ...shared },
     warnings,
   )
 }
@@ -124,10 +151,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const { sourceUrl, ...leadInput } = input
-    const result = await captureLead(leadInput)
+    const result = await captureLead(toCaptureInput(input))
     const warnings = [...result.warnings]
-    await mirrorLeadToOaiq({ sessionId: input.sessionId, locale: input.locale, sourceUrl }, warnings)
+    if (input.marketingConsent === true) {
+      await mirrorLeadToOaiq(input, mirrorContextFromRequest(req, input), warnings)
+    }
     return NextResponse.json(
       {
         ok: true,
