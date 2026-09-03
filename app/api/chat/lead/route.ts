@@ -63,7 +63,8 @@ function fallbackSourceUrl(locale: Locale): string {
   return `${base}/${locale}`
 }
 
-// Server-side mirror of the browser generate_lead event. The event id is
+// Server-side mirror of the browser generate_lead event (sent to OpenAI as
+// appointment_scheduled, the campaign's optimisation goal). The event id is
 // derived from the chat session on both sides so OpenAI dedupes the pair.
 // Only real transport/HTTP failures become warnings; "not configured" is the
 // normal state until the API key lands in .env and must not add noise.
@@ -74,7 +75,7 @@ async function mirrorLeadToOaiq(
   try {
     const result = await sendOaiqConversion({
       eventId: `lead_${lead.sessionId}`,
-      type: "lead_created",
+      type: "appointment_scheduled",
       sourceUrl: lead.sourceUrl ?? fallbackSourceUrl(lead.locale),
     })
     if (result.sent || result.reason === "not_configured") return

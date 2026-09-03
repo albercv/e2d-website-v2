@@ -54,7 +54,7 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
     expect(sendOaiqMock).toHaveBeenCalledTimes(1)
     expect(sendOaiqMock).toHaveBeenCalledWith({
       eventId: `lead_${SESSION_ID}`,
-      type: "lead_created",
+      type: "appointment_scheduled",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
     })
   })
