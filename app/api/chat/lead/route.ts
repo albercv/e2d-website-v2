@@ -74,7 +74,7 @@ async function mirrorLeadToOaiq(
   try {
     const result = await sendOaiqConversion({
       eventId: `lead_${lead.sessionId}`,
-      type: "generate_lead",
+      type: "lead_created",
       sourceUrl: lead.sourceUrl ?? fallbackSourceUrl(lead.locale),
     })
     if (result.sent || result.reason === "not_configured") return

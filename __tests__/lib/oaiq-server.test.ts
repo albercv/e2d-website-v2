@@ -2,13 +2,13 @@
  * @jest-environment node
  */
 
-import { sendOaiqConversion } from "@/lib/analytics/oaiq-server"
+import { sendOaiqConversion, type OaiqConversionEvent } from "@/lib/analytics/oaiq-server"
 
 const ENV_KEYS = ["OAIQ_CONVERSIONS_API_KEY", "NEXT_PUBLIC_OAIQ_PIXEL_ID"] as const
 
-const baseEvent = {
+const baseEvent: OaiqConversionEvent = {
   eventId: "lead_11111111-1111-4111-8111-111111111111",
-  type: "generate_lead",
+  type: "lead_created",
   sourceUrl: "https://evolve2digital.com/es",
 }
 
@@ -62,13 +62,24 @@ describe("sendOaiqConversion", () => {
       events: [
         {
           id: baseEvent.eventId,
-          type: "generate_lead",
+          type: "lead_created",
           timestamp_ms: 1_700_000_000_000,
           source_url: baseEvent.sourceUrl,
           action_source: "web",
           data: { type: "customer_action" },
         },
       ],
+    })
+  })
+
+  it("sends custom events with custom_event_name at the event level and data.type custom", async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200 })
+    await sendOaiqConversion({ ...baseEvent, type: "custom", customEventName: "whatsapp_click" })
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)
+    expect(body.events[0]).toMatchObject({
+      type: "custom",
+      custom_event_name: "whatsapp_click",
+      data: { type: "custom" },
     })
   })
 

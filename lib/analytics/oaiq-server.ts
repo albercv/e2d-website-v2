@@ -6,10 +6,17 @@
 const EVENTS_ENDPOINT = "https://bzr.openai.com/v1/events"
 const TIMEOUT_MS = 3000
 
+// Standard OpenAI events whose data payload is `customer_action`. Other
+// standard types (order_created, subscription_created...) need different
+// payloads — add them here when a real conversion needs them.
+export type OaiqStandardEvent = "lead_created" | "appointment_scheduled" | "registration_completed"
+
 export interface OaiqConversionEvent {
   // Must match the browser-side event_id so OpenAI dedupes the pair.
   eventId: string
-  type: string
+  type: OaiqStandardEvent | "custom"
+  // Required when type is "custom"; ignored otherwise.
+  customEventName?: string
   sourceUrl: string
   timestampMs?: number
 }
@@ -23,16 +30,18 @@ export type OaiqSendResult =
   | { sent: false; reason: "not_configured" | "network" | `http_${number}` }
 
 function buildPayload(event: OaiqConversionEvent, opts: OaiqSendOptions): string {
+  const isCustom = event.type === "custom"
   return JSON.stringify({
     validate_only: opts.validateOnly === true,
     events: [
       {
         id: event.eventId,
         type: event.type,
+        ...(isCustom ? { custom_event_name: event.customEventName } : {}),
         timestamp_ms: event.timestampMs ?? Date.now(),
         source_url: event.sourceUrl,
         action_source: "web",
-        data: { type: "customer_action" },
+        data: { type: isCustom ? "custom" : "customer_action" },
       },
     ],
   })
