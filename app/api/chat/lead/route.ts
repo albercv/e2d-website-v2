@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { captureLead } from "@/lib/leads/lead-service"
-import { sendOaiqConversion } from "@/lib/analytics/oaiq-server"
+import { sendOaiqConversion, type OaiqConversionEvent } from "@/lib/analytics/oaiq-server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -63,26 +63,32 @@ function fallbackSourceUrl(locale: Locale): string {
   return `${base}/${locale}`
 }
 
-// Server-side mirror of the browser generate_lead event (sent to OpenAI as
-// appointment_scheduled, the campaign's optimisation goal). The event id is
-// derived from the chat session on both sides so OpenAI dedupes the pair.
-// Only real transport/HTTP failures become warnings; "not configured" is the
-// normal state until the API key lands in .env and must not add noise.
+// Server-side mirror of the browser generate_lead pair: appointment_scheduled
+// (campaign goal) + custom lead_form (channel). Ids match the browser side so
+// OpenAI dedupes each pair. Only real transport/HTTP failures become
+// warnings; "not configured" is the normal state until the API key lands in
+// .env and must not add noise.
+async function mirrorOne(event: OaiqConversionEvent, warnings: string[]): Promise<void> {
+  try {
+    const result = await sendOaiqConversion(event)
+    if (result.sent || result.reason === "not_configured") return
+    warnings.push(`oaiq ${event.type}: ${result.reason}`)
+  } catch {
+    warnings.push(`oaiq ${event.type}: network`)
+  }
+}
+
 async function mirrorLeadToOaiq(
   lead: Pick<LeadBody, "sessionId" | "locale" | "sourceUrl">,
   warnings: string[],
 ): Promise<void> {
-  try {
-    const result = await sendOaiqConversion({
-      eventId: `lead_${lead.sessionId}`,
-      type: "appointment_scheduled",
-      sourceUrl: lead.sourceUrl ?? fallbackSourceUrl(lead.locale),
-    })
-    if (result.sent || result.reason === "not_configured") return
-    warnings.push(`oaiq: ${result.reason}`)
-  } catch {
-    warnings.push("oaiq: network")
-  }
+  const eventId = `lead_${lead.sessionId}`
+  const sourceUrl = lead.sourceUrl ?? fallbackSourceUrl(lead.locale)
+  await mirrorOne({ eventId, type: "appointment_scheduled", sourceUrl }, warnings)
+  await mirrorOne(
+    { eventId: `${eventId}_lead_form`, type: "custom", customEventName: "lead_form", sourceUrl },
+    warnings,
+  )
 }
 
 function badRequest(): NextResponse {

@@ -39,23 +39,38 @@ describe("track — GA4 fan-out", () => {
 describe("track — OpenAI pixel fan-out", () => {
   afterEach(clearGlobals)
 
-  // The campaign optimises towards appointment_scheduled, so every contact
-  // conversion maps to that standard event. OpenAI rejects unknown fields in
-  // `data`, so GA params are never forwarded.
-  it("mirrors generate_lead as appointment_scheduled without GA params", () => {
+  // Every contact conversion sends two OpenAI events: the standard
+  // appointment_scheduled (campaign goal) and a named custom event carrying
+  // the channel, because standard events reject any extra data field.
+  it("mirrors generate_lead as appointment_scheduled + custom lead_form", () => {
     installGtag()
     const oaiq = installOaiq()
     track("generate_lead", { form_location: "chat", locale: "es" })
-    expect(oaiq).toHaveBeenCalledTimes(1)
-    expect(oaiq).toHaveBeenCalledWith("measure", "appointment_scheduled", { type: "customer_action" })
+    expect(oaiq.mock.calls).toEqual([
+      ["measure", "appointment_scheduled", { type: "customer_action" }],
+      ["measure", "custom", { type: "custom" }, { custom_event_name: "lead_form" }],
+    ])
   })
 
-  it("forwards an explicit eventId so browser and server events dedupe", () => {
+  it("mirrors whatsapp_click and email_click with their channel as custom name", () => {
+    const oaiq = installOaiq()
+    track("whatsapp_click", { link_location: "chat_panel" })
+    track("email_click", { link_location: "contact_modal" })
+    expect(oaiq.mock.calls).toEqual([
+      ["measure", "appointment_scheduled", { type: "customer_action" }],
+      ["measure", "custom", { type: "custom" }, { custom_event_name: "whatsapp_click" }],
+      ["measure", "appointment_scheduled", { type: "customer_action" }],
+      ["measure", "custom", { type: "custom" }, { custom_event_name: "email_click" }],
+    ])
+  })
+
+  it("derives distinct event ids for both events from an explicit eventId", () => {
     const oaiq = installOaiq()
     track("generate_lead", { locale: "es" }, { eventId: "lead_abc" })
-    expect(oaiq).toHaveBeenCalledWith(
-      "measure", "appointment_scheduled", { type: "customer_action" }, { event_id: "lead_abc" },
-    )
+    expect(oaiq.mock.calls).toEqual([
+      ["measure", "appointment_scheduled", { type: "customer_action" }, { event_id: "lead_abc" }],
+      ["measure", "custom", { type: "custom" }, { custom_event_name: "lead_form", event_id: "lead_abc_lead_form" }],
+    ])
   })
 
   it("does not leak the eventId into the gtag params", () => {
@@ -63,16 +78,6 @@ describe("track — OpenAI pixel fan-out", () => {
     installOaiq()
     track("generate_lead", { locale: "es" }, { eventId: "lead_abc" })
     expect(gtag).toHaveBeenCalledWith("event", "generate_lead", { locale: "es" })
-  })
-
-  it("mirrors whatsapp_click and email_click as appointment_scheduled too", () => {
-    const oaiq = installOaiq()
-    track("whatsapp_click", { link_location: "chat_panel" })
-    track("email_click", { link_location: "contact_modal" })
-    expect(oaiq.mock.calls).toEqual([
-      ["measure", "appointment_scheduled", { type: "customer_action" }],
-      ["measure", "appointment_scheduled", { type: "customer_action" }],
-    ])
   })
 
   it("does NOT mirror non-conversion events (cta_click, contact_open, chat_open)", () => {

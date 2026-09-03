@@ -47,14 +47,20 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
   })
   afterEach(() => jest.restoreAllMocks())
 
-  it("mirrors a persisted lead with the shared lead_<sessionId> event id", async () => {
+  it("mirrors a persisted lead as appointment_scheduled + custom lead_form with shared ids", async () => {
     leadOk()
     const res = await POST(makeRequest({ sourceUrl: "https://evolve2digital.com/es/blog/x" }))
     expect(res.status).toBe(200)
-    expect(sendOaiqMock).toHaveBeenCalledTimes(1)
-    expect(sendOaiqMock).toHaveBeenCalledWith({
+    expect(sendOaiqMock).toHaveBeenCalledTimes(2)
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(1, {
       eventId: `lead_${SESSION_ID}`,
       type: "appointment_scheduled",
+      sourceUrl: "https://evolve2digital.com/es/blog/x",
+    })
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(2, {
+      eventId: `lead_${SESSION_ID}_lead_form`,
+      type: "custom",
+      customEventName: "lead_form",
       sourceUrl: "https://evolve2digital.com/es/blog/x",
     })
   })
@@ -89,12 +95,14 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
 
   it("surfaces a mirror failure as a warning without failing the request", async () => {
     leadOk(["apollo: queue full"])
-    sendOaiqMock.mockResolvedValue({ sent: false, reason: "http_401" })
+    sendOaiqMock
+      .mockResolvedValueOnce({ sent: false, reason: "http_401" })
+      .mockResolvedValueOnce({ sent: true })
     const res = await POST(makeRequest())
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
-    expect(body.warnings).toEqual(["apollo: queue full", "oaiq: http_401"])
+    expect(body.warnings).toEqual(["apollo: queue full", "oaiq appointment_scheduled: http_401"])
   })
 
   it("stays quiet when the mirror is simply not configured", async () => {
@@ -111,6 +119,6 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
     const res = await POST(makeRequest())
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.warnings).toEqual(["oaiq: network"])
+    expect(body.warnings).toEqual(["oaiq appointment_scheduled: network", "oaiq custom: network"])
   })
 })
