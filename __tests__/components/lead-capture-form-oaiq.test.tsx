@@ -25,16 +25,25 @@ async function submitValidLead(): Promise<void> {
 describe("LeadCaptureForm — OpenAI pixel wiring", () => {
   beforeEach(() => {
     trackMock.mockReset()
-    global.fetch = jest.fn().mockResolvedValue({ ok: true }) as unknown as typeof fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, leadId: "L1" }) }) as unknown as typeof fetch
   })
 
-  it("fires generate_lead with the shared lead_<sessionId> event id", async () => {
+  it("fires generate_lead keyed by the leadId the server returned, with the chat session in the body", async () => {
     render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
     await submitValidLead()
     await waitFor(() => expect(trackMock).toHaveBeenCalled())
-    const [event, , opts] = trackMock.mock.calls[0]
+    const [event, params, opts] = trackMock.mock.calls[0]
     expect(event).toBe("generate_lead")
-    expect(opts).toEqual({ eventId: `lead_${SESSION_ID}` })
+    expect(params).toMatchObject({ form_location: "chat" })
+    expect(opts).toEqual({ eventId: "lead_L1" })
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.sessionId).toBe(SESSION_ID)
+  })
+
+  it("offers the WhatsApp/email follow-up after success", async () => {
+    render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
+    await submitValidLead()
+    expect(await screen.findByRole("link", { name: "continueWhatsApp" })).toBeInTheDocument()
   })
 
   it("sends marketingConsent=true when the visitor accepted marketing cookies", async () => {

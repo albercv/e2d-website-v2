@@ -242,13 +242,19 @@
       "submit": "Enviar",
       "sending": "Enviando…",
       "successTitle": "Recibido",
-      "successBody": "Alberto te responderá pronto. Mientras tanto puedes seguir charlando con el bot.",
       "errorTitle": "No hemos podido enviarlo",
       "errorBody": "Inténtalo en un momento, o escribe directamente a Alberto:",
       "close": "Cerrar",
       "requiredEmail": "El email es obligatorio",
       "invalidEmail": "Email no válido",
-      "requiredConsent": "Necesitamos tu consentimiento"
+      "requiredConsent": "Necesitamos tu consentimiento",
+      "successFollowUp": "Alberto te responderá pronto. Si prefieres, sigue la conversación ahora:",
+      "continueWhatsApp": "Seguir por WhatsApp",
+      "continueEmail": "Seguir por email",
+      "orDirect": "O escríbenos directamente:",
+      "followUp": "Hola Alberto, soy {who}. Acabo de dejar mis datos en la web y me gustaría hablar sobre un proyecto.",
+      "followUpAnonymous": "Hola Alberto, acabo de dejar mis datos en la web y me gustaría hablar sobre un proyecto.",
+      "followUpSubject": "Consulta desde la web E2D"
     }
   }
 }

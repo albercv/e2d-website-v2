@@ -1,70 +1,77 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Mail, MessageCircle } from "lucide-react"
+
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { LeadForm } from "@/components/leads/lead-form"
+import { LeadSuccess } from "@/components/leads/lead-success"
 import { track } from "@/lib/analytics/track"
 import { getWhatsAppHref } from "@/lib/contact/whatsapp"
+import { SUPPORT_EMAIL, getMailHref } from "@/lib/contact/email"
+import type { LeadLocale, SubmittedLead } from "@/lib/leads/lead-form-model"
 
 interface ContactModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function ContactModal({ open, onOpenChange }: ContactModalProps) {
+// Secondary path for visitors who prefer not to fill the form. Kept small so
+// the lead form stays the primary action.
+function DirectLinks({ locale }: { locale: string }): JSX.Element {
+  const t = useTranslations("chat.leadForm")
+  const whatsappHref = getWhatsAppHref(t("followUpAnonymous"))
+  return (
+    <div className="space-y-1 border-t pt-3 text-center text-xs text-muted-foreground">
+      <p>{t("orDirect")}</p>
+      <div className="flex flex-wrap justify-center gap-3">
+        {whatsappHref && (
+          <a href={whatsappHref} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[#25D366] hover:underline"
+            onClick={() => track("whatsapp_click", { link_location: "contact_modal", locale })}>
+            <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" /> WhatsApp
+          </a>
+        )}
+        <a href={getMailHref(t("followUpSubject"))}
+          className="inline-flex items-center gap-1 hover:underline"
+          onClick={() => track("email_click", { link_location: "contact_modal", locale })}>
+          <Mail className="h-3.5 w-3.5" aria-hidden="true" /> {SUPPORT_EMAIL}
+        </a>
+      </div>
+    </div>
+  )
+}
+
+export function ContactModal({ open, onOpenChange }: ContactModalProps): JSX.Element {
   const tNav = useTranslations("navigation")
-  const locale = useLocale()
+  const t = useTranslations("chat.leadForm")
+  const locale = useLocale() as LeadLocale
+  const [submitted, setSubmitted] = useState<SubmittedLead | null>(null)
 
-  // Track modal open so we can measure intent-to-contact funnel entry.
+  // Track modal open so we can measure intent-to-contact funnel entry, and
+  // start every opening on a fresh form.
   useEffect(() => {
-    if (open) track("contact_open", { locale })
+    if (!open) return
+    setSubmitted(null)
+    track("contact_open", { locale })
   }, [open, locale])
-
-  const email = "hello@evolve2digital.com"
-
-  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
-  const mailHref = `mailto:${email}?subject=${encodeURIComponent(
-    "Consulta desde la web E2D"
-  )}`
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{tNav("contact")}</DialogTitle>
+          <DialogDescription>{t("subtitle")}</DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4 pt-2">
-          {whatsappHref && (
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">WhatsApp</p>
-              <Button asChild className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white">
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => track("whatsapp_click", { link_location: "contact_modal", locale })}
-                >
-                  <MessageCircle className="h-4 w-4" /> +34 605 497 639
-                </a>
-              </Button>
-            </div>
-          )}
-
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Email</p>
-            <Button asChild variant="outline" className="w-full">
-              <a
-                href={mailHref}
-                onClick={() => track("email_click", { link_location: "contact_modal", locale })}
-              >
-                <Mail className="h-4 w-4" /> {email}
-              </a>
-            </Button>
+        {submitted ? (
+          <LeadSuccess lead={submitted} locale={locale} formLocation="contact_modal" onClose={() => onOpenChange(false)} />
+        ) : (
+          <div className="space-y-4">
+            <LeadForm locale={locale} formLocation="contact_modal" onSuccess={setSubmitted} />
+            <DirectLinks locale={locale} />
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   )
