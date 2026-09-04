@@ -4,13 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
+import { setOaiqUser, splitName } from "@/lib/analytics/oaiq-user"
 import { track } from "@/lib/analytics/track"
 import { getMailHref } from "@/lib/contact/email"
 import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 import { openLeadChannelTab, type LeadChannel, type LeadChannelHandle } from "@/lib/leads/lead-channel"
 import { buildFormMessage } from "@/lib/leads/lead-form-message"
 import {
-  buildLeadPayload, emptyLeadFormState, postLead, toSubmittedLead, validateLeadForm,
+  buildLeadPayload, emptyLeadFormState, hasMarketingConsent, postLead, toSubmittedLead, validateLeadForm,
   type LeadFormError, type LeadFormLocation, type LeadFormState, type LeadLocale, type SubmittedLead,
 } from "@/lib/leads/lead-form-model"
 import { LeadFormFields, type LeadFormT } from "./lead-form-fields"
@@ -69,6 +70,13 @@ async function submitLeadViaChannel(args: SubmitChannelArgs): Promise<void> {
     setStatus({ kind: "server" })
     return
   }
+  const lead = toSubmittedLead(result.leadId, state)
+  // Tell the pixel who this visitor is before the conversion events fire,
+  // so OpenAI can match generate_lead to a known identity. Gated on consent
+  // even though the pixel only loads with it — belt and suspenders.
+  if (hasMarketingConsent()) {
+    setOaiqUser({ email: lead.email, phone: lead.phone, externalId: lead.leadId, ...splitName(lead.name) })
+  }
   // Primary conversion. eventId matches the server mirror (keyed by leadId)
   // so OpenAI dedupes the browser and server copies.
   track(
@@ -76,7 +84,6 @@ async function submitLeadViaChannel(args: SubmitChannelArgs): Promise<void> {
     { form_location: props.formLocation, intent: state.intent || "", locale: props.locale, channel },
     { eventId: `lead_${result.leadId}` },
   )
-  const lead = toSubmittedLead(result.leadId, state)
   deliverToChannel(channel, lead, t, handle)
   props.onSuccess(lead)
 }

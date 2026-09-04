@@ -132,6 +132,49 @@ describe("LeadForm", () => {
     expect(openLeadChannelTabMock).not.toHaveBeenCalled()
   })
 
+  describe("OpenAI pixel user matching", () => {
+    const ORIGINAL_PIXEL_ID = process.env.NEXT_PUBLIC_OAIQ_PIXEL_ID
+
+    afterEach(() => {
+      if (ORIGINAL_PIXEL_ID === undefined) delete process.env.NEXT_PUBLIC_OAIQ_PIXEL_ID
+      else process.env.NEXT_PUBLIC_OAIQ_PIXEL_ID = ORIGINAL_PIXEL_ID
+      delete (window as unknown as { oaiq?: unknown }).oaiq
+      localStorage.clear()
+    })
+
+    it("tells the pixel who the visitor is, before generate_lead is tracked, when marketing consent was granted", async () => {
+      process.env.NEXT_PUBLIC_OAIQ_PIXEL_ID = "px_123"
+      const oaiqMock = jest.fn()
+      ;(window as unknown as { oaiq: unknown }).oaiq = oaiqMock
+      localStorage.setItem("cookie-consent", JSON.stringify({ marketing: true }))
+      mockFetch(true)
+      render(<LeadForm locale="es" formLocation="contact_modal" onSuccess={jest.fn()} />)
+      fillForm()
+      fireEvent.click(screen.getByRole("button", { name: "sendEmail" }))
+      await waitFor(() => expect(trackMock).toHaveBeenCalled())
+
+      expect(oaiqMock).toHaveBeenCalledWith("init", expect.objectContaining({
+        pixelId: "px_123",
+        user: expect.objectContaining({ email_sha256: "ana@example.com", external_id_sha256: "L1" }),
+      }))
+      const oaiqOrder = oaiqMock.mock.invocationCallOrder[0]
+      const trackOrder = trackMock.mock.invocationCallOrder[0]
+      expect(oaiqOrder).toBeLessThan(trackOrder)
+    })
+
+    it("does not call the pixel without marketing consent", async () => {
+      process.env.NEXT_PUBLIC_OAIQ_PIXEL_ID = "px_123"
+      const oaiqMock = jest.fn()
+      ;(window as unknown as { oaiq: unknown }).oaiq = oaiqMock
+      mockFetch(true)
+      render(<LeadForm locale="es" formLocation="contact_modal" onSuccess={jest.fn()} />)
+      fillForm()
+      fireEvent.click(screen.getByRole("button", { name: "sendEmail" }))
+      await waitFor(() => expect(trackMock).toHaveBeenCalled())
+      expect(oaiqMock).not.toHaveBeenCalled()
+    })
+  })
+
   it("disables both buttons while submitting and shows 'sending' only on the clicked one", async () => {
     let resolveFetch!: (value: unknown) => void
     global.fetch = jest.fn().mockReturnValue(new Promise((resolve) => { resolveFetch = resolve })) as unknown as typeof fetch

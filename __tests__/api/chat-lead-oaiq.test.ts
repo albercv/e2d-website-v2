@@ -2,6 +2,8 @@
  * @jest-environment node
  */
 
+import { createHash } from "node:crypto"
+
 import { NextRequest } from "next/server"
 
 jest.mock("@/lib/leads/lead-service", () => ({
@@ -38,6 +40,7 @@ function makeRequest(
   })
 }
 
+const sha = (v: string) => createHash("sha256").update(v).digest("hex")
 const EMAIL_SHA = "9fbdefe2837a03c9225be80e741f316f4d174d1732b719b6abb6477efc1ae9d2"
 
 function leadOk(warnings: string[] = []) {
@@ -117,9 +120,32 @@ describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
     await POST(makeRequest({}, { "x-forwarded-for": "81.45.1.1, 10.0.0.1", "user-agent": "UA/1" }))
     expect(sendOaiqMock.mock.calls[0][0].user).toEqual({
       emails_sha256: [EMAIL_SHA],
+      external_ids_sha256: [sha("lead-1")],
       ip_address: "81.45.1.1",
       user_agent: "UA/1",
     })
+  })
+
+  it("attaches the leadId as external_ids_sha256 in the user matching block", async () => {
+    leadOk()
+    await POST(makeRequest())
+    expect(sendOaiqMock.mock.calls[0][0].user.external_ids_sha256).toEqual([sha("lead-1")])
+  })
+
+  it("attaches hashed first/last name when the body includes a name", async () => {
+    leadOk()
+    await POST(makeRequest({ name: "Ana María López" }))
+    const user = sendOaiqMock.mock.calls[0][0].user
+    expect(user.first_names_sha256).toEqual([sha("ana")])
+    expect(user.last_names_sha256).toEqual([sha("maríalópez")])
+  })
+
+  it("omits name keys when the body has no name", async () => {
+    leadOk()
+    await POST(makeRequest())
+    const user = sendOaiqMock.mock.calls[0][0].user
+    expect(user).not.toHaveProperty("first_names_sha256")
+    expect(user).not.toHaveProperty("last_names_sha256")
   })
 
   it("falls back to the site base URL + locale when the client sends no sourceUrl", async () => {

@@ -102,12 +102,17 @@ interface MirrorContext {
   user: OaiqUser
 }
 
-function mirrorContextFromRequest(req: NextRequest, input: LeadBody): MirrorContext {
+// leadId feeds external_ids_sha256 so the browser pixel (external_id set to
+// the same leadId) and this server mirror key on the same identifier.
+function mirrorContextFromRequest(req: NextRequest, input: LeadBody, leadId: string): MirrorContext {
   const forwarded = req.headers.get("x-forwarded-for")
   const ipAddress = forwarded?.split(",")[0]?.trim() || undefined
   const userAgent = req.headers.get("user-agent") ?? undefined
   const oppref = req.cookies.get(OPPREF_COOKIE)?.value || undefined
-  return { oppref, user: buildOaiqUser({ email: input.email, phone: input.phone, ipAddress, userAgent }) }
+  const user = buildOaiqUser({
+    email: input.email, phone: input.phone, externalId: leadId, name: input.name, ipAddress, userAgent,
+  })
+  return { oppref, user }
 }
 
 async function mirrorLeadToOaiq(
@@ -162,7 +167,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const result = await captureLead(toCaptureInput(input))
     const warnings = [...result.warnings]
     if (input.marketingConsent === true) {
-      await mirrorLeadToOaiq(result.leadId, input, mirrorContextFromRequest(req, input), warnings)
+      const ctx = mirrorContextFromRequest(req, input, result.leadId)
+      await mirrorLeadToOaiq(result.leadId, input, ctx, warnings)
     }
     return NextResponse.json(
       {
