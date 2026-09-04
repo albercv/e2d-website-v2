@@ -1,208 +1,34 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import type { ChangeEvent, FormEvent, RefObject } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { X } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { track } from "@/lib/analytics/track"
-import { getWhatsAppHref } from "@/lib/contact/whatsapp"
-
-// SUPPORT_EMAIL and MAIL_HREF are kept inline — email contact is always available
-// regardless of whether WhatsApp is configured via env.
-const SUPPORT_EMAIL = "hello@evolve2digital.com"
-const MAIL_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Consulta desde la web E2D")}`
-
-// Same intent vocabulary the lead-extractor uses, so the queue surfaces a
-// single canonical set of values.
-const INTENT_OPTIONS = ["voicebot", "chatbot", "automation", "web", "crm", "budget", "other"] as const
-type IntentOption = (typeof INTENT_OPTIONS)[number]
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-type Status =
-  | { kind: "idle" }
-  | { kind: "submitting" }
-  | { kind: "success" }
-  | { kind: "validation"; field: "email" | "consent" }
-  | { kind: "server" }
-
-interface FormState {
-  name: string; email: string; phone: string; company: string
-  intent: IntentOption | ""; message: string; consent: boolean
-}
-
-function emptyState(prefillIntent?: string): FormState {
-  const intent = (INTENT_OPTIONS as readonly string[]).includes(prefillIntent ?? "")
-    ? (prefillIntent as IntentOption) : ""
-  return { name: "", email: "", phone: "", company: "", intent, message: "", consent: false }
-}
-
-// Mirrors the banner's marketing flag so the server only forwards this lead
-// to ad platforms when the visitor opted in. Absent/malformed = no consent.
-function hasMarketingConsent(): boolean {
-  try {
-    const parsed = JSON.parse(localStorage.getItem("cookie-consent") ?? "null") as { marketing?: boolean } | null
-    return parsed?.marketing === true
-  } catch {
-    return false
-  }
-}
-
-function buildPayload(s: FormState, sessionId: string, locale: string): Record<string, unknown> {
-  const payload: Record<string, unknown> = {
-    sessionId, email: s.email.trim().toLowerCase(), consent: true, locale,
-    // Lets the server-side conversion mirror report the real landing page.
-    sourceUrl: window.location.href,
-    marketingConsent: hasMarketingConsent(),
-  }
-  if (s.name.trim()) payload.name = s.name.trim()
-  if (s.phone.trim()) payload.phone = s.phone.trim()
-  if (s.company.trim()) payload.company = s.company.trim()
-  if (s.intent) payload.intent = s.intent
-  if (s.message.trim()) payload.message = s.message.trim()
-  return payload
-}
-
-async function postLead(payload: Record<string, unknown>): Promise<boolean> {
-  try {
-    const res = await fetch("/api/chat/lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-    return res.ok
-  } catch (err) {
-    console.error("[lead-capture] network error:", (err as Error).message)
-    return false
-  }
-}
+import { LeadForm } from "@/components/leads/lead-form"
+import { LeadSuccess } from "@/components/leads/lead-success"
+import type { LeadLocale } from "@/lib/leads/lead-form-model"
 
 export interface LeadCaptureFormProps {
   open: boolean; onClose: () => void; sessionId: string
-  locale: "es" | "en" | "it"; prefillIntent?: string
+  locale: LeadLocale; prefillIntent?: string
 }
 
-type T = ReturnType<typeof useTranslations>
-
-function ServerFallback({ t, locale }: { t: T; locale: string }): JSX.Element {
-  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
-  return (
-    <div className="mt-1 space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
-      <p><strong>{t("errorTitle")}</strong>. {t("errorBody")}</p>
-      <div className="flex flex-wrap gap-2">
-        {whatsappHref && (
-          <a href={whatsappHref} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-md bg-[#25D366] px-2 py-1 text-white hover:bg-[#25D366]/90"
-            onClick={() => track("whatsapp_click", { link_location: "lead_form_fallback", locale })}>
-            WhatsApp
-          </a>
-        )}
-        <a href={MAIL_HREF}
-          className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-foreground hover:bg-accent"
-          onClick={() => track("email_click", { link_location: "lead_form_fallback", locale })}>
-          {SUPPORT_EMAIL}
-        </a>
-      </div>
-    </div>
-  )
-}
-
-interface FieldsProps {
-  state: FormState
-  update: <K extends keyof FormState>(k: K, v: FormState[K]) => void
-  status: Status
-  firstInputRef: RefObject<HTMLInputElement>
-  t: T
-}
-
-function Fields(p: FieldsProps): JSX.Element {
-  const { state, update, status, t } = p
-  const emailInvalid = status.kind === "validation" && status.field === "email"
-  const consentInvalid = status.kind === "validation" && status.field === "consent"
-  return (
-    <>
-      <Input ref={p.firstInputRef} placeholder={t("name")} value={state.name} autoComplete="name"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => update("name", e.target.value)} />
-      <Input type="email" placeholder={t("email")} value={state.email} required autoComplete="email"
-        aria-invalid={emailInvalid || undefined}
-        onChange={(e: ChangeEvent<HTMLInputElement>) => update("email", e.target.value)} />
-      {emailInvalid && (
-        <p className="text-xs text-destructive">
-          {state.email.trim().length === 0 ? t("requiredEmail") : t("invalidEmail")}
-        </p>
-      )}
-      <Input type="tel" placeholder={t("phone")} value={state.phone} autoComplete="tel"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => update("phone", e.target.value)} />
-      <Input placeholder={t("company")} value={state.company} autoComplete="organization"
-        onChange={(e: ChangeEvent<HTMLInputElement>) => update("company", e.target.value)} />
-      <select value={state.intent} aria-label={t("intent")}
-        onChange={(e) => update("intent", e.target.value as IntentOption | "")}
-        className="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-[#05b4ba]">
-        <option value="">{t("intent")}</option>
-        {INTENT_OPTIONS.map((opt) => (
-          <option key={opt} value={opt}>{t(`intentOptions.${opt}`)}</option>
-        ))}
-      </select>
-      <Textarea placeholder={t("message")} value={state.message} rows={3}
-        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => update("message", e.target.value)} />
-      <label className="flex items-start gap-2 text-xs leading-snug">
-        <Checkbox checked={state.consent} aria-invalid={consentInvalid || undefined}
-          onCheckedChange={(v) => update("consent", v === true)} />
-        <span>{t("consent")}</span>
-      </label>
-      {consentInvalid && <p className="text-xs text-destructive">{t("requiredConsent")}</p>}
-    </>
-  )
-}
-
+// Chat-panel host for the shared lead form: its own overlay (it must sit
+// above the chat panel) plus the switch to the follow-up view on success.
 export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null {
+  const { open, onClose } = props
   const t = useTranslations("chat.leadForm")
-  const [state, setState] = useState<FormState>(() => emptyState(props.prefillIntent))
-  const [status, setStatus] = useState<Status>({ kind: "idle" })
-  const firstInputRef = useRef<HTMLInputElement>(null)
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
-    if (!props.open) return
-    setState(emptyState(props.prefillIntent))
-    setStatus({ kind: "idle" })
-    const timer = setTimeout(() => firstInputRef.current?.focus(), 30)
+    if (!open) return
+    setSubmitted(false)
     const onKey = (e: globalThis.KeyboardEvent): void => {
-      if (e.key === "Escape") props.onClose()
+      if (e.key === "Escape") onClose()
     }
     window.addEventListener("keydown", onKey)
-    return () => { clearTimeout(timer); window.removeEventListener("keydown", onKey) }
-  }, [props.open, props.prefillIntent, props.onClose])
-
-  const update = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]): void => {
-    setState((s) => ({ ...s, [key]: value }))
-  }, [])
-
-  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault()
-    const email = state.email.trim()
-    if (email.length === 0 || !EMAIL_RE.test(email)) {
-      setStatus({ kind: "validation", field: "email" }); return
-    }
-    if (state.consent !== true) {
-      setStatus({ kind: "validation", field: "consent" }); return
-    }
-    setStatus({ kind: "submitting" })
-    const ok = await postLead(buildPayload(state, props.sessionId, props.locale))
-    if (ok) {
-      // Track the qualified lead — this is the primary conversion event.
-      // eventId matches the server mirror (lead route) so OpenAI dedupes both.
-      track(
-        "generate_lead",
-        { form_location: "chat", intent: state.intent || "", locale: props.locale },
-        { eventId: `lead_${props.sessionId}` },
-      )
-    }
-    setStatus(ok ? { kind: "success" } : { kind: "server" })
-  }, [props.sessionId, props.locale, state])
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open, onClose])
 
   if (!props.open) return null
 
@@ -222,23 +48,11 @@ export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null
           </button>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-4 py-4">
-          {status.kind === "success" ? (
-            <div className="space-y-3 text-center">
-              <h3 className="text-base font-semibold">{t("successTitle")}</h3>
-              <p className="text-sm text-muted-foreground">{t("successBody")}</p>
-              <Button onClick={props.onClose} className="w-full bg-[#05b4ba] text-white hover:bg-[#05b4ba]/90">
-                {t("close")}
-              </Button>
-            </div>
+          {submitted ? (
+            <LeadSuccess onClose={props.onClose} />
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <Fields state={state} update={update} status={status} firstInputRef={firstInputRef} t={t} />
-              <Button type="submit" disabled={status.kind === "submitting"}
-                className="w-full bg-[#05b4ba] text-white hover:bg-[#05b4ba]/90">
-                {status.kind === "submitting" ? t("sending") : t("submit")}
-              </Button>
-              {status.kind === "server" && <ServerFallback t={t} locale={props.locale} />}
-            </form>
+            <LeadForm locale={props.locale} formLocation="chat" sessionId={props.sessionId}
+              prefillIntent={props.prefillIntent} onSuccess={() => setSubmitted(true)} />
           )}
         </div>
       </div>

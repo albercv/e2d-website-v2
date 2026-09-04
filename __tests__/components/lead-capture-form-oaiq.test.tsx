@@ -7,7 +7,7 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }))
 jest.mock("@/lib/analytics/track", () => ({ track: jest.fn() }))
-jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: () => "https://wa.me/1" }))
+jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: (text?: string) => `https://wa.me/1${text ? `?text=${encodeURIComponent(text)}` : ""}` }))
 
 import { LeadCaptureForm } from "@/components/chat/lead-capture-form"
 import { track } from "@/lib/analytics/track"
@@ -18,23 +18,33 @@ const SESSION_ID = "22222222-2222-4222-8222-222222222222"
 async function submitValidLead(): Promise<void> {
   fireEvent.change(screen.getByPlaceholderText("email"), { target: { value: "lead@example.com" } })
   fireEvent.click(screen.getByRole("checkbox"))
-  fireEvent.submit(screen.getByRole("dialog").querySelector("form") as HTMLFormElement)
+  fireEvent.click(screen.getByRole("button", { name: "sendWhatsApp" }))
   await waitFor(() => expect(global.fetch).toHaveBeenCalled())
 }
 
 describe("LeadCaptureForm — OpenAI pixel wiring", () => {
   beforeEach(() => {
     trackMock.mockReset()
-    global.fetch = jest.fn().mockResolvedValue({ ok: true }) as unknown as typeof fetch
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true, leadId: "L1" }) }) as unknown as typeof fetch
   })
 
-  it("fires generate_lead with the shared lead_<sessionId> event id", async () => {
+  it("fires generate_lead keyed by the leadId the server returned, with the chat session in the body", async () => {
     render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
     await submitValidLead()
     await waitFor(() => expect(trackMock).toHaveBeenCalled())
-    const [event, , opts] = trackMock.mock.calls[0]
+    const [event, params, opts] = trackMock.mock.calls[0]
     expect(event).toBe("generate_lead")
-    expect(opts).toEqual({ eventId: `lead_${SESSION_ID}` })
+    expect(params).toMatchObject({ form_location: "chat", channel: "whatsapp" })
+    expect(opts).toEqual({ eventId: "lead_L1" })
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+    expect(body.sessionId).toBe(SESSION_ID)
+  })
+
+  it("shows the plain confirmation after success", async () => {
+    render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
+    await submitValidLead()
+    expect(await screen.findByText("successTitle")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "sendWhatsApp" })).not.toBeInTheDocument()
   })
 
   it("sends marketingConsent=true when the visitor accepted marketing cookies", async () => {

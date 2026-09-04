@@ -112,3 +112,16 @@ BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverag
 
 ## 2026-09-03 — Pixel OpenAI: validar el catálogo de eventos antes de mapear
 Envié `generate_lead` (nombre GA) al pixel/Conversions API de OpenAI y lo rechazó: OpenAI solo acepta su catálogo cerrado (`lead_created`, `order_created`, `custom`...) y rechaza campos extra en `data`. Patrón: con cualquier API de terceros que tenga esquema cerrado, hacer un dry-run (`validate_only`) contra el endpoint real ANTES de escribir el mapeo, no después del build. Los tests unitarios con fetch mockeado no detectan un contrato equivocado.
+
+## 2026-09-03 — El runtime standalone lee la copia de `.env` hecha en el build
+`next build` copia `.env` a `.next/standalone/.env` y el servidor standalone lee ESA copia, no el `.env` vivo. Cambiar una variable en `.env` sin rebuild no llega al proceso aunque hagas `pm2 restart` (salvo las que inyecta `ecosystem.config.js`). Diagnóstico rápido: comparar hashes por clave entre `.env` y `.next/standalone/.env`. Tras editar `.env`: build + restart, no solo restart.
+
+## 2026-09-03 — OpenAI Ads: qué lista el Event Stream y qué no
+- Eventos estándar (`lead_created`, `appointment_scheduled`…) aparecen sin definirlos. Los `custom` NO aparecen hasta crearlos en Conversions con el `custom_event_name` exacto.
+- `data` de un evento estándar solo admite `type` (enum cerrado por evento) + `amount` + `currency`; cualquier otro campo → `unknown_data_field`. Para "decir el canal" hay que enviar un `custom` paralelo con nombre.
+- Pixel y server con el mismo `event_id` aparecen como DOS líneas en el stream (canales `pixel_sdk` y `server_to_server`); la deduplicación se aplica en informes, no en el stream.
+- El stream es en vivo: solo muestra lo que llega con "Start Polling" activo.
+- La campaña solo cuenta el evento que tenga vinculado; enviar otros tipos no da señal de optimización.
+
+## 2026-09-03 — `jest.mock` factory + consts del módulo
+Las factories de `jest.mock` se hoistean por encima de los `const` del test. Referenciar un mock directamente (`select: selectMock`) da `Cannot access 'x' before initialization` y el suite sale con "0 tests" (parece verde si solo miras "failed"). Usar referencias perezosas: `select: (...a) => selectMock(...a)`. Y mirar siempre "Tests: N total", no solo los fallos.

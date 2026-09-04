@@ -24,7 +24,9 @@ const SUPPORTED_LOCALES = ["es", "en", "it"] as const
 type Locale = (typeof SUPPORTED_LOCALES)[number]
 
 const BodySchema = z.object({
-  sessionId: z.string().uuid(),
+  // Present when the form lives in the chat panel; absent from the contact
+  // modal, where there is no conversation to attach.
+  sessionId: z.string().uuid().optional(),
   name: z.string().trim().min(1).max(120).optional(),
   email: z.string().email().toLowerCase(),
   phone: z.string().trim().max(60).optional(),
@@ -80,7 +82,8 @@ function fallbackSourceUrl(locale: Locale): string {
 }
 
 // Server-side mirror of the browser generate_lead pair: appointment_scheduled
-// (campaign goal) + custom lead_form (channel). Ids match the browser side so
+// (campaign goal) + custom lead_form (channel). Ids derive from the leadId the
+// client receives in the response, so both sides send the same event_id and
 // OpenAI dedupes each pair. Only real transport/HTTP failures become
 // warnings; "not configured" is the normal state until the API key lands in
 // .env and must not add noise.
@@ -99,16 +102,26 @@ interface MirrorContext {
   user: OaiqUser
 }
 
-function mirrorContextFromRequest(req: NextRequest, input: LeadBody): MirrorContext {
+// leadId feeds external_ids_sha256 so the browser pixel (external_id set to
+// the same leadId) and this server mirror key on the same identifier.
+function mirrorContextFromRequest(req: NextRequest, input: LeadBody, leadId: string): MirrorContext {
   const forwarded = req.headers.get("x-forwarded-for")
   const ipAddress = forwarded?.split(",")[0]?.trim() || undefined
   const userAgent = req.headers.get("user-agent") ?? undefined
   const oppref = req.cookies.get(OPPREF_COOKIE)?.value || undefined
-  return { oppref, user: buildOaiqUser({ email: input.email, phone: input.phone, ipAddress, userAgent }) }
+  const user = buildOaiqUser({
+    email: input.email, phone: input.phone, externalId: leadId, name: input.name, ipAddress, userAgent,
+  })
+  return { oppref, user }
 }
 
-async function mirrorLeadToOaiq(input: LeadBody, ctx: MirrorContext, warnings: string[]): Promise<void> {
-  const eventId = `lead_${input.sessionId}`
+async function mirrorLeadToOaiq(
+  leadId: string,
+  input: LeadBody,
+  ctx: MirrorContext,
+  warnings: string[],
+): Promise<void> {
+  const eventId = `lead_${leadId}`
   const sourceUrl = input.sourceUrl ?? fallbackSourceUrl(input.locale)
   const shared = { sourceUrl, user: ctx.user, ...(ctx.oppref ? { oppref: ctx.oppref } : {}) }
   await mirrorOne({ eventId, type: "appointment_scheduled", ...shared }, warnings)
@@ -144,7 +157,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // Cookie cross-check is informational — the form already binds sessionId
   // from the panel. A stale or absent cookie should not block submission.
   const cookieSession = req.cookies.get(SESSION_COOKIE)?.value
-  if (cookieSession && cookieSession !== input.sessionId) {
+  if (input.sessionId && cookieSession && cookieSession !== input.sessionId) {
     console.warn(
       `[chat/lead] sessionId mismatch: body=${input.sessionId} cookie=${cookieSession}`,
     )
@@ -154,7 +167,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const result = await captureLead(toCaptureInput(input))
     const warnings = [...result.warnings]
     if (input.marketingConsent === true) {
-      await mirrorLeadToOaiq(input, mirrorContextFromRequest(req, input), warnings)
+      const ctx = mirrorContextFromRequest(req, input, result.leadId)
+      await mirrorLeadToOaiq(result.leadId, input, ctx, warnings)
     }
     return NextResponse.json(
       {

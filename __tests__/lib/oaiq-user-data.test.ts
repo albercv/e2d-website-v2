@@ -41,3 +41,37 @@ describe("buildOaiqUser", () => {
     expect(user).toEqual({ emails_sha256: [sha("a@b.c")] })
   })
 })
+
+describe("buildOaiqUser — external id and name", () => {
+  it("hashes the external id as-is", () => {
+    const user = buildOaiqUser({ email: "a@b.c", externalId: "lead-1" })
+    expect(user.external_ids_sha256).toEqual([sha("lead-1")])
+  })
+
+  it("omits external id when absent", () => {
+    const user = buildOaiqUser({ email: "a@b.c" })
+    expect(user).not.toHaveProperty("external_ids_sha256")
+  })
+
+  it("splits the name and normalises each part (lowercase, no whitespace/punctuation) before hashing", () => {
+    const user = buildOaiqUser({ email: "a@b.c", name: "Ana María López" })
+    expect(user.first_names_sha256).toEqual([sha("ana")])
+    expect(user.last_names_sha256).toEqual([sha("maríalópez")])
+  })
+
+  it("hashes a single-token name as first name only", () => {
+    const user = buildOaiqUser({ email: "a@b.c", name: "Ana" })
+    expect(user.first_names_sha256).toEqual([sha("ana")])
+    expect(user).not.toHaveProperty("last_names_sha256")
+  })
+
+  it("strips ASCII punctuation from name parts before hashing", () => {
+    const user = buildOaiqUser({ email: "a@b.c", name: "O'Brien-Smith" })
+    expect(user.first_names_sha256).toEqual([sha("obriensmith")])
+  })
+
+  it("omits name keys when the name is absent or blank", () => {
+    expect(buildOaiqUser({ email: "a@b.c" })).not.toHaveProperty("first_names_sha256")
+    expect(buildOaiqUser({ email: "a@b.c", name: "   " })).not.toHaveProperty("first_names_sha256")
+  })
+})

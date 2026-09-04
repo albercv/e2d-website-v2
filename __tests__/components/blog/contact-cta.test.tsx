@@ -19,12 +19,14 @@ describe("ContactCTA", () => {
     expect(screen.getByRole("button", { name: /contactar/i })).toBeInTheDocument()
   })
 
-  it("opens the contact modal when the button is clicked", async () => {
+  it("opens the contact modal with the lead form when the button is clicked", async () => {
     const user = userEvent.setup()
     renderWithIntl(<ContactCTA />)
     await user.click(screen.getByRole("button", { name: /contactar/i }))
     expect(await screen.findByRole("dialog")).toBeInTheDocument()
-    expect(screen.getByText(/whatsapp/i)).toBeInTheDocument()
-    expect(screen.getByText(/hello@evolve2digital\.com/i)).toBeInTheDocument()
+    expect(screen.getByTestId("lead-form")).toBeInTheDocument()
+    // Sending the lead by WhatsApp is itself the form's submit action now
+    // (no separate direct-links block below the form).
+    expect(screen.getByRole("button", { name: /whatsapp/i })).toBeInTheDocument()
   })
 })
