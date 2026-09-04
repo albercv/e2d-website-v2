@@ -254,7 +254,9 @@
       "followUpSubject": "Consulta desde la web E2D",
       "sendWhatsApp": "Enviar por WhatsApp",
       "sendEmail": "Enviar por email",
-      "followUpIntro": "Hola Alberto, te envío mis datos desde la web:"
+      "followUpIntro": "Hola Alberto, te envío mis datos desde la web:",
+      "labelIntent": "Tema",
+      "labelMessage": "Mensaje"
     }
   }
 }

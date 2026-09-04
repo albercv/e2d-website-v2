@@ -25,8 +25,8 @@ function buildFormMessage(lead: SubmittedLead, t: LeadFormT): string {
     [t("company"), lead.company],
     [t("email"), lead.email],
     [t("phone"), lead.phone],
-    [t("intent"), lead.intent ? t(`intentOptions.${lead.intent}`) : ""],
-    [t("message"), lead.message],
+    [t("labelIntent"), lead.intent ? t(`intentOptions.${lead.intent}`) : ""],
+    [t("labelMessage"), lead.message],
   ]
   const lines = rows.filter(([, value]) => value.length > 0).map(([label, value]) => `${label}: ${value}`)
   return [t("followUpIntro"), "", ...lines].join("\n")

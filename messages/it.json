@@ -254,7 +254,9 @@
       "followUpSubject": "Richiesta dal sito E2D",
       "sendWhatsApp": "Invia su WhatsApp",
       "sendEmail": "Invia via email",
-      "followUpIntro": "Ciao Alberto, ti invio i miei dati dal sito:"
+      "followUpIntro": "Ciao Alberto, ti invio i miei dati dal sito:",
+      "labelIntent": "Argomento",
+      "labelMessage": "Messaggio"
     }
   }
 }

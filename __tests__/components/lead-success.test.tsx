@@ -30,7 +30,7 @@ describe("LeadSuccess", () => {
     const wa = screen.getByRole("link", { name: "sendWhatsApp" })
     const waText = decodeURIComponent(wa.getAttribute("href")!.split("text=")[1])
     expect(waText).toContain("followUpIntro")
-    for (const field of ["name: Ana", "company: ACME", "email: ana@example.com", "phone: 600111222", "intent: intentOptions.chatbot", "message: hola"]) {
+    for (const field of ["name: Ana", "company: ACME", "email: ana@example.com", "phone: 600111222", "labelIntent: intentOptions.chatbot", "labelMessage: hola"]) {
       expect(waText).toContain(field)
     }
     const mail = screen.getByRole("link", { name: "sendEmail" })
@@ -43,7 +43,7 @@ describe("LeadSuccess", () => {
     render(<LeadSuccess lead={{ ...lead, phone: "", company: "", intent: "", message: "" }} locale="es" formLocation="chat" onClose={jest.fn()} />)
     const waText = decodeURIComponent(screen.getByRole("link", { name: "sendWhatsApp" }).getAttribute("href")!.split("text=")[1])
     expect(waText).toContain("name: Ana")
-    expect(waText).not.toMatch(/phone|company|intent|message/)
+    expect(waText).not.toMatch(/phone|company|labelIntent|labelMessage/)
   })
 
   it("tracks the chosen channel as a follow-up, not as a new conversion", () => {

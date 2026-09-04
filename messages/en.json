@@ -254,7 +254,9 @@
       "followUpSubject": "Enquiry from the E2D website",
       "sendWhatsApp": "Send by WhatsApp",
       "sendEmail": "Send by email",
-      "followUpIntro": "Hi Alberto, here are my details from your website:"
+      "followUpIntro": "Hi Alberto, here are my details from your website:",
+      "labelIntent": "Topic",
+      "labelMessage": "Message"
     }
   }
 }
