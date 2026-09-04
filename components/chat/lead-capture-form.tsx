@@ -6,7 +6,7 @@ import { X } from "lucide-react"
 
 import { LeadForm } from "@/components/leads/lead-form"
 import { LeadSuccess } from "@/components/leads/lead-success"
-import type { LeadLocale, SubmittedLead } from "@/lib/leads/lead-form-model"
+import type { LeadLocale } from "@/lib/leads/lead-form-model"
 
 export interface LeadCaptureFormProps {
   open: boolean; onClose: () => void; sessionId: string
@@ -18,11 +18,11 @@ export interface LeadCaptureFormProps {
 export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null {
   const { open, onClose } = props
   const t = useTranslations("chat.leadForm")
-  const [submitted, setSubmitted] = useState<SubmittedLead | null>(null)
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     if (!open) return
-    setSubmitted(null)
+    setSubmitted(false)
     const onKey = (e: globalThis.KeyboardEvent): void => {
       if (e.key === "Escape") onClose()
     }
@@ -49,10 +49,10 @@ export function LeadCaptureForm(props: LeadCaptureFormProps): JSX.Element | null
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-4 py-4">
           {submitted ? (
-            <LeadSuccess lead={submitted} locale={props.locale} formLocation="chat" onClose={props.onClose} />
+            <LeadSuccess onClose={props.onClose} />
           ) : (
             <LeadForm locale={props.locale} formLocation="chat" sessionId={props.sessionId}
-              prefillIntent={props.prefillIntent} onSuccess={setSubmitted} />
+              prefillIntent={props.prefillIntent} onSuccess={() => setSubmitted(true)} />
           )}
         </div>
       </div>

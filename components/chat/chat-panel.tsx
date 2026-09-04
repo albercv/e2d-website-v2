@@ -122,6 +122,9 @@ interface ErrorBlockProps {
   errorGeneric: string
   errorRateLimit: string
   fallbackCTA: string
+  // Prefilled WhatsApp message; shared with the lead form's own follow-up
+  // copy (chat.leadForm.followUpAnonymous) instead of a hardcoded string.
+  whatsappMessage: string
   locale: string
 }
 
@@ -129,7 +132,7 @@ function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
   if (props.error === null) return null
   const isRateLimit = props.error === "rate-limit"
   const text = isRateLimit ? props.errorRateLimit : props.errorGeneric
-  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
+  const whatsappHref = getWhatsAppHref(props.whatsappMessage)
   return (
     <div
       role="alert"
@@ -238,6 +241,9 @@ function Launcher(props: LauncherProps): JSX.Element {
 
 export function ChatPanel(): JSX.Element {
   const t = useTranslations("chat")
+  // Scoped separately so the chat error fallback reuses the same anonymous
+  // WhatsApp copy as the lead form's own follow-up, instead of a duplicate.
+  const tLead = useTranslations("chat.leadForm")
   const locale = useLocale()
   const [isOpen, setIsOpen] = useState(false)
   const [leadFormOpen, setLeadFormOpen] = useState(false)
@@ -329,6 +335,7 @@ export function ChatPanel(): JSX.Element {
           errorGeneric={t("errorGeneric")}
           errorRateLimit={t("errorRateLimit")}
           fallbackCTA={t("fallbackContactCTA")}
+          whatsappMessage={tLead("followUpAnonymous")}
           locale={locale}
         />
         <InputBar

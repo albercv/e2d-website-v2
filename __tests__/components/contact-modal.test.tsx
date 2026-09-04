@@ -8,7 +8,7 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }))
 jest.mock("@/lib/analytics/track", () => ({ track: jest.fn() }))
-jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: () => "https://wa.me/1" }))
+jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: (text?: string) => `https://wa.me/1${text ? `?text=${encodeURIComponent(text)}` : ""}` }))
 // Radix Dialog portals + focus traps add nothing to these assertions.
 jest.mock("@/components/ui/dialog", () => ({
   Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) => (open ? <div>{children}</div> : null),
@@ -35,23 +35,24 @@ describe("ContactModal", () => {
     expect(trackMock).toHaveBeenCalledWith("contact_open", { locale: "es" })
   })
 
-  it("keeps direct WhatsApp/email links as a secondary option with their tracking", () => {
+  it("has no secondary direct WhatsApp/email links — sending a channel is now the form's own submit", () => {
     render(<ContactModal open onOpenChange={jest.fn()} />)
-    fireEvent.click(screen.getByRole("link", { name: /whatsapp/i }))
-    fireEvent.click(screen.getByRole("link", { name: /hello@evolve2digital\.com/ }))
-    expect(trackMock).toHaveBeenCalledWith("whatsapp_click", { link_location: "contact_modal", locale: "es" })
-    expect(trackMock).toHaveBeenCalledWith("email_click", { link_location: "contact_modal", locale: "es" })
+    expect(screen.queryByRole("link", { name: /whatsapp/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: /hello@evolve2digital\.com/ })).not.toBeInTheDocument()
+    expect(screen.queryByText("orDirect")).not.toBeInTheDocument()
   })
 
-  it("switches to the channel chooser after the lead is captured", async () => {
+  it("switches to the plain confirmation after the lead is captured via either button", async () => {
     render(<ContactModal open onOpenChange={jest.fn()} />)
     fireEvent.change(screen.getByPlaceholderText("email"), { target: { value: "ana@example.com" } })
     fireEvent.click(screen.getByRole("checkbox"))
-    fireEvent.submit(screen.getByTestId("lead-form"))
-    await waitFor(() => expect(screen.getByRole("link", { name: "sendWhatsApp" })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole("button", { name: "sendEmail" }))
+    await waitFor(() => expect(screen.getByText("successTitle")).toBeInTheDocument())
     expect(screen.queryByTestId("lead-form")).not.toBeInTheDocument()
     expect(trackMock).toHaveBeenCalledWith(
-      "generate_lead", { form_location: "contact_modal", intent: "", locale: "es" }, { eventId: "lead_L9" },
+      "generate_lead",
+      { form_location: "contact_modal", intent: "", locale: "es", channel: "email" },
+      { eventId: "lead_L9" },
     )
   })
 

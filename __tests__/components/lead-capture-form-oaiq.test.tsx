@@ -7,7 +7,7 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }))
 jest.mock("@/lib/analytics/track", () => ({ track: jest.fn() }))
-jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: () => "https://wa.me/1" }))
+jest.mock("@/lib/contact/whatsapp", () => ({ getWhatsAppHref: (text?: string) => `https://wa.me/1${text ? `?text=${encodeURIComponent(text)}` : ""}` }))
 
 import { LeadCaptureForm } from "@/components/chat/lead-capture-form"
 import { track } from "@/lib/analytics/track"
@@ -18,7 +18,7 @@ const SESSION_ID = "22222222-2222-4222-8222-222222222222"
 async function submitValidLead(): Promise<void> {
   fireEvent.change(screen.getByPlaceholderText("email"), { target: { value: "lead@example.com" } })
   fireEvent.click(screen.getByRole("checkbox"))
-  fireEvent.submit(screen.getByRole("dialog").querySelector("form") as HTMLFormElement)
+  fireEvent.click(screen.getByRole("button", { name: "sendWhatsApp" }))
   await waitFor(() => expect(global.fetch).toHaveBeenCalled())
 }
 
@@ -34,16 +34,17 @@ describe("LeadCaptureForm — OpenAI pixel wiring", () => {
     await waitFor(() => expect(trackMock).toHaveBeenCalled())
     const [event, params, opts] = trackMock.mock.calls[0]
     expect(event).toBe("generate_lead")
-    expect(params).toMatchObject({ form_location: "chat" })
+    expect(params).toMatchObject({ form_location: "chat", channel: "whatsapp" })
     expect(opts).toEqual({ eventId: "lead_L1" })
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
     expect(body.sessionId).toBe(SESSION_ID)
   })
 
-  it("offers the WhatsApp/email follow-up after success", async () => {
+  it("shows the plain confirmation after success", async () => {
     render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
     await submitValidLead()
-    expect(await screen.findByRole("link", { name: "sendWhatsApp" })).toBeInTheDocument()
+    expect(await screen.findByText("successTitle")).toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "sendWhatsApp" })).not.toBeInTheDocument()
   })
 
   it("sends marketingConsent=true when the visitor accepted marketing cookies", async () => {
