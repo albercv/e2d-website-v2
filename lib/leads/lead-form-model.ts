@@ -27,12 +27,23 @@ export type PostLeadResult = { ok: true; leadId: string } | { ok: false }
 // Where the form was rendered; drives GA's form_location and follow-up copy.
 export type LeadFormLocation = "chat" | "contact_modal"
 
-// What the success view needs to prefill the WhatsApp/email follow-up.
+// Everything the visitor typed, so the success view can hand the whole
+// form over by WhatsApp or email in the channel they choose.
 export interface SubmittedLead {
   leadId: string
   name: string
+  email: string
+  phone: string
   company: string
+  intent: IntentOption | ""
   message: string
+}
+
+export function toSubmittedLead(leadId: string, s: LeadFormState): SubmittedLead {
+  return {
+    leadId, name: s.name.trim(), email: s.email.trim().toLowerCase(), phone: s.phone.trim(),
+    company: s.company.trim(), intent: s.intent, message: s.message.trim(),
+  }
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

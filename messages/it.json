@@ -248,13 +248,13 @@
       "requiredEmail": "L'email è obbligatoria",
       "invalidEmail": "Email non valida",
       "requiredConsent": "Abbiamo bisogno del tuo consenso",
-      "successFollowUp": "Alberto ti risponderà a breve. Se preferisci, continua la conversazione ora:",
-      "continueWhatsApp": "Continua su WhatsApp",
-      "continueEmail": "Continua via email",
+      "successFollowUp": "I tuoi dati sono salvati. Inviameli anche tramite il canale che preferisci:",
       "orDirect": "Oppure scrivici direttamente:",
-      "followUp": "Ciao Alberto, sono {who}. Ho appena lasciato i miei dati sul sito e vorrei parlare di un progetto.",
       "followUpAnonymous": "Ciao Alberto, ho appena lasciato i miei dati sul sito e vorrei parlare di un progetto.",
-      "followUpSubject": "Richiesta dal sito E2D"
+      "followUpSubject": "Richiesta dal sito E2D",
+      "sendWhatsApp": "Invia su WhatsApp",
+      "sendEmail": "Invia via email",
+      "followUpIntro": "Ciao Alberto, ti invio i miei dati dal sito:"
     }
   }
 }

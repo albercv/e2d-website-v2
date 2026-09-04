@@ -48,7 +48,7 @@ describe("ContactModal", () => {
     fireEvent.change(screen.getByPlaceholderText("email"), { target: { value: "ana@example.com" } })
     fireEvent.click(screen.getByRole("checkbox"))
     fireEvent.submit(screen.getByTestId("lead-form"))
-    await waitFor(() => expect(screen.getByRole("link", { name: "continueWhatsApp" })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole("link", { name: "sendWhatsApp" })).toBeInTheDocument())
     expect(screen.queryByTestId("lead-form")).not.toBeInTheDocument()
     expect(trackMock).toHaveBeenCalledWith(
       "generate_lead", { form_location: "contact_modal", intent: "", locale: "es" }, { eventId: "lead_L9" },

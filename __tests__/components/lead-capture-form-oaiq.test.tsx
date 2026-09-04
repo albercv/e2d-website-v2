@@ -43,7 +43,7 @@ describe("LeadCaptureForm — OpenAI pixel wiring", () => {
   it("offers the WhatsApp/email follow-up after success", async () => {
     render(<LeadCaptureForm open onClose={() => undefined} sessionId={SESSION_ID} locale="es" />)
     await submitValidLead()
-    expect(await screen.findByRole("link", { name: "continueWhatsApp" })).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "sendWhatsApp" })).toBeInTheDocument()
   })
 
   it("sends marketingConsent=true when the visitor accepted marketing cookies", async () => {

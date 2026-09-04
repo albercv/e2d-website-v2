@@ -14,27 +14,42 @@ jest.mock("@/lib/contact/whatsapp", () => ({
 
 import { LeadSuccess } from "@/components/leads/lead-success"
 import { track } from "@/lib/analytics/track"
+import type { SubmittedLead } from "@/lib/leads/lead-form-model"
 
 const trackMock = track as jest.Mock
-const lead = { leadId: "L1", name: "Ana", company: "ACME", message: "hola" }
+const lead: SubmittedLead = {
+  leadId: "L1", name: "Ana", email: "ana@example.com", phone: "600111222",
+  company: "ACME", intent: "chatbot", message: "hola",
+}
 
 describe("LeadSuccess", () => {
   beforeEach(() => trackMock.mockReset())
 
-  it("offers WhatsApp and email follow-ups prefilled with the lead's details", () => {
+  it("lets the visitor send the whole form by WhatsApp or email", () => {
     render(<LeadSuccess lead={lead} locale="es" formLocation="contact_modal" onClose={jest.fn()} />)
-    const wa = screen.getByRole("link", { name: "continueWhatsApp" })
+    const wa = screen.getByRole("link", { name: "sendWhatsApp" })
     const waText = decodeURIComponent(wa.getAttribute("href")!.split("text=")[1])
-    expect(waText).toContain("Ana")
-    expect(waText).toContain("ACME")
-    const mail = screen.getByRole("link", { name: "continueEmail" })
-    expect(mail.getAttribute("href")).toMatch(/^mailto:hello@evolve2digital\.com\?subject=.+&body=.+/)
+    expect(waText).toContain("followUpIntro")
+    for (const field of ["name: Ana", "company: ACME", "email: ana@example.com", "phone: 600111222", "intent: intentOptions.chatbot", "message: hola"]) {
+      expect(waText).toContain(field)
+    }
+    const mail = screen.getByRole("link", { name: "sendEmail" })
+    const href = decodeURIComponent(mail.getAttribute("href")!)
+    expect(href).toMatch(/^mailto:hello@evolve2digital\.com\?subject=followUpSubject&body=/)
+    expect(href).toContain("phone: 600111222")
+  })
+
+  it("omits empty optional fields from the message", () => {
+    render(<LeadSuccess lead={{ ...lead, phone: "", company: "", intent: "", message: "" }} locale="es" formLocation="chat" onClose={jest.fn()} />)
+    const waText = decodeURIComponent(screen.getByRole("link", { name: "sendWhatsApp" }).getAttribute("href")!.split("text=")[1])
+    expect(waText).toContain("name: Ana")
+    expect(waText).not.toMatch(/phone|company|intent|message/)
   })
 
   it("tracks the chosen channel as a follow-up, not as a new conversion", () => {
     render(<LeadSuccess lead={lead} locale="es" formLocation="chat" onClose={jest.fn()} />)
-    fireEvent.click(screen.getByRole("link", { name: "continueWhatsApp" }))
-    fireEvent.click(screen.getByRole("link", { name: "continueEmail" }))
+    fireEvent.click(screen.getByRole("link", { name: "sendWhatsApp" }))
+    fireEvent.click(screen.getByRole("link", { name: "sendEmail" }))
     expect(trackMock.mock.calls).toEqual([
       ["lead_channel_continue", { channel: "whatsapp", form_location: "chat", locale: "es" }],
       ["lead_channel_continue", { channel: "email", form_location: "chat", locale: "es" }],

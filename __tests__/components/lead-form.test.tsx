@@ -36,7 +36,9 @@ describe("LeadForm", () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
     const body = JSON.parse(fetchMock.mock.calls[0][1].body)
     expect(body).not.toHaveProperty("sessionId")
-    expect(onSuccess).toHaveBeenCalledWith({ leadId: "L1", name: "Ana", company: "", message: "" })
+    expect(onSuccess).toHaveBeenCalledWith({
+      leadId: "L1", name: "Ana", email: "ana@example.com", phone: "", company: "", intent: "", message: "",
+    })
     expect(trackMock).toHaveBeenCalledWith(
       "generate_lead",
       { form_location: "contact_modal", intent: "", locale: "es" },

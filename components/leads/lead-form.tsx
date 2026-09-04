@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { track } from "@/lib/analytics/track"
 import {
-  buildLeadPayload, emptyLeadFormState, postLead, validateLeadForm,
+  buildLeadPayload, emptyLeadFormState, postLead, toSubmittedLead, validateLeadForm,
   type LeadFormError, type LeadFormLocation, type LeadFormState, type LeadLocale, type SubmittedLead,
 } from "@/lib/leads/lead-form-model"
 import { LeadFormFields } from "./lead-form-fields"
@@ -63,7 +63,7 @@ export function LeadForm(props: LeadFormProps): JSX.Element {
       { form_location: props.formLocation, intent: state.intent || "", locale: props.locale },
       { eventId: `lead_${result.leadId}` },
     )
-    props.onSuccess({ leadId: result.leadId, name: state.name.trim(), company: state.company.trim(), message: state.message.trim() })
+    props.onSuccess(toSubmittedLead(result.leadId, state))
   }, [props, state])
 
   const error = status.kind === "validation" ? status.field : null
