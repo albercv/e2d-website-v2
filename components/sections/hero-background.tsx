@@ -18,8 +18,15 @@ import {
 // .next/static) must not take the page down: there is no error boundary above
 // the hero. Falling back to an empty component keeps mode at "loading", so the
 // snapshot stays visible and no retry storm starts.
+type LiquidEtherModule = typeof import("@/components/sections/LiquidEther")
+
 const LiquidEtherLazy = lazy(() =>
-  import("@/components/sections/LiquidEther").catch(() => ({ default: () => null })),
+  import("@/components/sections/LiquidEther").catch(
+    // The fallback ignores every prop and renders nothing; it is cast to the
+    // real module's type (via unknown, since the shapes don't overlap) rather
+    // than duplicating LiquidEther's inferred props type by hand.
+    (): LiquidEtherModule => ({ default: () => null }) as unknown as LiquidEtherModule,
+  ),
 )
 
 // Visual props of the fluid, identical to the look shipped before the facade.

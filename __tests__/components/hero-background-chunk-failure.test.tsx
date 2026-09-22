@@ -69,7 +69,7 @@ describe("HeroBackground chunk failure", () => {
     // Only the filtered fetchPriority warning is allowed through; anything
     // else means the rejected import() escaped the .catch() fallback.
     const unexpectedCalls = consoleErrorSpy.mock.calls.filter(
-      (args) => !args.some((arg) => typeof arg === "string" && arg.includes("fetchPriority")),
+      (args) => !args.some((arg: unknown) => typeof arg === "string" && arg.includes("fetchPriority")),
     )
     expect(unexpectedCalls).toEqual([])
   })
