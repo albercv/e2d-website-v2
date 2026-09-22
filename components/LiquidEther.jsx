@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import './LiquidEther.css';
 
 export default function LiquidEther({
   mouseForce = 20,
@@ -21,7 +20,9 @@ export default function LiquidEther({
   autoIntensity = 2.2,
   takeoverDuration = 0.25,
   autoResumeDelay = 1000,
-  autoRampDuration = 0.6
+  autoRampDuration = 0.6,
+  maxPixelRatio = 2,
+  onReady
 }) {
   const mountRef = useRef(null);
   const webglRef = useRef(null);
@@ -30,6 +31,10 @@ export default function LiquidEther({
   const intersectionObserverRef = useRef(null);
   const isVisibleRef = useRef(true);
   const resizeRafRef = useRef(null);
+  // Kept in a ref so a new callback identity never re-creates the WebGL
+  // manager (the main effect depends on the visual props only).
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -85,7 +90,7 @@ export default function LiquidEther({
       }
       init(container) {
         this.container = container;
-        this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        this.pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
         this.resize();
         this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         this.renderer.autoClear = false;
@@ -950,6 +955,11 @@ export default function LiquidEther({
       loop() {
         if (!this.running) return; // safety
         this.render();
+        if (!this.readyNotified) {
+          // First frame is on screen: the facade can crossfade from the snapshot.
+          this.readyNotified = true;
+          if (typeof onReadyRef.current === 'function') onReadyRef.current();
+        }
         rafRef.current = requestAnimationFrame(this._loop);
       }
       start() {
@@ -1087,7 +1097,8 @@ export default function LiquidEther({
     autoIntensity,
     takeoverDuration,
     autoResumeDelay,
-    autoRampDuration
+    autoRampDuration,
+    maxPixelRatio
   ]);
 
   useEffect(() => {
@@ -1140,5 +1151,11 @@ export default function LiquidEther({
     autoRampDuration
   ]);
 
-  return <div ref={mountRef} className={`liquid-ether-container ${className || ''}`} style={style} />;
+  return (
+    <div
+      ref={mountRef}
+      className={`relative h-full w-full overflow-hidden touch-none ${className || ''}`}
+      style={style}
+    />
+  );
 }
