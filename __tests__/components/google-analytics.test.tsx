@@ -49,13 +49,14 @@ describe("GoogleAnalytics", () => {
     expect(getByTestId("gtag")).toHaveAttribute("src", "https://www.googletagmanager.com/gtag/js?id=G-TEST")
     const commands = window.dataLayer.map((args) => Array.from(args as ArrayLike<unknown>)[0])
     // Pre-existing, out-of-scope bug (unrelated to the strategy change this
-    // task makes): the pathname-tracking effect's "skip the first render"
-    // guard never actually blocks, because both useEffect hooks fire in the
-    // same initial-mount commit -- initialMountDone.current is already true
-    // (set at the end of the first effect) by the time the second effect
-    // checks it, so an extra "event" push always fires on mount. Asserting
-    // the real, current behavior here rather than the guard's intended one;
-    // see task-11-report.md for details and the flagged follow-up.
+    // task makes): the component's pathname effect pushes a "page_view" on
+    // mount because the init effect already sets initialMountDone.current to
+    // true within that same initial-mount commit, so by the time the
+    // pathname effect's "skip the first render" guard runs, it no longer
+    // blocks -- the landing page ends up counted twice. Asserting the real,
+    // current behavior here rather than the guard's intended one; tracked
+    // separately. When that bug is fixed, this assertion must drop the
+    // trailing "event".
     expect(commands).toEqual(["js", "consent", "config", "event"])
   })
 })
