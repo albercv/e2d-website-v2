@@ -125,3 +125,14 @@ Envié `generate_lead` (nombre GA) al pixel/Conversions API de OpenAI y lo recha
 
 ## 2026-09-03 — `jest.mock` factory + consts del módulo
 Las factories de `jest.mock` se hoistean por encima de los `const` del test. Referenciar un mock directamente (`select: selectMock`) da `Cannot access 'x' before initialization` y el suite sale con "0 tests" (parece verde si solo miras "failed"). Usar referencias perezosas: `select: (...a) => selectMock(...a)`. Y mirar siempre "Tests: N total", no solo los fallos.
+
+## 2026-09-22 — Facade estática + activación por gesto para componentes WebGL/pesados
+
+**Patrón**: cualquier componente caro (Three.js, simulaciones, vídeo) que no aporte nada hasta que el visitante interactúa se sirve como *facade*: una imagen estática en el HTML del servidor (con `fetchpriority=high` si está above the fold) y un `React.lazy(() => import(...))` que solo se monta tras el primer gesto (`pointermove`/`pointerdown`/`touchstart`/`wheel`/`keydown`) y con el elemento en viewport. Lighthouse y los crawlers nunca gesticulan → nunca descargan el chunk ni ejecutan la simulación; los visitantes reales lo ven al primer movimiento.
+
+**Reglas**:
+- El elemento LCP (H1) nunca puede depender de JS para ser visible: nada de `opacity:0` inline a la espera de hidratar o de un chunk de animación. Fade solo CSS (`motion-safe:animate-in fade-in`).
+- Un `import` estático de `three`/`framer-motion` en un componente montado en la primera pintura mete todo el chunk en el bundle inicial aunque exista un wrapper lazy en otro sitio. Tripwires de fuente en `__tests__/components/hero-source-policy.test.ts` y `framer-motion-initial-bundle.test.ts`.
+- Cada `import './x.css'` en un componente cliente emite un CSS render-blocking aparte en Next 14: para 5 líneas, usar utilidades Tailwind (y recordar que el `content` de Tailwind debe incluir la extensión del fichero).
+- Respetar `prefers-reduced-motion` y `navigator.connection.saveData`: esos visitantes se quedan con la imagen.
+- Snapshot: capturar con el wrapper a opacidad 1 y mostrarlo a la opacidad original sobre el mismo fondo — el resultado compuesto es idéntico al vivo.
