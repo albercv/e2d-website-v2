@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { motion } from "framer-motion"
+import { LazyMotionDiv } from "@/components/performance/motion-optimized"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tooltip } from "react-tooltip"
@@ -40,7 +40,7 @@ export function ServicesSection() {
   return (
     <section id="services" className="py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
+        <LazyMotionDiv
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -49,13 +49,13 @@ export function ServicesSection() {
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4 text-balance">{t("title")}</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
-        </motion.div>
+        </LazyMotionDiv>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {services.map((service, index) => {
             const Icon = service.icon
             return (
-              <motion.div
+              <LazyMotionDiv
                 key={service.key}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -114,7 +114,7 @@ export function ServicesSection() {
                      className="futuristic-tooltip"
                    />
                  )}
-              </motion.div>
+              </LazyMotionDiv>
             )
           })}
         </div>
