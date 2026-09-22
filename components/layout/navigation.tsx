@@ -5,7 +5,6 @@ import { useTranslations, useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { LanguageSwitcher } from "./language-switcher"
-import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { ContactModal } from "@/components/contact/contact-modal"
@@ -77,50 +76,51 @@ export function Navigation() {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)} className="text-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(!isOpen)}
+              className="text-foreground"
+              aria-label="Menu"
+              aria-expanded={isOpen}
+            >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background border-b border-border"
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {!isBlog && navItems.map((item) => (
-                <a
-                  key={item.key}
-                  href={item.href}
-                  className="text-muted-foreground hover:text-foreground block px-3 py-2 text-base font-medium transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {t(item.key)}
-                </a>
-              ))}
-              <div className="flex items-center space-x-4 px-3 py-2">
-                <LanguageSwitcher />
-                <Button 
-                  onClick={() => { setContactOpen(true); setIsOpen(false) }} 
-                  className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white"
-                  data-contact-trigger
-                >
-                  {t("contact")}
-                </Button>
-                <Button variant="outline" asChild>
-                  <a href={`/${locale}/admin`} onClick={() => setIsOpen(false)}>Admin</a>
-                </Button>
-              </div>
+      {/* Mobile Navigation. CSS-only entrance keeps framer-motion (50 KiB gz)
+          out of every page's initial bundle; no exit animation by design. */}
+      {isOpen && (
+        <div className="md:hidden bg-background border-b border-border animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {!isBlog && navItems.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                className="text-muted-foreground hover:text-foreground block px-3 py-2 text-base font-medium transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                {t(item.key)}
+              </a>
+            ))}
+            <div className="flex items-center space-x-4 px-3 py-2">
+              <LanguageSwitcher />
+              <Button
+                onClick={() => { setContactOpen(true); setIsOpen(false) }}
+                className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white"
+                data-contact-trigger
+              >
+                {t("contact")}
+              </Button>
+              <Button variant="outline" asChild>
+                <a href={`/${locale}/admin`} onClick={() => setIsOpen(false)}>Admin</a>
+              </Button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       <ContactModal open={contactOpen} onOpenChange={setContactOpen} />
     </nav>
