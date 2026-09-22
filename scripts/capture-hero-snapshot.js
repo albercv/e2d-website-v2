@@ -8,20 +8,29 @@
 // Manual tool, NOT part of `npm run build`. Re-run whenever the hero look
 // changes (colors, LiquidEther props) and commit the resulting files.
 //
-// Usage: node scripts/capture-hero-snapshot.js [url]
+// Usage: node scripts/capture-hero-snapshot.js [url] [--only=landscape|portrait]
 //   url defaults to http://localhost:3003/es — any deploy works, prod too.
+//   --only restricts the run to a single variant (e.g. to reroll just the
+//   landscape capture without touching the portrait one already on disk).
 //
 // Needs playwright-core (devDependency) and a Chromium build in
 // ~/.cache/ms-playwright matching its version (`npx playwright-core install
 // chromium` if missing). WebGL runs on SwiftShader, so a headless server
 // without a GPU is fine.
+//
+// Each run navigates the target site once per captured variant, so pointing
+// this at a live deploy fires one real GA4 page_view per variant.
 
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright-core');
 const sharp = require('sharp');
 
-const url = process.argv[2] || 'http://localhost:3003/es';
+// The URL is the first CLI arg that isn't a flag; --only=... must not be
+// mistaken for it when it happens to be passed before the url.
+const url = process.argv.slice(2).find((arg) => !arg.startsWith('--')) || 'http://localhost:3003/es';
+const onlyArg = process.argv.slice(2).find((arg) => arg.startsWith('--only='));
+const only = onlyArg ? onlyArg.slice('--only='.length) : null;
 const outDir = path.join(process.cwd(), 'public', 'hero');
 const MAX_BYTES = 60 * 1024;
 // The fluid's AutoDriver only starts autoResumeDelay (3 s) after load, so
@@ -29,10 +38,17 @@ const MAX_BYTES = 60 * 1024;
 const SETTLE_MS = 9000;
 const WEBP_QUALITY = 70;
 
-const VARIANTS = [
+const ALL_VARIANTS = [
   { name: 'landscape', width: 1600, height: 900 },
   { name: 'portrait', width: 810, height: 1440 },
 ];
+
+if (only && !ALL_VARIANTS.some((v) => v.name === only)) {
+  console.error(`✖ --only=${only} is not a known variant (landscape, portrait)`);
+  process.exit(1);
+}
+
+const VARIANTS = only ? ALL_VARIANTS.filter((v) => v.name === only) : ALL_VARIANTS;
 
 // Hide everything except the fluid: the fixed nav, the hero copy, the
 // snapshot itself (when capturing the new hero) and any fixed overlay
