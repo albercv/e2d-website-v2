@@ -5,7 +5,7 @@ import { ArrowRight, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
 import { track } from "@/lib/analytics/track"
-import LiquidEther from "./LiquidEther"
+import { HeroBackground } from "./hero-background"
 
 const DEMO_MAILTO =
   "mailto:hello@evolve2digital.com?subject=Solicitud de Demo&body=Hola, me gustaría solicitar una demo de sus servicios."
@@ -32,27 +32,7 @@ export function HeroSection() {
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* LiquidEther como background (no afecta el layout) */}
-      <div className="pointer-events-none absolute inset-0 z-0 h-full opacity-75">
-        <LiquidEther
-          style={{ width: "100%", height: "100%", position: "relative" }}
-          colors={["#5227FF", "#FF9FFC", "#B19EEF"]}
-          mouseForce={12}
-          cursorSize={90}
-          isViscous={true}
-          viscous={18}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.5}
-          isBounce={false}
-          autoDemo={true}
-          autoSpeed={0.35}
-          autoIntensity={1.6}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-        />
-      </div>
+      <HeroBackground />
 
       {/* El texto va en el HTML del servidor a opacidad completa: es el elemento LCP.
           Antes lo envolvía framer-motion con opacity:0 hasta hidratar y descargar
