@@ -13,35 +13,6 @@ interface LoadingFallbackProps {
 }
 
 /**
- * 3D Content Loading Fallback
- * Optimized for mobile devices with reduced animations and clear messaging
- */
-export function Hero3DFallback({ className = "", message = "Preparando experiencia 3D..." }: LoadingFallbackProps) {
-  return (
-    <div className={`w-full h-full bg-gradient-to-br from-background to-muted flex items-center justify-center ${className}`}>
-      <div className="text-center space-y-4 p-4">
-        {/* Animated 3D-like placeholder */}
-        <div className="relative mx-auto w-16 h-16 sm:w-20 sm:h-20">
-          <div className="absolute inset-0 rounded-full bg-[#05b4ba]/20 animate-ping" />
-          <div className="absolute inset-2 rounded-full bg-[#05b4ba]/40 animate-pulse" />
-          <div className="absolute inset-4 rounded-full bg-[#05b4ba] animate-bounce" />
-        </div>
-        
-        {/* Loading message */}
-        <div className="text-muted-foreground text-sm sm:text-base font-medium">
-          {message}
-        </div>
-        
-        {/* Progress indicator for mobile */}
-        <div className="w-32 h-1 bg-muted rounded-full mx-auto overflow-hidden">
-          <div className="h-full bg-[#05b4ba] rounded-full animate-pulse" style={{ width: '60%' }} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/**
  * Section Loading Fallback
  * Generic fallback for section components
  */
@@ -75,25 +46,6 @@ export function SectionFallback({
         </div>
       </div>
     </section>
-  )
-}
-
-/**
- * Modal Loading Fallback
- * For overlay components like AI Agent Modal
- */
-export function ModalFallback({ className = "", message = "Cargando..." }: LoadingFallbackProps) {
-  return (
-    <div className={`fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 ${className}`}>
-      <div className="bg-background border rounded-lg p-6 sm:p-8 shadow-lg max-w-sm mx-4">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-2 border-[#05b4ba] border-t-transparent rounded-full animate-spin mx-auto" />
-          <div className="text-muted-foreground text-sm sm:text-base">
-            {message}
-          </div>
-        </div>
-      </div>
-    </div>
   )
 }
 

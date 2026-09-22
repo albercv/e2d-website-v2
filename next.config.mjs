@@ -64,9 +64,6 @@ const nextConfig = {
       '@radix-ui/react-separator',
       '@radix-ui/react-scroll-area',
       'three',
-      '@react-three/fiber',
-      '@react-three/drei',
-      'ogl'
     ],
     // Permitir el uso de módulos nativos en Server Components (p.ej. better-sqlite3)
     serverComponentsExternalPackages: ['better-sqlite3'],
@@ -106,9 +103,9 @@ const nextConfig = {
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
-          // Chunk separado para Three.js y librerías 3D
+          // Chunk separado para Three.js (LiquidEther)
           threejs: {
-            test: /[\\/]node_modules[\\/](three|@react-three|ogl)[\\/]/,
+            test: /[\\/]node_modules[\\/]three[\\/]/,
             name: 'threejs',
             chunks: 'all',
             priority: 30,
