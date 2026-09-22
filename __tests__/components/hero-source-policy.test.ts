@@ -13,7 +13,11 @@ describe("hero bundle policy", () => {
 
   it("hero-background only reaches LiquidEther through a lazy import()", () => {
     const src = read("components/sections/hero-background.tsx")
-    expect(src).toMatch(/lazy\(\(\) => import\("@\/components\/sections\/LiquidEther"\)\)/)
+    // The lazy() call now wraps the import() in a .catch() (so a failed chunk
+    // load can't take the page down) and spans multiple lines; the pattern
+    // only needs to confirm LiquidEther is still reached exclusively through
+    // lazy(() => import(...)), not that it is a single unbroken line.
+    expect(src).toMatch(/lazy\(\(\) =>[\s\S]*?import\("@\/components\/sections\/LiquidEther"\)/)
     expect(src).not.toMatch(/^import .*LiquidEther/m)
   })
 

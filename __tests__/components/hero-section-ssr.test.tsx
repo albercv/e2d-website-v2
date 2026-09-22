@@ -46,4 +46,21 @@ describe("HeroSection server HTML", () => {
     expect(html).toContain('src="/hero/liquid-ether-landscape.webp"')
     expect(html).not.toContain("<canvas")
   })
+
+  it("never animates the H1: it must be painted at full opacity on the first frame", () => {
+    const h1Start = html.indexOf("<h1")
+    const contentStart = html.indexOf("data-hero-content")
+    const betweenContentAndH1 = html.slice(contentStart, h1Start)
+    expect(betweenContentAndH1).not.toMatch(/animate-in/)
+    expect(betweenContentAndH1).not.toMatch(/fade-in/)
+    const h1Tag = html.slice(h1Start, html.indexOf(">", h1Start) + 1)
+    expect(h1Tag).not.toMatch(/animate-in/)
+    expect(h1Tag).not.toMatch(/fade-in/)
+  })
+
+  it("still fades the subtitle and CTAs in after the H1", () => {
+    const afterH1 = html.slice(html.indexOf("</h1>"))
+    expect(afterH1).toMatch(/animate-in/)
+    expect(afterH1).toMatch(/fade-in/)
+  })
 })

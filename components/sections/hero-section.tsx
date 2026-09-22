@@ -36,32 +36,36 @@ export function HeroSection() {
 
       {/* El texto va en el HTML del servidor a opacidad completa: es el elemento LCP.
           Antes lo envolvía framer-motion con opacity:0 hasta hidratar y descargar
-          su chunk (2,5 s de render delay en móvil). El fade es solo CSS. */}
+          su chunk (2,5 s de render delay en móvil). El H1 nunca se anima: Chrome
+          no registra el LCP de un elemento pintado con opacity:0 en su primer
+          frame. Solo el subtítulo y los CTAs hacen fade in (CSS puro). */}
       <div data-hero-content className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 text-center py-12">
-        <div className="max-w-4xl mx-auto motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">{t("title")}</h1>
 
-          <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
+          <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
+            <p className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">{t("subtitle")}</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white px-8 py-3 text-lg font-semibold"
-              onClick={openContact}
-            >
-              {t("cta")}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                className="bg-[#05b4ba] hover:bg-[#05b4ba]/90 text-white px-8 py-3 text-lg font-semibold"
+                onClick={openContact}
+              >
+                {t("cta")}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-[#05b4ba] text-[#05b4ba] hover:bg-[#05b4ba]/10 px-8 py-3 text-lg bg-transparent"
-              onClick={scrollToProjects}
-            >
-              <Play className="mr-2 h-5 w-5" />
-              {t("ctaSecondary")}
-            </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-[#05b4ba] text-[#05b4ba] hover:bg-[#05b4ba]/10 px-8 py-3 text-lg bg-transparent"
+                onClick={scrollToProjects}
+              >
+                <Play className="mr-2 h-5 w-5" />
+                {t("ctaSecondary")}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
