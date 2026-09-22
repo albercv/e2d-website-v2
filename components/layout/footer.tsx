@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import { getWhatsAppHref } from "@/lib/contact/whatsapp"
+import { track } from "@/lib/analytics/track"
 
 export function Footer() {
   const locale = useLocale()
@@ -34,6 +35,7 @@ export function Footer() {
                 <p>
                   <a 
                     href={`mailto:${tFooter("contact")}`}
+                    onClick={() => track("email_click", { link_location: "footer", locale })}
                     className="hover:text-foreground transition-colors"
                   >
                     {tFooter("contact")}
@@ -45,6 +47,7 @@ export function Footer() {
                       href={whatsappHref}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => track("whatsapp_click", { link_location: "footer", locale })}
                       className="hover:text-foreground transition-colors flex items-center gap-1"
                     >
                       📱 WhatsApp

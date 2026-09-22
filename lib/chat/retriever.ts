@@ -66,23 +66,13 @@ function mapRow(row: RawRow): RetrievedChunk {
   }
 }
 
-export async function retrieveContext(
+async function searchChunks(
   query: string,
   locale: Locale,
-  opts: RetrieveOpts = {},
+  opts: RetrieveOpts,
 ): Promise<RetrievedChunk[]> {
-  const trimmed = query.trim()
-  if (trimmed.length === 0) {
-    console.warn("[retriever] empty query — skipping retrieval")
-    return []
-  }
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("[retriever] OPENAI_API_KEY missing — returning empty context")
-    return []
-  }
-
   const topK = readTopK(opts.topK)
-  const embedding = await embedQuery(trimmed, opts.signal)
+  const embedding = await embedQuery(query, opts.signal)
   const vecLit = vectorLiteral(embedding)
 
   // Raw SQL via Drizzle's `sql` template — parameters are escaped automatically.
@@ -106,4 +96,32 @@ export async function retrieveContext(
   // db.execute returns the raw rows array for postgres-js Drizzle.
   const rows = result as unknown as RawRow[]
   return rows.map(mapRow).filter((c) => c.similarity >= 0)
+}
+
+export async function retrieveContext(
+  query: string,
+  locale: Locale,
+  opts: RetrieveOpts = {},
+): Promise<RetrievedChunk[]> {
+  const trimmed = query.trim()
+  if (trimmed.length === 0) {
+    console.warn("[retriever] empty query — skipping retrieval")
+    return []
+  }
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("[retriever] OPENAI_API_KEY missing — returning empty context")
+    return []
+  }
+
+  try {
+    return await searchChunks(trimmed, locale, opts)
+  } catch (err) {
+    // A client abort must still stop the route; anything else (embeddings
+    // 401/429, provider timeout, DB down) degrades to "no context": the
+    // model can answer without the knowledge base, a 503 helps nobody.
+    if (opts.signal?.aborted) throw err
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[retriever] retrieval failed — answering without context:", message)
+    return []
+  }
 }

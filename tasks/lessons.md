@@ -109,3 +109,30 @@ BLOG_POSTS_DIR=$(mktemp -d) npx jest __tests__/api/register.test.ts --no-coverag
 - La función `generateAlternateLanguages(path)` solo es válida para rutas uniformes entre locales (homepage, blog index, docs, legal) — NO para posts de blog.
 
 **Causa raíz del bug original**: `generateAlternateLanguages('/blog/' + post.slug)` generaba `/en/blog/<slug-es>` que 404. Visibles en GSC como "not found 404" con slugs de otros idiomas en la ruta equivocada.
+
+## 2026-09-03 — Pixel OpenAI: validar el catálogo de eventos antes de mapear
+Envié `generate_lead` (nombre GA) al pixel/Conversions API de OpenAI y lo rechazó: OpenAI solo acepta su catálogo cerrado (`lead_created`, `order_created`, `custom`...) y rechaza campos extra en `data`. Patrón: con cualquier API de terceros que tenga esquema cerrado, hacer un dry-run (`validate_only`) contra el endpoint real ANTES de escribir el mapeo, no después del build. Los tests unitarios con fetch mockeado no detectan un contrato equivocado.
+
+## 2026-09-03 — El runtime standalone lee la copia de `.env` hecha en el build
+`next build` copia `.env` a `.next/standalone/.env` y el servidor standalone lee ESA copia, no el `.env` vivo. Cambiar una variable en `.env` sin rebuild no llega al proceso aunque hagas `pm2 restart` (salvo las que inyecta `ecosystem.config.js`). Diagnóstico rápido: comparar hashes por clave entre `.env` y `.next/standalone/.env`. Tras editar `.env`: build + restart, no solo restart.
+
+## 2026-09-03 — OpenAI Ads: qué lista el Event Stream y qué no
+- Eventos estándar (`lead_created`, `appointment_scheduled`…) aparecen sin definirlos. Los `custom` NO aparecen hasta crearlos en Conversions con el `custom_event_name` exacto.
+- `data` de un evento estándar solo admite `type` (enum cerrado por evento) + `amount` + `currency`; cualquier otro campo → `unknown_data_field`. Para "decir el canal" hay que enviar un `custom` paralelo con nombre.
+- Pixel y server con el mismo `event_id` aparecen como DOS líneas en el stream (canales `pixel_sdk` y `server_to_server`); la deduplicación se aplica en informes, no en el stream.
+- El stream es en vivo: solo muestra lo que llega con "Start Polling" activo.
+- La campaña solo cuenta el evento que tenga vinculado; enviar otros tipos no da señal de optimización.
+
+## 2026-09-03 — `jest.mock` factory + consts del módulo
+Las factories de `jest.mock` se hoistean por encima de los `const` del test. Referenciar un mock directamente (`select: selectMock`) da `Cannot access 'x' before initialization` y el suite sale con "0 tests" (parece verde si solo miras "failed"). Usar referencias perezosas: `select: (...a) => selectMock(...a)`. Y mirar siempre "Tests: N total", no solo los fallos.
+
+## 2026-09-22 — Facade estática + activación por gesto para componentes WebGL/pesados
+
+**Patrón**: cualquier componente caro (Three.js, simulaciones, vídeo) que no aporte nada hasta que el visitante interactúa se sirve como *facade*: una imagen estática en el HTML del servidor (con `fetchpriority=high` si está above the fold) y un `React.lazy(() => import(...))` que solo se monta tras el primer gesto (`pointermove`/`pointerdown`/`touchstart`/`wheel`/`keydown`) y con el elemento en viewport. Lighthouse y los crawlers nunca gesticulan → nunca descargan el chunk ni ejecutan la simulación; los visitantes reales lo ven al primer movimiento.
+
+**Reglas**:
+- El elemento LCP (H1) nunca puede depender de JS para ser visible: nada de `opacity:0` inline a la espera de hidratar o de un chunk de animación. Fade solo CSS (`motion-safe:animate-in fade-in`).
+- Un `import` estático de `three`/`framer-motion` en un componente montado en la primera pintura mete todo el chunk en el bundle inicial aunque exista un wrapper lazy en otro sitio. Tripwires de fuente en `__tests__/components/hero-source-policy.test.ts` y `framer-motion-initial-bundle.test.ts`.
+- Cada `import './x.css'` en un componente cliente emite un CSS render-blocking aparte en Next 14: para 5 líneas, usar utilidades Tailwind (y recordar que el `content` de Tailwind debe incluir la extensión del fichero).
+- Respetar `prefers-reduced-motion` y `navigator.connection.saveData`: esos visitantes se quedan con la imagen.
+- Snapshot: capturar con el wrapper a opacidad 1 y mostrarlo a la opacidad original sobre el mismo fondo — el resultado compuesto es idéntico al vivo.

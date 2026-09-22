@@ -9,6 +9,7 @@ import { LeadCaptureForm } from "./lead-capture-form"
 import { useChatStream, type ChatTurn, type ChatError } from "./use-chat-stream"
 import { cn } from "@/lib/utils"
 import { track } from "@/lib/analytics/track"
+import { SUPPORT_EMAIL, getMailHref } from "@/lib/contact/email"
 import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 
 // Cookie set by /api/chat is HttpOnly, so this helper will only return a value
@@ -21,12 +22,8 @@ function readSessionIdFromCookie(): string | null {
   return m ? decodeURIComponent(m[1]) : null
 }
 
-// SUPPORT_EMAIL is kept inline intentionally — email contact is always available
-// regardless of whether WhatsApp is configured via env.
-const SUPPORT_EMAIL = "hello@evolve2digital.com"
-
 function buildMailHref(): string {
-  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Consulta desde la web E2D")}`
+  return getMailHref("Consulta desde la web E2D")
 }
 
 interface PanelHeaderProps {
@@ -125,6 +122,9 @@ interface ErrorBlockProps {
   errorGeneric: string
   errorRateLimit: string
   fallbackCTA: string
+  // Prefilled WhatsApp message; shared with the lead form's own follow-up
+  // copy (chat.leadForm.followUpAnonymous) instead of a hardcoded string.
+  whatsappMessage: string
   locale: string
 }
 
@@ -132,7 +132,7 @@ function ErrorBlock(props: ErrorBlockProps): JSX.Element | null {
   if (props.error === null) return null
   const isRateLimit = props.error === "rate-limit"
   const text = isRateLimit ? props.errorRateLimit : props.errorGeneric
-  const whatsappHref = getWhatsAppHref("Hola Alberto, vengo de tu web y me gustaría hablar sobre un proyecto.")
+  const whatsappHref = getWhatsAppHref(props.whatsappMessage)
   return (
     <div
       role="alert"
@@ -241,6 +241,9 @@ function Launcher(props: LauncherProps): JSX.Element {
 
 export function ChatPanel(): JSX.Element {
   const t = useTranslations("chat")
+  // Scoped separately so the chat error fallback reuses the same anonymous
+  // WhatsApp copy as the lead form's own follow-up, instead of a duplicate.
+  const tLead = useTranslations("chat.leadForm")
   const locale = useLocale()
   const [isOpen, setIsOpen] = useState(false)
   const [leadFormOpen, setLeadFormOpen] = useState(false)
@@ -332,6 +335,7 @@ export function ChatPanel(): JSX.Element {
           errorGeneric={t("errorGeneric")}
           errorRateLimit={t("errorRateLimit")}
           fallbackCTA={t("fallbackContactCTA")}
+          whatsappMessage={tLead("followUpAnonymous")}
           locale={locale}
         />
         <InputBar

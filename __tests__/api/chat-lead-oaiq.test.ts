@@ -1,0 +1,207 @@
+/**
+ * @jest-environment node
+ */
+
+import { createHash } from "node:crypto"
+
+import { NextRequest } from "next/server"
+
+jest.mock("@/lib/leads/lead-service", () => ({
+  captureLead: jest.fn(),
+}))
+jest.mock("@/lib/analytics/oaiq-server", () => ({
+  sendOaiqConversion: jest.fn(),
+}))
+
+import { POST } from "@/app/api/chat/lead/route"
+import { captureLead } from "@/lib/leads/lead-service"
+import { sendOaiqConversion } from "@/lib/analytics/oaiq-server"
+
+const captureLeadMock = captureLead as jest.Mock
+const sendOaiqMock = sendOaiqConversion as jest.Mock
+
+const SESSION_ID = "11111111-1111-4111-8111-111111111111"
+
+function makeRequest(
+  extra: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
+): NextRequest {
+  return new NextRequest("http://localhost/api/chat/lead", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify({
+      sessionId: SESSION_ID,
+      email: "lead@example.com",
+      consent: true,
+      marketingConsent: true,
+      locale: "es",
+      ...extra,
+    }),
+  })
+}
+
+const sha = (v: string) => createHash("sha256").update(v).digest("hex")
+const EMAIL_SHA = "9fbdefe2837a03c9225be80e741f316f4d174d1732b719b6abb6477efc1ae9d2"
+
+function leadOk(warnings: string[] = []) {
+  captureLeadMock.mockResolvedValue({ leadId: "lead-1", apolloQueued: true, emailSent: true, warnings })
+}
+
+describe("POST /api/chat/lead — OpenAI Conversions API mirror", () => {
+  beforeEach(() => {
+    captureLeadMock.mockReset()
+    sendOaiqMock.mockReset()
+    sendOaiqMock.mockResolvedValue({ sent: true })
+    jest.spyOn(console, "warn").mockImplementation(() => undefined)
+  })
+  afterEach(() => jest.restoreAllMocks())
+
+  it("mirrors a persisted lead as appointment_scheduled + custom lead_form keyed by leadId", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sourceUrl: "https://evolve2digital.com/es/blog/x" }))
+    expect(res.status).toBe(200)
+    expect(sendOaiqMock).toHaveBeenCalledTimes(2)
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      eventId: "lead_lead-1",
+      type: "appointment_scheduled",
+      sourceUrl: "https://evolve2digital.com/es/blog/x",
+    }))
+    expect(sendOaiqMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      eventId: "lead_lead-1_lead_form",
+      type: "custom",
+      customEventName: "lead_form",
+      sourceUrl: "https://evolve2digital.com/es/blog/x",
+    }))
+  })
+
+  it("accepts a lead without sessionId (contact modal) and passes none to the lead service", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sessionId: undefined }))
+    expect(res.status).toBe(200)
+    expect(captureLeadMock).toHaveBeenCalledWith(expect.not.objectContaining({ sessionId: expect.anything() }))
+    expect(sendOaiqMock.mock.calls[0][0].eventId).toBe("lead_lead-1")
+  })
+
+  it("still rejects a malformed sessionId", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sessionId: "nope" }))
+    expect(res.status).toBe(400)
+  })
+
+  it("does not mirror when the visitor has not granted marketing consent", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ marketingConsent: false }))
+    expect(res.status).toBe(200)
+    expect(sendOaiqMock).not.toHaveBeenCalled()
+  })
+
+  it("treats a missing marketingConsent (older clients) as no consent", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ marketingConsent: undefined }))
+    expect(res.status).toBe(200)
+    expect(sendOaiqMock).not.toHaveBeenCalled()
+  })
+
+  it("forwards the pixel's __oppref cookie as the event oppref", async () => {
+    leadOk()
+    await POST(makeRequest({}, { cookie: "__oppref=opp_abc; other=1" }))
+    expect(sendOaiqMock.mock.calls[0][0].oppref).toBe("opp_abc")
+    expect(sendOaiqMock.mock.calls[1][0].oppref).toBe("opp_abc")
+  })
+
+  it("omits oppref when the cookie is absent", async () => {
+    leadOk()
+    await POST(makeRequest())
+    expect(sendOaiqMock.mock.calls[0][0]).not.toHaveProperty("oppref")
+  })
+
+  it("attaches hashed email plus ip and user agent as user matching data", async () => {
+    leadOk()
+    await POST(makeRequest({}, { "x-forwarded-for": "81.45.1.1, 10.0.0.1", "user-agent": "UA/1" }))
+    expect(sendOaiqMock.mock.calls[0][0].user).toEqual({
+      emails_sha256: [EMAIL_SHA],
+      external_ids_sha256: [sha("lead-1")],
+      ip_address: "81.45.1.1",
+      user_agent: "UA/1",
+    })
+  })
+
+  it("attaches the leadId as external_ids_sha256 in the user matching block", async () => {
+    leadOk()
+    await POST(makeRequest())
+    expect(sendOaiqMock.mock.calls[0][0].user.external_ids_sha256).toEqual([sha("lead-1")])
+  })
+
+  it("attaches hashed first/last name when the body includes a name", async () => {
+    leadOk()
+    await POST(makeRequest({ name: "Ana María López" }))
+    const user = sendOaiqMock.mock.calls[0][0].user
+    expect(user.first_names_sha256).toEqual([sha("ana")])
+    expect(user.last_names_sha256).toEqual([sha("maríalópez")])
+  })
+
+  it("omits name keys when the body has no name", async () => {
+    leadOk()
+    await POST(makeRequest())
+    const user = sendOaiqMock.mock.calls[0][0].user
+    expect(user).not.toHaveProperty("first_names_sha256")
+    expect(user).not.toHaveProperty("last_names_sha256")
+  })
+
+  it("falls back to the site base URL + locale when the client sends no sourceUrl", async () => {
+    leadOk()
+    const prev = process.env.NEXT_PUBLIC_BASE_URL
+    process.env.NEXT_PUBLIC_BASE_URL = "https://evolve2digital.com"
+    try {
+      await POST(makeRequest({ locale: "en" }))
+    } finally {
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
+      else process.env.NEXT_PUBLIC_BASE_URL = prev
+    }
+    expect(sendOaiqMock.mock.calls[0][0].sourceUrl).toBe("https://evolve2digital.com/en")
+  })
+
+  it("rejects a malformed sourceUrl", async () => {
+    leadOk()
+    const res = await POST(makeRequest({ sourceUrl: "not a url" }))
+    expect(res.status).toBe(400)
+    expect(captureLeadMock).not.toHaveBeenCalled()
+  })
+
+  it("does not mirror when the lead was not persisted", async () => {
+    captureLeadMock.mockRejectedValue(new Error("db down"))
+    jest.spyOn(console, "error").mockImplementation(() => undefined)
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(503)
+    expect(sendOaiqMock).not.toHaveBeenCalled()
+  })
+
+  it("surfaces a mirror failure as a warning without failing the request", async () => {
+    leadOk(["apollo: queue full"])
+    sendOaiqMock
+      .mockResolvedValueOnce({ sent: false, reason: "http_401" })
+      .mockResolvedValueOnce({ sent: true })
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.ok).toBe(true)
+    expect(body.warnings).toEqual(["apollo: queue full", "oaiq appointment_scheduled: http_401"])
+  })
+
+  it("stays quiet when the mirror is simply not configured", async () => {
+    leadOk()
+    sendOaiqMock.mockResolvedValue({ sent: false, reason: "not_configured" })
+    const res = await POST(makeRequest())
+    const body = await res.json()
+    expect(body.warnings).toEqual([])
+  })
+
+  it("never lets a throwing mirror break the 200", async () => {
+    leadOk()
+    sendOaiqMock.mockRejectedValue(new Error("boom"))
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.warnings).toEqual(["oaiq appointment_scheduled: network", "oaiq custom: network"])
+  })
+})

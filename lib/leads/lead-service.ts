@@ -1,7 +1,8 @@
 /**
  * Lead capture orchestrator.
  *
- * Single entry point for the chat panel's explicit lead form. Persists the
+ * Single entry point for the explicit lead forms (chat panel and contact
+ * modal). Persists the
  * lead with `consent=true`, queues it for Apollo upsert, then sends Alberto
  * a consultation email with the recent conversation transcript attached for
  * context. Only the consent failure throws — everything else degrades into
@@ -19,7 +20,8 @@ const TRANSCRIPT_TURNS = 20
 const DEFAULT_ADMIN_EMAIL = "hello@evolve2digital.com"
 
 export interface CaptureLeadInput {
-  sessionId: string
+  // Chat session the lead came from; absent for the contact modal.
+  sessionId?: string
   name?: string
   email: string
   phone?: string
@@ -47,7 +49,7 @@ async function insertLead(input: CaptureLeadInput): Promise<string> {
   const inserted = await db
     .insert(chatLeads)
     .values({
-      sessionId: input.sessionId,
+      sessionId: input.sessionId ?? null,
       name: input.name ?? null,
       email: input.email,
       phone: input.phone ?? null,
@@ -113,7 +115,7 @@ async function trySendEmail(
   warnings: string[],
 ): Promise<boolean> {
   try {
-    const transcript = await loadTranscript(input.sessionId)
+    const transcript = input.sessionId ? await loadTranscript(input.sessionId) : []
     const email = buildConsultationEmail({
       lead: {
         name: input.name,

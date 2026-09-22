@@ -239,16 +239,22 @@
       },
       "message": "Tell us briefly what you need (optional)",
       "consent": "I accept the privacy policy",
-      "submit": "Send",
       "sending": "Sending…",
       "successTitle": "Received",
-      "successBody": "Alberto will get back to you soon. Meanwhile, feel free to keep chatting with the bot.",
       "errorTitle": "We could not send it",
       "errorBody": "Please try again in a moment, or write directly to Alberto:",
       "close": "Close",
       "requiredEmail": "Email is required",
       "invalidEmail": "Invalid email",
-      "requiredConsent": "We need your consent"
+      "requiredConsent": "We need your consent",
+      "successFollowUp": "Your details are saved and the message was opened in the channel you chose. Alberto will get back to you soon.",
+      "followUpAnonymous": "Hi Alberto, I just left my details on your website and would like to talk about a project.",
+      "followUpSubject": "Enquiry from the E2D website",
+      "sendWhatsApp": "Send by WhatsApp",
+      "sendEmail": "Send by email",
+      "followUpIntro": "Hi Alberto, here are my details from your website:",
+      "labelIntent": "Topic",
+      "labelMessage": "Message"
     }
   }
 }

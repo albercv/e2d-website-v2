@@ -5,6 +5,7 @@ import "./globals.css"
 import { PreloadResources } from "@/components/performance/preload-resources"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { ApolloTracker } from "@/components/analytics/apollo-tracker"
+import { OpenAIPixel } from "@/components/analytics/openai-pixel"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -80,11 +81,13 @@ export default function RootLayout({
 <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://assets.apollo.io" />
+        <link rel="dns-prefetch" href="https://bzrcdn.openai.com" />
       </head>
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <PreloadResources />
         <GoogleAnalytics />
         <ApolloTracker />
+        <OpenAIPixel />
         {children}
       </body>
     </html>

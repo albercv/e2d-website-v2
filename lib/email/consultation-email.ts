@@ -27,7 +27,8 @@ export interface ConsultationEmailInput {
   lead: ConsultationEmailLead
   conversation: ConsultationEmailTurn[]
   locale: "es" | "en" | "it"
-  sessionId: string
+  // Absent for leads captured outside the chat (contact modal).
+  sessionId?: string
 }
 
 export interface ConsultationEmail {
@@ -208,9 +209,11 @@ function buildHtml(input: ConsultationEmailInput, labels: Labels): string {
       ? `<tr><td>${renderMessageBlock(input.lead.message, labels)}</td></tr>`
       : "") +
     `<tr><td>${renderTranscript(input.conversation, labels)}</td></tr>` +
-    `<tr><td style="padding-top:12px;border-top:1px solid #eee;">` +
-    `<div style="font-family:monospace;font-size:11px;color:#999;">${escapeHtml(labels.session)}: ${escapeHtml(input.sessionId)}</div>` +
-    `</td></tr>` +
+    (input.sessionId
+      ? `<tr><td style="padding-top:12px;border-top:1px solid #eee;">` +
+        `<div style="font-family:monospace;font-size:11px;color:#999;">${escapeHtml(labels.session)}: ${escapeHtml(input.sessionId)}</div>` +
+        `</td></tr>`
+      : "") +
     `</table>`
   )
 }
@@ -265,8 +268,10 @@ function buildText(input: ConsultationEmailInput, labels: Labels): string {
       lines.push(`[${who}] ${t.content}`)
     }
   }
-  lines.push("")
-  lines.push(`${labels.session}: ${input.sessionId}`)
+  if (input.sessionId) {
+    lines.push("")
+    lines.push(`${labels.session}: ${input.sessionId}`)
+  }
   return wrapText(lines.join("\n"))
 }
 

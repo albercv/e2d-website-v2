@@ -72,8 +72,12 @@ export function GoogleAnalytics() {
   if (!isEnabled) return null
 
   return (
+    // gtag.js is 190 KiB and competed with hydration for the main thread.
+    // The stub above queues js/consent/config in dataLayer, so loading the
+    // library after window.load loses nothing but the visitors who bounce
+    // before the page finishes loading (accepted trade-off, 2026-09-22).
     <Script
-      strategy="afterInteractive"
+      strategy="lazyOnload"
       src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
     />
   )
