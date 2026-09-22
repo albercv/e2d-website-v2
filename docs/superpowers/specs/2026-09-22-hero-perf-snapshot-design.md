@@ -46,7 +46,7 @@ No-objetivos:
 HeroSection ("use client", texto + CTAs)
  ├─ <HeroBackground/>            client, decorativo, z-0
  │    ├─ <picture data-hero-snapshot>   apaisada / vertical, fetchpriority=high   ← siempre en el HTML
- │    └─ <LiquidEtherLazy/>             dynamic(ssr:false), montado solo tras gesto
+ │    └─ <LiquidEtherLazy/>             React.lazy + Suspense, montado solo tras gesto
  │         └─ components/LiquidEther.jsx (+ props maxPixelRatio, onReady)
  ├─ lib/perf/use-first-gesture.ts       hook: primer gesto en window
  └─ lib/perf/live-background-policy.ts  puro: ¿ofrecer 3D? ¿con qué calidad?
@@ -77,7 +77,7 @@ Render:
 </div>
 ```
 
-- `LiquidEtherLazy = dynamic(() => import("@/components/sections/LiquidEther"), { ssr: false, loading: () => null })`.
+- `LiquidEtherLazy = lazy(() => import("@/components/sections/LiquidEther"))` dentro de `<Suspense fallback={null}>`. No hace falta `next/dynamic` con `ssr:false`: el elemento solo se renderiza tras un gesto, es decir, siempre en cliente.
 - `LIQUID_ETHER_LOOK` = las props visuales actuales de `hero-section.tsx` (colors, mouseForce 12, cursorSize 90, isViscous, viscous 18, isBounce false, autoDemo true, autoSpeed 0.35, autoIntensity 1.6, takeoverDuration 0.25, autoResumeDelay 3000, autoRampDuration 0.6).
 - `quality` = `getLiveBackgroundQuality(env)` (ver 4.4).
 - Visibilidad: `IntersectionObserver` sobre `wrapperRef` → `heroVisibleRef`. Un gesto solo cuenta si el hero está intersectando; si no, se sigue escuchando.
@@ -112,16 +112,16 @@ export function readBackgroundEnv(): BackgroundEnv
 
 - Nueva prop `maxPixelRatio = 2`: `this.pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio)` (línea 88).
 - Nueva prop `onReady`: se llama una sola vez tras el primer `render()` en `loop()` (es decir, cuando ya hay un frame pintado). Se guarda en ref para no re-crear el WebGLManager si cambia la referencia.
-- Quitar `import './LiquidEther.css'`; el wrapper usa `className={cn("relative h-full w-full overflow-hidden touch-none", className)}`. Borrar `components/LiquidEther.css`.
+- Quitar `import './LiquidEther.css'`; el wrapper usa las utilidades `relative h-full w-full overflow-hidden touch-none` (+ `className`). Borrar `components/LiquidEther.css`. Añadir `.jsx` al `content` de `tailwind.config.ts` para que Tailwind genere esas clases.
 - El resto del fichero no se toca.
 
 ### 4.6 Snapshot y script de captura
 
 Assets (commiteados): `public/hero/liquid-ether-landscape.webp` (1600×900) y `public/hero/liquid-ether-portrait.webp` (810×1440). Objetivo ≤ 40 KB cada uno; test guardián a < 60 KB.
 
-`scripts/capture-hero-snapshot.mjs` (manual, fuera de `npm run build`):
+`scripts/capture-hero-snapshot.js` (CommonJS como el resto de `scripts/`; manual, fuera de `npm run build`):
 - Dependencia: `playwright-core@1.60.0` en `devDependencies` (reutiliza `~/.cache/ms-playwright/chromium-1223`, ya instalado por el Playwright de Python 1.60.0 del host; no descarga navegadores).
-- Uso: `node scripts/capture-hero-snapshot.mjs [url]` (por defecto `http://localhost:3003/es`). Sirve contra prod actual o contra la rama nueva.
+- Uso: `node scripts/capture-hero-snapshot.js [url]` (por defecto `http://localhost:3003/es`). Sirve contra prod actual o contra la rama nueva.
 - Por cada variante `{ name, width, height }`: `chromium.launch({ headless: true, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] })`, `deviceScaleFactor: 1`, `goto(url, { waitUntil: "networkidle" })`, `mouse.move` (dispara el gesto en la rama nueva), `waitForSelector("main > section canvas")`, `waitForTimeout(4000)` (deja correr `autoDemo`), oculta `nav`, `[data-hero-content]`, `[data-hero-snapshot]` y todo elemento con `position: fixed` (`visibility: hidden`), `locator("main > section").first().screenshot({ type: "png" })`, `sharp(png).webp({ quality: 70 })` → fichero. Imprime tamaño en KB.
 - Falla con mensaje claro si no aparece el canvas (WebGL no disponible) o si el fichero supera 60 KB.
 - Verificación humana: abrir los dos WebP y comprobar que se ve el fluido (no negro).
@@ -147,12 +147,12 @@ Assets (commiteados): `public/hero/liquid-ether-landscape.webp` (1600×900) y `p
 | Test | Qué demuestra |
 |---|---|
 | `__tests__/components/hero-section-ssr.test.tsx` (node env) | `renderToString(<HeroSection/>)` contiene el título ES y el `<h1>` no está dentro de un elemento con `opacity:0`; el HTML contiene `<picture data-hero-snapshot` y no contiene `<canvas` |
-| `__tests__/components/hero-section-source.test.ts` | Tripwire de fuente: `hero-section.tsx` y `hero-background.tsx` no importan `three`, `LiquidEther` (salvo vía `dynamic(() => import(...))`) ni `framer-motion` estáticamente |
+| `__tests__/components/hero-source-policy.test.ts` | Tripwire de fuente: `hero-section.tsx` y `hero-background.tsx` no importan `three`, `LiquidEther` (salvo vía `lazy(() => import(...))`) ni `framer-motion` estáticamente; `LiquidEther.jsx` no importa CSS |
 | `__tests__/components/hero-background.test.tsx` | Sin gesto: no llama al import dinámico. Tras `pointermove` con hero visible (IO mockeado): monta `LiquidEther` (mock) con la calidad desktop; `onReady` → `<picture>` con `opacity-0`. Con `pointer: coarse`: calidad reducida. Con `reduced-motion` o `saveData`: nunca importa aunque haya gesto. Gesto con hero no visible: no importa y sigue escuchando |
 | `__tests__/lib/use-first-gesture.test.tsx` | Registra los 5 eventos; consumido → retira listeners; no consumido → sigue; limpia en unmount |
 | `__tests__/lib/live-background-policy.test.ts` | Tabla de casos de `shouldOfferLiveBackground` y `getLiveBackgroundQuality` |
 | `__tests__/components/framer-motion-initial-bundle.test.ts` | Tripwire: `navigation.tsx`, `cookie-banner.tsx`, `services-section.tsx` no importan `framer-motion` directamente |
-| `__tests__/components/navigation.test.tsx` / `cookie-banner` | El menú móvil abre/cierra; el banner sigue mostrando y guardando consentimiento (comportamiento, sin framer) |
+| `__tests__/components/navigation.test.tsx` / `cookie-banner-flow.test.tsx` | El menú móvil abre/cierra; el banner sigue mostrando y guardando consentimiento (comportamiento, sin framer) |
 | `__tests__/components/services-section.test.tsx` | Renderiza los 4 servicios y el tooltip Radix muestra el texto al hacer hover/focus |
 | `__tests__/public/hero-snapshot.test.ts` | Los dos WebP existen y pesan < 60 KB |
 | `__tests__/components/google-analytics.test.tsx` | El `<Script>` usa `lazyOnload`; el stub `gtag` encola `config` antes de cargar |
@@ -177,6 +177,6 @@ Assets (commiteados): `public/hero/liquid-ether-landscape.webp` (1600×900) y `p
 5. `refactor(services): replace react-tooltip with the Radix tooltip`
 6. `perf(analytics): load gtag.js after window load`
 
-PR aparte, rama `chore/remove-dead-3d` desde `develop`: `chore: remove unused 3D components and dependencies` — `components/3d/hero-3d.tsx`, `Hero3DLazy` + `Hero3DFallback`, `ColorBends*.{tsx,css}`, `ui/orb*.tsx`, `styles/orb.css`, `visual/threads.tsx` + `Threads.css`, `performance/motion-lazy.tsx`, `ai-agent/*` + `AIAgentModalLazy`, tests `__tests__/hero3d*.test.tsx`, ajustar `lazy-sections-ssr.test.tsx`; deps `@react-three/fiber`, `@react-three/drei`, `ogl` (NO `three`: lo usa `LiquidEther`); entradas de `optimizePackageImports`.
+PR aparte, rama `chore/remove-dead-3d` apilada sobre `feature/perf-hero-snapshot` (se mergea después, evita conflicto de lockfile): `chore: remove unused 3D components and dependencies` — `components/3d/hero-3d.tsx`, `Hero3DLazy` + `Hero3DFallback`, `ColorBends*.{tsx,css}`, `ui/orb*.tsx`, `styles/orb.css`, `visual/threads.tsx` + `Threads.css`, `performance/motion-lazy.tsx`, `ai-agent/*` + `AIAgentModalLazy`, tests `__tests__/hero3d*.test.tsx`, ajustar `lazy-sections-ssr.test.tsx`; deps `@react-three/fiber`, `@react-three/drei`, `ogl` (NO `three`: lo usa `LiquidEther`); entradas de `optimizePackageImports`.
 
 Cuerpo de commit: Scope / Problem / Solution / Notes. Sin trailers de atribución. Claude no hace push: el usuario pushea, abre PR y mergea tras probar.
