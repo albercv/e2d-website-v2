@@ -95,6 +95,7 @@ export function ServicesSection() {
                     side="top"
                     sideOffset={8}
                     className="max-w-[280px] rounded-xl border border-[#05b4ba]/30 bg-[#05b4ba]/95 px-4 py-3 text-xs font-medium text-white shadow-xl backdrop-blur"
+                    arrowClassName="bg-[#05b4ba] fill-[#05b4ba]"
                   >
                     {t(`${service.key}.tooltip`)}
                   </TooltipContent>
