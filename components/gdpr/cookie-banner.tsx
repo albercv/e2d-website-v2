@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -114,16 +113,11 @@ export function CookieBanner() {
 
   return (
     <>
-      <AnimatePresence>
-        {showBanner && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="fixed bottom-0 left-0 right-0 z-50 p-2 sm:p-4"
-            data-ignore-cls="true"
-          >
+      {showBanner && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 p-2 sm:p-4 animate-in fade-in duration-300"
+          data-ignore-cls="true"
+        >
             <Card className="mx-auto max-w-4xl bg-card/95 backdrop-blur-sm border-border">
               <div className="p-3 sm:p-6">
                 <div className="flex items-start gap-3 sm:gap-4">
@@ -149,26 +143,12 @@ export function CookieBanner() {
                 </div>
               </div>
             </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
 
-      <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="w-full max-w-2xl"
-            >
+      {showSettings && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl animate-in fade-in zoom-in-95 duration-200">
               <Card className="bg-card">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
@@ -247,10 +227,9 @@ export function CookieBanner() {
                   </div>
                 </div>
               </Card>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </>
   )
 }
