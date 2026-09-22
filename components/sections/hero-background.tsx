@@ -13,7 +13,14 @@ import {
 // Loaded on demand only: Three.js is 180 KiB gz and must stay out of the
 // initial bundle. Lighthouse and crawlers never gesture, so they never
 // download it; visitors get the animation on their first move or touch.
-const LiquidEtherLazy = lazy(() => import("@/components/sections/LiquidEther"))
+//
+// A chunk that fails to load (typically a 404 right after a deploy replaced
+// .next/static) must not take the page down: there is no error boundary above
+// the hero. Falling back to an empty component keeps mode at "loading", so the
+// snapshot stays visible and no retry storm starts.
+const LiquidEtherLazy = lazy(() =>
+  import("@/components/sections/LiquidEther").catch(() => ({ default: () => null })),
+)
 
 // Visual props of the fluid, identical to the look shipped before the facade.
 const LIQUID_ETHER_LOOK = {
@@ -23,6 +30,10 @@ const LIQUID_ETHER_LOOK = {
   isViscous: true,
   viscous: 18,
   isBounce: false,
+  // Load-bearing: the snapshot-to-live crossfade depends on this. onReady only
+  // fires once the auto demo is active (the wrapper is pointer-events-none, so
+  // the visitor can never "take control" of the fluid). With autoDemo: false
+  // the snapshot would never fade out.
   autoDemo: true,
   autoSpeed: 0.35,
   autoIntensity: 1.6,
