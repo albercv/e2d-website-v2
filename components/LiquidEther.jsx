@@ -937,6 +937,7 @@ export default function LiquidEther({
         };
         document.addEventListener('visibilitychange', this._onVisibility);
         this.running = false;
+        this.readyNotified = false;
       }
       init() {
         this.props.$wrapper.prepend(Common.renderer.domElement);
@@ -955,12 +956,19 @@ export default function LiquidEther({
       loop() {
         if (!this.running) return; // safety
         this.render();
-        if (!this.readyNotified) {
-          // First frame is on screen: the facade can crossfade from the snapshot.
-          this.readyNotified = true;
-          if (typeof onReadyRef.current === 'function') onReadyRef.current();
-        }
+        this.notifyReadyOnce();
         rafRef.current = requestAnimationFrame(this._loop);
+      }
+      // The snapshot facade crossfades on onReady. Firing it on the very first
+      // frame would reveal an empty canvas during the autoResumeDelay wait; the
+      // fluid only has visible content once the auto demo is active or the
+      // visitor has taken control of it.
+      notifyReadyOnce() {
+        if (this.readyNotified) return;
+        const hasContent = (this.autoDriver && this.autoDriver.active) || Mouse.hasUserControl;
+        if (!hasContent) return;
+        this.readyNotified = true;
+        if (typeof onReadyRef.current === 'function') onReadyRef.current();
       }
       start() {
         if (this.running) return;
