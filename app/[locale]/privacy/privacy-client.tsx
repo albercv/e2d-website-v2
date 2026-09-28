@@ -13,7 +13,7 @@ export default function PrivacyClientPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">{t("title")}</h1>
-            <p className="text-muted-foreground text-lg">{t("lastUpdated")}: 26 de septiembre de 2025</p>
+            <p className="text-muted-foreground text-lg">{t("lastUpdated")}: 28 de septiembre de 2026</p>
           </div>
 
           <Card className="p-8">
@@ -192,6 +192,18 @@ export default function PrivacyClientPage() {
               <section className="mb-8">
                 <h2 className="text-2xl font-semibold mb-4">{t("sections.aiChat.title")}</h2>
                 <p className="text-muted-foreground leading-relaxed">{t("sections.aiChat.description")}</p>
+              </section>
+
+              <Separator className="my-8" />
+
+              <section id="prospeccion" className="mb-8">
+                <h2 className="text-2xl font-semibold mb-4">{t("sections.prospecting.title")}</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {t("sections.prospecting.description")}{" "}
+                  <a href="/es/privacy/prospeccion" className="underline hover:text-foreground">
+                    {t("sections.prospecting.link")}
+                  </a>
+                </p>
               </section>
             </div>
           </Card>
