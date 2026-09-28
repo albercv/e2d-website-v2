@@ -202,6 +202,11 @@
       "aiChat": {
         "title": "AI Assistant",
         "description": "If you interact with the AI assistant, your messages are sent to DeepSeek (LLM) and your queries are vectorized using OpenAI embeddings to surface relevant content from our knowledge base. We keep conversations for 90 days, after which they are deleted automatically. Any contact details you choose to share are retained as a business record."
+      },
+      "prospecting": {
+        "title": "Commercial prospecting",
+        "description": "If we have analysed your business or contacted you as part of our commercial prospecting of companies and professionals, the specific information about that processing is in its annex (in Spanish).",
+        "link": "Read the prospecting annex."
       }
     }
   },
