@@ -202,6 +202,11 @@
       "aiChat": {
         "title": "Asistente de IA",
         "description": "Si interactúas con el asistente IA, tus mensajes se envían a DeepSeek (LLM) y las consultas de búsqueda se vectorizan con embeddings de OpenAI para localizar contenido relevante de nuestra base de conocimiento. Conservamos las conversaciones durante 90 días y después se eliminan automáticamente. Los datos de contacto que decidas compartir se guardan como registro comercial."
+      },
+      "prospecting": {
+        "title": "Prospección comercial",
+        "description": "Si hemos analizado su negocio o le hemos contactado dentro de nuestra prospección comercial de empresas y profesionales, la información específica sobre ese tratamiento está en su anexo.",
+        "link": "Ver el anexo de prospección comercial."
       }
     }
   },
