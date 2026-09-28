@@ -4,28 +4,50 @@ import "@testing-library/jest-dom"
 
 import Page from "@/app/[locale]/privacy/page"
 
-// en/it content is not translated yet (see lib/legal/content/privacy/index.ts) —
-// only the Spanish rendering is asserted here. Broader locale coverage lands
-// with the translations.
-describe("Privacy page — es", () => {
-  it("renders the h1 and last-updated date", async () => {
-    render(await Page({ params: Promise.resolve({ locale: "es" }) }))
-    expect(screen.getByRole("heading", { level: 1, name: "Política de Privacidad" })).toBeInTheDocument()
-    expect(screen.getByText(/28 de septiembre de 2026/)).toBeInTheDocument()
+const TITLES = {
+  es: "Política de Privacidad",
+  en: "Privacy Policy",
+  it: "Informativa sulla Privacy",
+} as const
+
+describe.each(["es", "en", "it"] as const)("Privacy page — locale %s", (locale) => {
+  it("renders the localized h1", async () => {
+    render(await Page({ params: Promise.resolve({ locale }) }))
+    expect(screen.getByRole("heading", { level: 1, name: TITLES[locale] })).toBeInTheDocument()
   })
 
-  it("links to the Spanish prospecting annex", async () => {
-    render(await Page({ params: Promise.resolve({ locale: "es" }) }))
-    const link = screen.getByRole("link", { name: "Ver el anexo de prospección comercial." })
-    expect(link).toHaveAttribute("href", "/es/privacy/prospeccion")
+  it("links to the locale's prospecting annex", async () => {
+    render(await Page({ params: Promise.resolve({ locale }) }))
+    const links = screen.getAllByRole("link").filter((link) => link.getAttribute("href")?.endsWith("/privacy/prospeccion"))
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute("href", `/${locale}/privacy/prospeccion`)
   })
 
   it("renders at least one mailto link", async () => {
-    render(await Page({ params: Promise.resolve({ locale: "es" }) }))
+    render(await Page({ params: Promise.resolve({ locale }) }))
     const mailLinks = screen.getAllByRole("link").filter((link) => link.getAttribute("href")?.startsWith("mailto:"))
     expect(mailLinks.length).toBeGreaterThan(0)
   })
+})
 
+describe("Privacy page — translation notice", () => {
+  it("es has no translation notice", async () => {
+    render(await Page({ params: Promise.resolve({ locale: "es" }) }))
+    expect(screen.queryByText(/traducción proporcionada|translation provided|traduzione fornita/i)).not.toBeInTheDocument()
+  })
+
+  it("en shows the translation notice", async () => {
+    render(await Page({ params: Promise.resolve({ locale: "en" }) }))
+    expect(screen.getByText(/translation provided for convenience/i)).toBeInTheDocument()
+  })
+
+  it("it shows the translation notice", async () => {
+    render(await Page({ params: Promise.resolve({ locale: "it" }) }))
+    expect(screen.getByText(/traduzione fornita per comodità/i)).toBeInTheDocument()
+  })
+})
+
+describe("Privacy page — es content (unchanged from the pre-refactor Spanish page)", () => {
   it("renders the controller block", async () => {
     render(await Page({ params: Promise.resolve({ locale: "es" }) }))
     expect(screen.getByText("Responsable del tratamiento:")).toBeInTheDocument()

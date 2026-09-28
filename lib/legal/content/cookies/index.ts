@@ -1,10 +1,10 @@
 import type { LocalizedDocument } from "@/lib/legal/types"
 import { cookiesEs } from "./es"
+import { cookiesEn } from "./en"
+import { cookiesIt } from "./it"
 
-// TODO(feat/translate-legal-pages): en/it temporarily reuse the Spanish copy
-// until their real translations land. Behavior for es is unaffected.
 export const cookiesDocument: LocalizedDocument = {
   es: cookiesEs,
-  en: cookiesEs,
-  it: cookiesEs,
+  en: cookiesEn,
+  it: cookiesIt,
 }
