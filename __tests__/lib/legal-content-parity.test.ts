@@ -5,19 +5,18 @@
  * The translations must mirror the Spanish source exactly in shape (same
  * section ids/order, same block kinds/order, same list/card/row/column
  * counts, same anchor ids) — only the copy differs.
- *
- * The prospecting annex is not covered yet: it is still Spanish-only (see
- * lib/legal/content/prospecting-annex/index.ts) until it is translated.
  */
 import { privacyDocument } from "@/lib/legal/content/privacy"
 import { cookiesDocument } from "@/lib/legal/content/cookies"
 import { legalNoticeDocument } from "@/lib/legal/content/legal-notice"
+import { prospectingAnnexDocument } from "@/lib/legal/content/prospecting-annex"
 import type { LegalBlock, LegalDocument, LocalizedDocument, RichText } from "@/lib/legal/types"
 
 const DOCUMENTS: Record<string, LocalizedDocument> = {
   privacy: privacyDocument,
   cookies: cookiesDocument,
   "legal-notice": legalNoticeDocument,
+  "prospecting-annex": prospectingAnnexDocument,
 }
 
 const OTHER_LOCALES = ["en", "it"] as const
