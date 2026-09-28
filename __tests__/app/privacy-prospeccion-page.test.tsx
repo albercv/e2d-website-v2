@@ -2,16 +2,16 @@
 import { render, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 
-const redirectMock = jest.fn()
+const notFoundMock = jest.fn()
 jest.mock("next/navigation", () => ({
-  redirect: (path: string) => redirectMock(path),
+  notFound: () => notFoundMock(),
 }))
 
 import Page, { metadata } from "@/app/[locale]/privacy/prospeccion/page"
 
 describe("Anexo de prospección comercial — render (locale es)", () => {
   beforeEach(() => {
-    redirectMock.mockClear()
+    notFoundMock.mockClear()
   })
 
   it("renders the h1 and the annex eyebrow/back link", async () => {
@@ -73,25 +73,22 @@ describe("Anexo de prospección comercial — render (locale es)", () => {
     expect(container.querySelector("#derechos")).not.toBeNull()
   })
 
-  it("does not redirect for locale es", async () => {
+  it("does not 404 for locale es", async () => {
     render(await Page({ params: Promise.resolve({ locale: "es" }) }))
-    expect(redirectMock).not.toHaveBeenCalled()
+    expect(notFoundMock).not.toHaveBeenCalled()
   })
 })
 
-describe("Anexo de prospección comercial — redirect for non-es locales", () => {
+// en/it are redirected to /es in next.config.mjs before reaching the page;
+// if that redirect were ever removed the page must 404, not render.
+describe("Anexo de prospección comercial — non-es locales", () => {
   beforeEach(() => {
-    redirectMock.mockClear()
+    notFoundMock.mockClear()
   })
 
-  it("redirects en to /es/privacy/prospeccion", async () => {
-    await Page({ params: Promise.resolve({ locale: "en" }) })
-    expect(redirectMock).toHaveBeenCalledWith("/es/privacy/prospeccion")
-  })
-
-  it("redirects it to /es/privacy/prospeccion", async () => {
-    await Page({ params: Promise.resolve({ locale: "it" }) })
-    expect(redirectMock).toHaveBeenCalledWith("/es/privacy/prospeccion")
+  it.each(["en", "it"])("%s returns notFound", async (locale) => {
+    await Page({ params: Promise.resolve({ locale }) })
+    expect(notFoundMock).toHaveBeenCalledTimes(1)
   })
 })
 
