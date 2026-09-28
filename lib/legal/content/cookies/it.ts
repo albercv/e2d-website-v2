@@ -79,7 +79,7 @@ export const cookiesIt: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Potremmo aggiornare periodicamente la presente informativa sui cookie. Le consigliamo di consultare questa pagina periodicamente per essere informato di eventuali modifiche.",
+          text: "Potremmo aggiornare occasionalmente la presente informativa sui cookie. Le consigliamo di consultare questa pagina periodicamente per conoscere eventuali modifiche.",
         },
       ],
     },

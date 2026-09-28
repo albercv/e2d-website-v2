@@ -72,7 +72,7 @@ export const prospectingAnnexIt: LegalDocument = {
             },
             {
               label: "Valutazione e classificazione automatiche:",
-              text: "il nostro sistema valuta automaticamente ogni attività per decidere a chi indirizzare la prospezione. La classifica come catena o attività indipendente, e come attiva o meno in base al numero e alla data delle sue recensioni; successivamente valuta anche la qualità tecnica e visiva del suo sito web e ordina le attività in base all'opportunità di miglioramento. Se l'attività appartiene a un imprenditore individuale, questa valutazione costituisce una profilazione a fini di marketing diretto, e può opporsi in qualsiasi momento (art. 21, par. 2, GDPR), come spiegato più avanti.",
+              text: "il nostro sistema valuta automaticamente ogni attività per decidere a chi indirizzare la prospezione. La classifica come catena o attività indipendente, e come attiva o meno in base al numero e alla data delle sue recensioni; successivamente valuta anche la qualità tecnica e visiva del suo sito web e ordina le attività in base all'opportunità di miglioramento. Se l'attività appartiene a un imprenditore individuale, questa valutazione costituisce una profilazione a fini di marketing diretto, e può opporsi a essa in qualsiasi momento (art. 21, par. 2, GDPR), come spiegato più avanti.",
             },
             {
               label: "Contatto:",
@@ -122,7 +122,7 @@ export const prospectingAnnexIt: LegalDocument = {
               header: "Anthropic, tramite la sua API (quando questa fase sarà attivata)",
               cells: [
                 "Responsabile del trattamento, con accordo sul trattamento dei dati e clausole contrattuali tipo",
-                "Estrarre i dati dal sito web e redigere la proposta e l'email per le poche attività selezionate. Prima di inviarle qualsiasi testo, rimuoviamo email, numeri di telefono e documenti di identità",
+                "Estrarre i dati dal sito web e redigere la proposta e l'email per le poche attività selezionate. Prima di inviare qualsiasi testo ad Anthropic, rimuoviamo email, numeri di telefono e documenti di identità",
               ],
             },
             {
@@ -162,10 +162,10 @@ export const prospectingAnnexIt: LegalDocument = {
               label: "Se Le abbiamo inviato un'email:",
               text: "il registro minimo dell'invio e della Sua risposta, e la casella di invio, per 12 mesi.",
             },
-            { label: "Consultazioni della Lista Robinson:", text: "un mese dalla consultazione." },
+            { label: "Consultazioni della Lista Robinson (registro spagnolo di opposizione alla pubblicità):", text: "un mese dalla consultazione." },
             {
               label: "Se si oppone:",
-              text: "un registro minimo e permanente per non trattare più la Sua attività: l'email e il telefono solo pseudonimizzati con una chiave (HMAC), oltre all'identificativo della Sua scheda di Google Maps e al dominio del Suo sito web.",
+              text: "un registro minimo e permanente per non trattare più la Sua attività: l'email e il telefono, conservati solo in forma pseudonimizzata con una chiave (HMAC), oltre all'identificativo della Sua scheda di Google Maps e al dominio del Suo sito web.",
             },
             {
               label: "Copie di backup:",
@@ -204,7 +204,7 @@ export const prospectingAnnexIt: LegalDocument = {
         {
           kind: "paragraph",
           text: [
-            "Se ritiene che non abbiamo gestito correttamente la Sua richiesta, può presentare un reclamo all'Autorità spagnola per la protezione dei dati (Agencia Española de Protección de Datos, AEPD) (",
+            "Se ritiene che non abbiamo gestito correttamente la Sua richiesta, può presentare un reclamo all'Autorità spagnola per la protezione dei dati (Agencia Española de Protección de Datos, AEPD; ",
             { link: "www.aepd.es", href: "https://www.aepd.es", external: true },
             ").",
           ],

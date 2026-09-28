@@ -2,11 +2,8 @@ import type { LegalDocument } from "@/lib/legal/types"
 import { mailto } from "../shared"
 
 // Italian translation. Section ids/order/block shapes mirror es.ts exactly —
-// see __tests__/lib/legal-content-parity.test.ts. The "ai-chat" description
-// and every section title are reused verbatim from messages/it.json
-// (namespace "privacy") per the translation brief — note that reuse keeps
-// the existing informal "tuoi" register on that block and on the "rights"
-// heading, while the rest of the body uses formal "Lei"/"Suoi".
+// see __tests__/lib/legal-content-parity.test.ts. Formal "Lei" register
+// throughout, matching the Spanish "usted" of the rest of the site's legal pages.
 export const privacyIt: LegalDocument = {
   title: "Informativa sulla Privacy",
   lastUpdatedLabel: "Ultimo aggiornamento",
@@ -19,7 +16,7 @@ export const privacyIt: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "In E2D (Evolve2Digital), rispettiamo la sua privacy e ci impegniamo a proteggere i suoi dati personali. La presente informativa sulla privacy spiega come raccogliamo, utilizziamo e proteggiamo le sue informazioni quando utilizza i nostri servizi.",
+          text: "In E2D (Evolve2Digital), rispettiamo la Sua privacy e ci impegniamo a proteggere i Suoi dati personali. La presente informativa sulla privacy spiega come raccogliamo, utilizziamo e proteggiamo le Sue informazioni quando utilizza i nostri servizi.",
         },
         {
           kind: "lines",
@@ -53,12 +50,12 @@ export const privacyIt: LegalDocument = {
       id: "data-usage",
       title: "Uso dei Dati",
       blocks: [
-        { kind: "paragraph", text: "Utilizziamo i suoi dati per:" },
+        { kind: "paragraph", text: "Utilizziamo i Suoi dati per:" },
         {
           kind: "list",
           items: [
             { text: "Fornire e migliorare i nostri servizi" },
-            { text: "Rispondere alle sue richieste e domande" },
+            { text: "Rispondere alle Sue richieste e domande" },
             { text: "Inviare informazioni rilevanti sui nostri servizi" },
             { text: "Adempiere agli obblighi legali" },
             { text: "Analizzare l'utilizzo del sito web per migliorarlo" },
@@ -68,16 +65,16 @@ export const privacyIt: LegalDocument = {
     },
     {
       id: "legal-basis",
-      title: "Base Legale",
+      title: "Base Giuridica",
       blocks: [
-        { kind: "paragraph", text: "Il trattamento dei suoi dati si basa su:" },
+        { kind: "paragraph", text: "Il trattamento dei Suoi dati si basa su:" },
         {
           kind: "list",
           items: [
             { label: "Consenso:", text: "Per i cookie non essenziali e il marketing" },
             { label: "Legittimo interesse:", text: "Per l'analisi e il miglioramento dei servizi" },
             { label: "Esecuzione contrattuale:", text: "Per fornire i servizi richiesti" },
-            { label: "Adempimento legale:", text: "Per obblighi fiscali e legali" },
+            { label: "Obbligo legale:", text: "Per obblighi fiscali e legali" },
           ],
         },
       ],
@@ -108,7 +105,7 @@ export const privacyIt: LegalDocument = {
     },
     {
       id: "rights",
-      title: "I tuoi diritti",
+      title: "I Suoi Diritti",
       blocks: [
         { kind: "paragraph", text: "Ai sensi del GDPR, Lei ha i seguenti diritti:" },
         {
@@ -159,7 +156,7 @@ export const privacyIt: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Se interagisci con l'assistente IA, i tuoi messaggi vengono inviati a DeepSeek (LLM) e le query di ricerca sono vettorializzate con embedding di OpenAI per individuare contenuti rilevanti dalla nostra base di conoscenza. Conserviamo le conversazioni per 90 giorni, dopo i quali vengono eliminate automaticamente. I dati di contatto che decidi di condividere sono conservati come record commerciale.",
+          text: "Se interagisce con l'assistente IA, i Suoi messaggi vengono inviati a DeepSeek (LLM) e le query di ricerca sono vettorializzate con embedding di OpenAI per individuare contenuti rilevanti dalla nostra base di conoscenza. Conserviamo le conversazioni per 90 giorni, dopo i quali vengono eliminate automaticamente. I dati di contatto che decide di condividere sono conservati come record commerciale.",
         },
       ],
     },
@@ -170,7 +167,7 @@ export const privacyIt: LegalDocument = {
         {
           kind: "paragraph",
           text: [
-            "Se abbiamo analizzato la sua attività o l'abbiamo contattata nell'ambito della nostra prospezione commerciale di aziende e professionisti, le informazioni specifiche su questo trattamento si trovano nel relativo allegato. ",
+            "Se abbiamo analizzato la Sua attività o L'abbiamo contattata nell'ambito della nostra prospezione commerciale di aziende e professionisti, le informazioni specifiche su questo trattamento si trovano nel relativo allegato. ",
             { link: "Leggi l'allegato sulla prospezione.", href: "/it/privacy/prospeccion" },
           ],
         },

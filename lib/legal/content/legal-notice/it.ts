@@ -62,7 +62,7 @@ export const legalNoticeIt: LegalDocument = {
       blocks: [
         {
           kind: "paragraph",
-          text: "Tutti i contenuti del sito web, inclusi testi, fotografie, grafiche, immagini, icone, tecnologia, software, nonché il suo design grafico e i codici sorgente, costituiscono un'opera la cui proprietà appartiene ad Alberto Carrasco, senza che possano intendersi ceduti all'utente alcuno dei diritti di sfruttamento su di essi.",
+          text: "Tutti i contenuti del sito web, inclusi testi, fotografie, grafiche, immagini, icone, tecnologia, software, nonché il suo design grafico e i codici sorgente, costituiscono un'opera la cui proprietà appartiene ad Alberto Carrasco, senza che possa intendersi ceduto all'utente alcuno dei diritti di sfruttamento su di essi.",
         },
       ],
     },

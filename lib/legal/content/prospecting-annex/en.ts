@@ -54,7 +54,7 @@ export const prospectingAnnexEn: LegalDocument = {
         },
         {
           kind: "paragraph",
-          text: "We do not purchase databases or look for personal data in other sources. If the business belongs to a sole trader (autónomo), this business data is their personal data, and this section applies to them.",
+          text: "We do not purchase databases or look for data about individuals in other sources. If the business belongs to a sole trader (autónomo), this business data is their personal data, and this section applies to them.",
         },
       ],
     },
@@ -71,7 +71,7 @@ export const prospectingAnnexEn: LegalDocument = {
             },
             {
               label: "Automated assessment and classification:",
-              text: "our system automatically evaluates each business to decide who we direct our prospecting to. It classifies it as a chain or an independent business, and as active or not based on the number and date of its reviews; later it also assesses the technical and visual quality of its website and ranks businesses by improvement opportunity. If the business belongs to a sole trader, this assessment is profiling for direct marketing purposes, and they may object to it at any time (Art. 21(2) GDPR), as explained below.",
+              text: "our system automatically evaluates each business to decide who we direct our prospecting to. It classifies it as a chain or an independent business, and as active or not based on the number and date of its reviews; later it also assesses the technical and visual quality of its website and ranks businesses by improvement opportunity. If the business belongs to a sole trader, this assessment is profiling for direct marketing purposes, and you may object to it at any time (Art. 21(2) GDPR), as explained below.",
             },
             {
               label: "Contact:",
@@ -161,10 +161,10 @@ export const prospectingAnnexEn: LegalDocument = {
               label: "If we have sent you an email:",
               text: "the minimal record of the send and your response, and the sending mailbox, for 12 months.",
             },
-            { label: "Robinson List queries:", text: "one month from the query." },
+            { label: "Queries to the Robinson List (Spain's advertising opt-out register):", text: "one month from the query." },
             {
               label: "If you object:",
-              text: "a minimal, permanent record so we do not process your business again: the email and phone number pseudonymized with a key (HMAC) only, plus the identifier of your Google Maps listing and your website's domain.",
+              text: "a minimal, permanent record so we do not process your business again: the email and phone number, stored only in pseudonymized form with a key (HMAC), plus the identifier of your Google Maps listing and your website's domain.",
             },
             {
               label: "Backups:",
@@ -203,7 +203,7 @@ export const prospectingAnnexEn: LegalDocument = {
         {
           kind: "paragraph",
           text: [
-            "If you believe we have not properly handled your request, you can file a complaint with the Spanish Data Protection Agency (Agencia Española de Protección de Datos, AEPD) (",
+            "If you believe we have not properly handled your request, you can file a complaint with the Spanish Data Protection Agency (Agencia Española de Protección de Datos, AEPD; ",
             { link: "www.aepd.es", href: "https://www.aepd.es", external: true },
             ").",
           ],
