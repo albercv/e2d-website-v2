@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -55,13 +55,9 @@ export const metadata: Metadata = {
 export default async function ProspeccionPage({ params }: ProspeccionPageProps) {
   const { locale } = await params
 
-  // Spanish-only content: any other locale is sent to the canonical (es) URL
-  // as a temporary redirect — a real EN/IT translation may exist later, so
-  // this must not be permanent.
-  if (locale !== "es") {
-    redirect("/es/privacy/prospeccion")
-    return null
-  }
+  // en/it never get here: next.config.mjs redirects them to /es. If that
+  // redirect is removed, 404 rather than serve Spanish under an en/it URL.
+  if (locale !== "es") notFound()
 
   return (
     <div className="min-h-screen bg-background pt-20">
