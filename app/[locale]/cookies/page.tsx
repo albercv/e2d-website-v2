@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
-import CookiesClientPage from "./CookiesClientPage"
+import { cookiesDocument } from "@/lib/legal/content/cookies"
+import { getLegalDocument } from "@/lib/legal/get-document"
+import { LegalDocumentView } from "@/components/legal/legal-document"
 
 interface CookiesPageProps {
   params: Promise<{ locale: string }>
@@ -59,6 +61,8 @@ export async function generateMetadata({ params }: CookiesPageProps): Promise<Me
   }
 }
 
-export default function CookiesPage() {
-  return <CookiesClientPage />
+export default async function CookiesPage({ params }: CookiesPageProps) {
+  const { locale } = await params
+  const document = getLegalDocument(cookiesDocument, locale)
+  return <LegalDocumentView document={document} />
 }
