@@ -136,3 +136,14 @@ Las factories de `jest.mock` se hoistean por encima de los `const` del test. Ref
 - Cada `import './x.css'` en un componente cliente emite un CSS render-blocking aparte en Next 14: para 5 líneas, usar utilidades Tailwind (y recordar que el `content` de Tailwind debe incluir la extensión del fichero).
 - Respetar `prefers-reduced-motion` y `navigator.connection.saveData`: esos visitantes se quedan con la imagen.
 - Snapshot: capturar con el wrapper a opacidad 1 y mostrarlo a la opacidad original sobre el mismo fondo — el resultado compuesto es idéntico al vivo.
+
+## 2026-09-28 — `redirect()` en páginas bajo `[locale]` = 307 sin `Location` en producción
+
+**Síntoma**: `/en/privacy/prospeccion` e `/it/privacy/prospeccion` devolvían `HTTP 307` con `x-nextjs-cache: HIT` y **sin cabecera `Location`**. Los tests (con `redirect` mockeado) pasaban.
+
+**Causa**: `app/[locale]/layout.tsx` exporta `generateStaticParams` (es/en/it), así que Next 14.2 prerenderiza en el build todas las páginas hijas para los tres locales. Un `redirect()` de `next/navigation` ejecutado durante ese prerender queda en caché (`.next/server/app/en/.../*.meta` con `"status": 307`) y se sirve sin `Location`. Solo lo arregla el JS del cliente; crawlers y clientes sin JS se quedan colgados.
+
+**Patrón a aplicar**:
+- Redirecciones por locale (o cualquier redirección conocida de antemano) van en `next.config.mjs > redirects()`, que se ejecuta antes de la ruta. Nunca `redirect()` dentro de una página prerenderizable.
+- En la página, el guard de locale no soportado es `notFound()`, que se prerenderiza bien como 404.
+- Tras desplegar cualquier redirección, comprobarla con `curl -sI <url> | grep -i location`: un test con `redirect` mockeado no detecta este fallo.

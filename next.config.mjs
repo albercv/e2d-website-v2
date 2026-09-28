@@ -226,6 +226,15 @@ const nextConfig = {
         destination: "/es/rss.xml",
         permanent: true,
       },
+      // The prospecting privacy annex is Spanish-only. This can't be a
+      // redirect() inside the page: Next 14 prerenders /en and /it at build
+      // time and serves that cached redirect as a 307 without Location.
+      // Temporary because an EN/IT version may exist later.
+      {
+        source: "/:locale(en|it)/privacy/prospeccion",
+        destination: "/es/privacy/prospeccion",
+        permanent: false,
+      },
     ]
   },
 }
