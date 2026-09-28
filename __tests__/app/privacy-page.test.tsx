@@ -21,6 +21,9 @@ describe.each(["es", "en", "it"] as const)("Privacy page — locale %s", (locale
     const links = screen.getAllByRole("link").filter((link) => link.getAttribute("href")?.endsWith("/privacy/prospeccion"))
     expect(links).toHaveLength(1)
     expect(links[0]).toHaveAttribute("href", `/${locale}/privacy/prospeccion`)
+    // No @tailwindcss/typography in this project: `prose` does not style links,
+    // so inline links must carry their own underline to be recognisable.
+    expect(links[0]).toHaveClass("underline")
   })
 
   it("renders at least one mailto link", async () => {

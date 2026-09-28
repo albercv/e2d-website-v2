@@ -10,8 +10,9 @@ function InlineFragment({ fragment, index }: { fragment: Inline; index: number }
   const externalProps =
     fragment.external && !isMailto ? { target: "_blank", rel: "noopener noreferrer" } : {}
 
+  // No @tailwindcss/typography here, so `prose` leaves links unstyled.
   return (
-    <a key={index} href={fragment.href} {...externalProps}>
+    <a key={index} href={fragment.href} className="underline underline-offset-2 hover:text-foreground" {...externalProps}>
       {fragment.link}
     </a>
   )
