@@ -11,6 +11,7 @@ import { SiteGraphSchema } from "@/components/seo/json-ld"
 import {
   CONTACT_ANCHOR,
   ORGANIZATION_ID,
+  ORGANIZATION_SAME_AS,
   PERSON_ID,
   PERSON_NAME,
   PERSON_PROFILE_URL,
@@ -92,11 +93,15 @@ describe.each(LOCALES)("generateSiteGraph(%s)", (locale) => {
 
   it("no unverified profile is published", () => {
     const serialized = JSON.stringify(graph(locale))
-    for (const forbidden of ["albertocarrasco", "twitter.com", "x.com/", "linkedin.com"]) {
+    for (const forbidden of ["albertocarrasco", "twitter.com", "es.linkedin.com"]) {
       expect(serialized).not.toContain(forbidden)
     }
-    expect(nodeOfType(locale, "Person").sameAs).toEqual(PERSON_SAME_AS)
-    expect(nodeOfType(locale, "Organization")).not.toHaveProperty("sameAs")
+    const personSameAs = nodeOfType(locale, "Person").sameAs as string[]
+    const orgSameAs = nodeOfType(locale, "Organization").sameAs as string[]
+    expect(personSameAs).toEqual(PERSON_SAME_AS)
+    expect(orgSameAs).toEqual(ORGANIZATION_SAME_AS)
+    PERSON_SAME_AS.forEach((url) => expect(orgSameAs).not.toContain(url))
+    ORGANIZATION_SAME_AS.forEach((url) => expect(personSameAs).not.toContain(url))
   })
 
   it("old identifiers are gone", () => {
@@ -153,7 +158,12 @@ describe("shared entity constants", () => {
     expect(PERSON_ID).toBe("https://evolve2digital.com#person")
     expect(WEBSITE_ID).toBe("https://evolve2digital.com#website")
     expect(PERSON_PROFILE_URL).toBe("https://evolve2digital.com/es/alberto-carrasco")
-    expect(PERSON_SAME_AS).toEqual(["https://github.com/albercv"])
+    expect(PERSON_SAME_AS).toEqual(["https://github.com/albercv", "https://www.linkedin.com/in/albercv/"])
+    expect(ORGANIZATION_SAME_AS).toEqual([
+      "https://www.instagram.com/evolve2digital/",
+      "https://www.tiktok.com/@evolve2digital",
+      "https://x.com/evolve2digital_",
+    ])
     expect(PORTFOLIO_URL_BY_LOCALE).toEqual({
       es: "https://e2dprojects.com/es/",
       en: "https://e2dprojects.com/en/",

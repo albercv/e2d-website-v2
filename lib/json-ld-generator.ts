@@ -16,6 +16,7 @@ import {
   AREA_SERVED,
   CONTACT_ANCHOR,
   ORGANIZATION_ID,
+  ORGANIZATION_SAME_AS,
   PERSON_ID,
   PERSON_NAME,
   PERSON_PROFILE_URL,
@@ -50,6 +51,7 @@ export interface OrganizationData {
   }
   services: { [locale: string]: string[] }
   areaServed: readonly string[]
+  sameAs: readonly string[]
 }
 
 export interface PersonData {
@@ -269,7 +271,7 @@ export class JsonLdGenerator {
         addressCountry: org.address.country,
         addressLocality: org.address.locality
       },
-      // No sameAs: no brand profile has been verified yet (see entities.ts).
+      sameAs: [...org.sameAs],
       areaServed: [...org.areaServed],
       knowsAbout: services,
       hasOfferCatalog: this.offerCatalogNode(this.servicesLabel(locale), services),
@@ -525,7 +527,8 @@ export const defaultJsonLdConfig: JsonLdConfig = {
         "Ottimizzazione delle Performance"
       ]
     },
-    areaServed: AREA_SERVED
+    areaServed: AREA_SERVED,
+    sameAs: ORGANIZATION_SAME_AS
   },
   author: {
     name: "Alberto Carrasco",

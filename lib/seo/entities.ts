@@ -20,11 +20,21 @@ export const PERSON_PROFILE_PATH = "/es/alberto-carrasco"
 export const PERSON_PROFILE_URL = `${SITE_URL}${PERSON_PROFILE_PATH}`
 
 /**
- * Only profiles whose ownership was verified (GitHub API: login albercv,
- * company "Evolve2digital"). LinkedIn and the brand profiles stay out until
- * Alberto confirms them: a wrong sameAs merges the entity with a stranger.
+ * Profiles confirmed in writing by the owner on 2026-10-20 (GitHub also checked
+ * through the GitHub API: login albercv, company "Evolve2digital"). Personal
+ * profiles belong to Person, brand profiles to Organization: a profile filed
+ * under the wrong entity would merge the owner and the company.
  */
-export const PERSON_SAME_AS: readonly string[] = ["https://github.com/albercv"]
+export const PERSON_SAME_AS: readonly string[] = [
+  "https://github.com/albercv",
+  "https://www.linkedin.com/in/albercv/",
+]
+
+export const ORGANIZATION_SAME_AS: readonly string[] = [
+  "https://www.instagram.com/evolve2digital/",
+  "https://www.tiktok.com/@evolve2digital",
+  "https://x.com/evolve2digital_",
+]
 
 /** ISO 3166-1 alpha-2 / UN region codes, as schema.org accepts for areaServed. */
 export const AREA_SERVED = ["ES", "EU"] as const

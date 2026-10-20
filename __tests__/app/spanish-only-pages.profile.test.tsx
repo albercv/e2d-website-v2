@@ -84,7 +84,7 @@ describe.each(PAGES)("Spanish-only page /es/$slug", ({ slug, Page, generateMetad
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1)
     const text = container.textContent ?? ""
     expect(text).not.toMatch(/albar[aá]n/i)
-    expect(text).not.toMatch(/linkedin/i)
+    expect(text).not.toMatch(/albertocarrasco/i)
     expect(text).not.toMatch(/\bpymes?\b/i)
     expect(text).not.toMatch(/a[ñn]os de experiencia/i)
   })
@@ -128,11 +128,30 @@ describe("/es/alberto-carrasco", () => {
       "/es/automatizacion-procesos-ia",
       "/es#contact",
       "https://github.com/albercv",
+      "https://www.linkedin.com/in/albercv/",
+      "https://www.instagram.com/evolve2digital/",
+      "https://www.tiktok.com/@evolve2digital",
+      "https://x.com/evolve2digital_",
       "https://e2dprojects.com/es/",
       "mailto:hello@evolve2digital.com",
       "/es/legal",
     ]) {
       expect(links).toContain(href)
+    }
+  })
+
+  it("opens the external profile links in a new tab without leaking the referrer", async () => {
+    const { container } = await renderProfile()
+    for (const href of [
+      "https://github.com/albercv",
+      "https://www.linkedin.com/in/albercv/",
+      "https://www.instagram.com/evolve2digital/",
+      "https://www.tiktok.com/@evolve2digital",
+      "https://x.com/evolve2digital_",
+    ]) {
+      const anchor = container.querySelector(`a[href="${href}"]`)
+      expect(anchor).toHaveAttribute("target", "_blank")
+      expect(anchor).toHaveAttribute("rel", "noopener noreferrer")
     }
   })
 
@@ -150,7 +169,7 @@ describe("/es/alberto-carrasco", () => {
     ]) {
       expect(links).toContain(href)
     }
-    expect(links.filter((h) => /linkedin|albertocarrasco/i.test(h))).toEqual([])
+    expect(links.filter((h) => /albertocarrasco|twitter\.com|es\.linkedin\.com/i.test(h))).toEqual([])
   })
 
   it("labels client cases and own projects apart", async () => {

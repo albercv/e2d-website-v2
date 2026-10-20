@@ -1,5 +1,5 @@
 import { PageSection, Paragraph, BulletList, TextLink } from "../page-primitives"
-import { PERSON_SAME_AS, PORTFOLIO_URL_BY_LOCALE } from "@/lib/seo/entities"
+import { ORGANIZATION_SAME_AS, PERSON_SAME_AS, PORTFOLIO_URL_BY_LOCALE } from "@/lib/seo/entities"
 
 export function ProfileMethod() {
   return (
@@ -17,7 +17,8 @@ export function ProfileMethod() {
 }
 
 export function ProfileLinks() {
-  const [github] = PERSON_SAME_AS
+  const [github, linkedin] = PERSON_SAME_AS
+  const [instagram, tiktok, x] = ORGANIZATION_SAME_AS
 
   return (
     <PageSection id="perfiles" title="Perfiles y enlaces">
@@ -31,6 +32,13 @@ export function ProfileLinks() {
             .
           </>,
           <>
+            Mi perfil en{" "}
+            <TextLink href={linkedin} external>
+              LinkedIn
+            </TextLink>
+            .
+          </>,
+          <>
             Mi portfolio de proyectos:{" "}
             <TextLink href={PORTFOLIO_URL_BY_LOCALE.es} external>
               e2dprojects.com
@@ -39,6 +47,21 @@ export function ProfileLinks() {
           </>,
           <>
             Mis datos como titular de esta web, en el <TextLink href="/es/legal">aviso legal</TextLink>.
+          </>,
+          <>
+            Evolve2Digital en redes:{" "}
+            <TextLink href={instagram} external>
+              Instagram
+            </TextLink>
+            ,{" "}
+            <TextLink href={tiktok} external>
+              TikTok
+            </TextLink>{" "}
+            y{" "}
+            <TextLink href={x} external>
+              X
+            </TextLink>
+            .
           </>,
         ]}
       />
