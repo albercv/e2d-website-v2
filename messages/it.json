@@ -65,7 +65,10 @@
       "title": "Dashboard per Bot WhatsApp",
       "description": "Pannello di controllo per gestire un bot WhatsApp, con statistiche e viewer delle conversazioni.",
       "tags": ["Dashboard", "WhatsApp API", "Statistiche"]
-    }
+    },
+    "visitSite": "visita il sito web (si apre in una nuova scheda)",
+    "readCase": "Leggi il caso",
+    "portfolioCta": "Altri progetti pubblicati nel mio portfolio, <link>e2dProjects</link> (il portfolio è in inglese)."
   },
   "about": {
     "title": "Alberto Carrasco",
