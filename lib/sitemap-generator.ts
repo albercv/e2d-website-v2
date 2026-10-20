@@ -15,7 +15,9 @@
  */
 
 import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
-import { toRegionalHreflangKeys } from "./seo/hreflang"
+import { postModifiedDate } from "./blog/post-dates"
+import { buildHreflangLanguages, toRegionalHreflangKeys } from "./seo/hreflang"
+import { SPANISH_ONLY_PAGES } from "./seo/static-pages"
 import type { MetadataRoute } from "next"
 
 export interface SitemapEntry {
@@ -25,7 +27,7 @@ export interface SitemapEntry {
   priority: number
   alternateLanguages?: { [key: string]: string }
   aiMetadata?: {
-    contentType: "homepage" | "blog" | "documentation" | "service" | "legal"
+    contentType: "homepage" | "blog" | "documentation" | "service" | "legal" | "profile"
     importance: "critical" | "high" | "medium" | "low"
     crawlPriority: number
     lastContentUpdate?: Date
@@ -76,11 +78,11 @@ export class SitemapGenerator {
     // Add blog posts
     entries.push(...this.generateBlogPosts(posts))
 
-    // Add documentation pages
-    entries.push(...this.generateDocumentationPages())
-
     // Add legal pages
     entries.push(...this.generateLegalPages())
+
+    // Add pages that only exist in Spanish
+    entries.push(...this.generateSpanishOnlyPages())
 
     // Sort by priority and last modified
     const sortedEntries = entries.sort((a, b) => {
@@ -145,22 +147,6 @@ export class SitemapGenerator {
           semanticTags: ["blog", "articles", "automation", "technology"],
         },
       })
-
-      // Documentation index pages
-      pages.push({
-        url: `${this.config.baseUrl}/${locale}/docs`,
-        lastModified: this.getStableDate(),
-        changeFrequency: "weekly",
-        priority: 0.8,
-        alternateLanguages: this.generateAlternateLanguages("/docs"),
-        aiMetadata: {
-          contentType: "documentation",
-          importance: "high",
-          crawlPriority: 8,
-          lastContentUpdate: this.getStableDate(),
-          semanticTags: ["documentation", "guides", "technical", "implementation"],
-        },
-      })
     })
 
     return pages
@@ -206,9 +192,13 @@ export class SitemapGenerator {
         alternateUrls = toRegionalHreflangKeys(langs)
       }
 
+      // Fecha de la última edición real (`updated`) o, si no hay, la de
+      // publicación: así el sitemap no declara frescura que no existe.
+      const modified = new Date(postModifiedDate(post))
+
       return {
         url: `${this.config.baseUrl}${post.url}`,
-        lastModified: new Date(post.date),
+        lastModified: modified,
         changeFrequency: "monthly" as const,
         priority: 0.7,
         alternateLanguages: alternateUrls,
@@ -216,7 +206,7 @@ export class SitemapGenerator {
           contentType: "blog" as const,
           importance: "medium" as const,
           crawlPriority: 7,
-          lastContentUpdate: new Date(post.date),
+          lastContentUpdate: modified,
           wordCount: post.wordCount,
           semanticTags: [
             ...(post.tags || []),
@@ -227,38 +217,6 @@ export class SitemapGenerator {
         },
       }
     })
-  }
-
-  /**
-   * Generate documentation pages
-   */
-  private generateDocumentationPages(): SitemapEntry[] {
-    // Only docs with real content. Stubs (components/i18n/seo/gdpr/performance/
-    // deployment) are noindexed in the page metadata and must not be sitemapped.
-    const docSlugs = ["principles", "architecture"]
-
-    const pages: SitemapEntry[] = []
-
-    this.config.supportedLocales.forEach(locale => {
-      docSlugs.forEach(slug => {
-        pages.push({
-          url: `${this.config.baseUrl}/${locale}/docs/${slug}`,
-          lastModified: this.getStableDate(),
-          changeFrequency: "monthly",
-          priority: 0.6,
-          alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`),
-          aiMetadata: {
-            contentType: "documentation",
-            importance: "medium",
-            crawlPriority: 6,
-            lastContentUpdate: this.getStableDate(),
-            semanticTags: ["documentation", slug, "technical", "guide"],
-          },
-        })
-      })
-    })
-
-    return pages
   }
 
   /**
@@ -288,6 +246,36 @@ export class SitemapGenerator {
     })
 
     return pages
+  }
+
+  /**
+   * Pages with no translation: only the es URL, dated with the content date
+   * declared next to the page, and only es-ES + x-default as alternates (an
+   * /en or /it URL here would point crawlers at a 404).
+   */
+  private generateSpanishOnlyPages(): SitemapEntry[] {
+    return SPANISH_ONLY_PAGES.map(page => {
+      const url = `${this.config.baseUrl}/es/${page.slug}`
+      const lastModified = new Date(page.lastModified)
+      const isProfile = page.kind === "profile"
+
+      return {
+        url,
+        lastModified,
+        changeFrequency: "monthly" as const,
+        priority: isProfile ? 0.6 : 0.8,
+        alternateLanguages: this.config.includeAlternateLanguages
+          ? buildHreflangLanguages({ es: url })
+          : undefined,
+        aiMetadata: {
+          contentType: isProfile ? ("profile" as const) : ("service" as const),
+          importance: isProfile ? ("medium" as const) : ("high" as const),
+          crawlPriority: isProfile ? 6 : 8,
+          lastContentUpdate: lastModified,
+          semanticTags: [page.slug, "español"],
+        },
+      }
+    })
   }
 
   /**

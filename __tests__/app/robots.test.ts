@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import robots from "../../app/robots"
+import robots, { NEXT_PUBLIC_ASSETS_ALLOW } from "../../app/robots"
 
 describe("robots() metadata route", () => {
   const out = robots()
@@ -30,7 +30,12 @@ describe("robots() metadata route", () => {
   it("does not contain the ChatGPT-User contradiction (allow blog while disallow locale)", () => {
     const r = byAgent("ChatGPT-User")
     if (!r) return // it's allowed to drop the bot entirely
-    const allow = Array.isArray(r.allow) ? r.allow : [r.allow]
+    // Las entradas de NEXT_PUBLIC_ASSETS_ALLOW son Allow intencionadamente más
+    // específicos que `Disallow: /_next/`; robots-effective.test.ts demuestra
+    // que ganan, así que no son una contradicción.
+    const allow = (Array.isArray(r.allow) ? r.allow : [r.allow]).filter(
+      a => !NEXT_PUBLIC_ASSETS_ALLOW.some(asset => asset === a)
+    )
     const disallow = Array.isArray(r.disallow) ? r.disallow : [r.disallow ?? ""]
     const conflicts = allow.filter(a =>
       disallow.some(d => a && d && a.startsWith(d))

@@ -105,6 +105,14 @@ body
     expect(urls).toContain("https://evolve2digital.com/it/blog")
   })
 
+  it("does not include the docs index for any locale (docs are noindex)", async () => {
+    const sitemap = await mod.generateAISitemap()
+    const urls = sitemap.map((e: any) => e.url)
+    for (const locale of ["es", "en", "it"]) {
+      expect(urls).not.toContain(`https://evolve2digital.com/${locale}/docs`)
+    }
+  })
+
   it("uses post.date as lastModified for blog post entries", async () => {
     writeMdx(
       "posts/dated.mdx",
@@ -132,7 +140,7 @@ body
 
   it("returns empty post entries when the content directory has no posts", async () => {
     const sitemap = await mod.generateAISitemap()
-    // Static + docs + legal pages are still present, no blog post slugs.
+    // Static + legal pages are still present, no blog post slugs.
     const blogPostUrls = sitemap
       .map((e: any) => e.url)
       .filter((u: string) => /\/blog\/[a-z0-9-]+$/.test(u))
@@ -186,5 +194,68 @@ body`
     expect(langs?.["en-US"]).toBeUndefined()
     expect(langs?.["it-IT"]).toBeUndefined()
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog/llm")
+  })
+})
+
+describe("blog entry lastModified honours frontmatter `updated`", () => {
+  const post = (slug: string, extra: string) => `---
+title: ${slug}
+description: short description
+date: 2026-05-04
+locale: es
+slug: ${slug}
+published: true
+${extra}
+---
+
+body
+`
+  const lastModifiedOf = async (slug: string) => {
+    const sitemap = await mod.generateAISitemap()
+    const entry = sitemap.find(
+      (e: any) => e.url === `https://evolve2digital.com/es/blog/${slug}`,
+    )
+    expect(entry).toBeDefined()
+    return new Date(entry!.lastModified as any).toISOString().slice(0, 10)
+  }
+
+  it("uses `updated` when the post has one", async () => {
+    writeMdx("posts/with-updated.mdx", post("with-updated", "updated: 2026-10-20"))
+    expect(await lastModifiedOf("with-updated")).toBe("2026-10-20")
+  })
+
+  it("keeps `date` when the post has no `updated`", async () => {
+    writeMdx("posts/plain.mdx", post("plain", ""))
+    expect(await lastModifiedOf("plain")).toBe("2026-05-04")
+  })
+
+  it("keeps `date` when `updated` is invalid", async () => {
+    writeMdx("posts/bad.mdx", post("bad", "updated: not-a-date"))
+    expect(await lastModifiedOf("bad")).toBe("2026-05-04")
+  })
+})
+
+describe("Spanish-only pages in the sitemap", () => {
+  const SPANISH_ONLY_SLUGS = ["alberto-carrasco", "desarrollo-software-madrid", "automatizacion-procesos-ia"]
+
+  it.each(SPANISH_ONLY_SLUGS)("lists /es/%s once, dated with its content date", async (slug) => {
+    const entries = await mod.generateAISitemap()
+    const url = `https://evolve2digital.com/es/${slug}`
+    const matches = entries.filter(e => e.url === url)
+    expect(matches).toHaveLength(1)
+    expect(new Date(matches[0].lastModified as any).toISOString().slice(0, 10)).toBe("2026-10-20")
+  })
+
+  it.each(SPANISH_ONLY_SLUGS)("declares only es-ES and x-default as alternates of /es/%s", async (slug) => {
+    const entries = await mod.generateAISitemap()
+    const url = `https://evolve2digital.com/es/${slug}`
+    const entry = entries.find(e => e.url === url)
+    expect((entry as any).alternates?.languages).toEqual({ "es-ES": url, "x-default": url })
+  })
+
+  it.each(SPANISH_ONLY_SLUGS)("does not invent /en or /it URLs for %s", async (slug) => {
+    const urls = (await mod.generateAISitemap()).map(e => e.url)
+    expect(urls).not.toContain(`https://evolve2digital.com/en/${slug}`)
+    expect(urls).not.toContain(`https://evolve2digital.com/it/${slug}`)
   })
 })

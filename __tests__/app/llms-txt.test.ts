@@ -59,6 +59,25 @@ body`)
     expect(body).toContain("/es/blog/published")
     expect(body).not.toContain("/es/blog/draft")
   })
+
+  it("does not list the internal docs (noindex, so not advertised to AI indexes)", async () => {
+    const { GET } = require("../../app/llms.txt/route")
+    const res: Response = await GET()
+    const body = await res.text()
+    expect(body).not.toContain("/docs")
+    expect(body).not.toContain("## Documentación")
+  })
+})
+
+describe("GET /llms.txt — Spanish-only pages", () => {
+  it("lists the profile page with its canonical URL", async () => {
+    const { GET } = require("../../app/llms.txt/route")
+    const body = await (await GET() as Response).text()
+    expect(body).toContain("https://evolve2digital.com/es/alberto-carrasco")
+    expect(body).toContain("Alberto Carrasco")
+    expect(body).not.toContain("/en/alberto-carrasco")
+    expect(body).not.toContain("/it/alberto-carrasco")
+  })
 })
 
 describe("GET /llms-full.txt", () => {

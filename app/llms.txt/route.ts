@@ -1,4 +1,5 @@
 import { listPostsFromDisk } from "@/lib/blog/posts-runtime"
+import { SPANISH_ONLY_PAGES, spanishOnlyUrl } from "@/lib/seo/static-pages"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -19,14 +20,11 @@ const STATIC_SECTIONS = `## Sitio principal
 - [Home (en)](${BASE_URL}/en): English landing page
 - [Home (it)](${BASE_URL}/it): pagina principale in italiano
 
-## Documentación
+`
 
-- [Principios](${BASE_URL}/es/docs/principles)
-- [Arquitectura](${BASE_URL}/es/docs/architecture)
-- [Seguridad](${BASE_URL}/es/docs/security)
-- [Performance](${BASE_URL}/es/docs/performance)
-- [Despliegue](${BASE_URL}/es/docs/deployment)
-- [GDPR](${BASE_URL}/es/docs/gdpr)
+const SPANISH_PAGES_SECTION = `## Perfil y servicios (solo en español)
+
+${SPANISH_ONLY_PAGES.map(page => `- [${page.label}](${spanishOnlyUrl(page.slug)}): ${page.summary}`).join("\n")}
 
 `
 
@@ -46,7 +44,7 @@ export async function GET(): Promise<Response> {
 
   const blogSection = `## Blog\n\n${blogLines || "_(sin posts publicados aún)_"}\n`
 
-  const body = HEADER + STATIC_SECTIONS + blogSection
+  const body = HEADER + STATIC_SECTIONS + SPANISH_PAGES_SECTION + blogSection
 
   return new Response(body, {
     status: 200,

@@ -56,52 +56,55 @@ const MCP_DISCOVERY_ALLOW = [
   "/.well-known/oauth-protected-resource",
 ]
 
+// Assets públicos de Next: el Allow más específico gana a `Disallow: /_next/` (coincidencia más larga), así CSS, JS e imágenes siguen rastreables y el resto de /_next/ sigue cerrado.
+export const NEXT_PUBLIC_ASSETS_ALLOW = ["/_next/static/", "/_next/image"]
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW, "/admin/login", "/admin/edit/*", "/admin/new"],
       },
       {
         userAgent: "Googlebot",
-        allow: "/",
+        allow: ["/", ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW],
       },
       {
         userAgent: "Bingbot",
-        allow: PUBLIC_ALLOW,
+        allow: [...PUBLIC_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
       {
         userAgent: "GPTBot",
-        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
+        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: MCP_BOT_DISALLOW,
       },
       {
         userAgent: "Google-Extended",
-        allow: PUBLIC_ALLOW,
+        allow: [...PUBLIC_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
       {
         userAgent: "ClaudeBot",
-        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
+        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: MCP_BOT_DISALLOW,
       },
       {
         userAgent: "ChatGPT-User",
-        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW],
+        allow: [...PUBLIC_ALLOW, ...MCP_DISCOVERY_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: MCP_BOT_DISALLOW,
       },
       {
         userAgent: "PerplexityBot",
-        allow: PUBLIC_ALLOW,
+        allow: [...PUBLIC_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
       {
         userAgent: "Applebot-Extended",
-        allow: PUBLIC_ALLOW,
+        allow: [...PUBLIC_ALLOW, ...NEXT_PUBLIC_ASSETS_ALLOW],
         disallow: [...COMMON_DISALLOW, "/api/chat/*"],
       },
     ],

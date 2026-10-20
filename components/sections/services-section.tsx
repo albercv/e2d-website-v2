@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { LazyMotionDiv } from "@/components/performance/motion-optimized"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Code, Database, Users, Zap, HelpCircle } from "lucide-react"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger"
 import { Badge } from "@/components/ui/badge"
+import { spanishOnlyPath, type SpanishOnlySlug } from "@/lib/seo/static-pages"
 
 const services = [
   {
@@ -32,8 +33,17 @@ const services = [
   },
 ]
 
+// Web, ERP and CRM are all custom software; both pages exist only in Spanish.
+const DETAIL_PAGE_BY_SERVICE: Record<string, SpanishOnlySlug> = {
+  web: "desarrollo-software-madrid",
+  erp: "desarrollo-software-madrid",
+  crm: "desarrollo-software-madrid",
+  automation: "automatizacion-procesos-ia",
+}
+
 export function ServicesSection() {
   const t = useTranslations("services")
+  const locale = useLocale()
   const { renderCount } = useComponentDebugLogger("ServicesSection")
 
   return (
@@ -87,6 +97,14 @@ export function ServicesSection() {
                           <CardDescription className="text-muted-foreground mb-6 text-pretty">
                             {t(`${service.key}.description`)}
                           </CardDescription>
+                          {locale === "es" && (
+                            <a
+                              href={spanishOnlyPath(DETAIL_PAGE_BY_SERVICE[service.key])}
+                              className="text-sm font-medium text-[#05b4ba] underline-offset-4 hover:underline"
+                            >
+                              Más información
+                            </a>
+                          )}
                         </CardContent>
                       </Card>
                     </div>

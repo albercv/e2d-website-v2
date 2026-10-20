@@ -65,12 +65,16 @@
       "title": "Dashboard per Bot WhatsApp",
       "description": "Pannello di controllo per gestire un bot WhatsApp, con statistiche e viewer delle conversazioni.",
       "tags": ["Dashboard", "WhatsApp API", "Statistiche"]
-    }
+    },
+    "visitSite": "visita il sito web (si apre in una nuova scheda)",
+    "readCase": "Leggi il caso",
+    "portfolioCta": "Altri progetti pubblicati nel mio portfolio, <link>e2dProjects</link> (il portfolio è in inglese)."
   },
   "about": {
     "title": "Alberto Carrasco",
     "subtitle": "Sviluppatore fullstack esperto in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude e Gemini",
-    "description": "Esperto in React, Next.js, n8n e database vettoriali. Focus su ROI e conformità GDPR per le PMI."
+    "description": "Esperto in React, Next.js, n8n e database vettoriali. Focus su ROI e conformità GDPR per le PMI.",
+    "profileLink": "Di più sul mio lavoro (pagina in spagnolo)"
   },
   "blog": {
     "list": {
@@ -171,6 +175,13 @@
       "save": "Salva preferenze"
     }
   },
+  "contactSection": {
+    "title": "Raccontami il tuo progetto",
+    "subtitle": "Dimmi cosa vuoi automatizzare o sviluppare e lo valutiamo insieme. Parli direttamente con la persona che progetta e programma ogni soluzione.",
+    "openForm": "Apri il modulo di contatto",
+    "emailLabel": "Scrivimi a {email}",
+    "whatsappLabel": "Scrivimi su WhatsApp"
+  },
   "chat": {
     "openLabel": "Chatta con l'assistente IA",
     "title": "Assistente E2D",
@@ -222,5 +233,11 @@
       "labelIntent": "Argomento",
       "labelMessage": "Messaggio"
     }
+  },
+  "notFound": {
+    "code": "Errore 404",
+    "title": "Pagina non trovata",
+    "description": "La pagina che cerchi non esiste o è stata spostata.",
+    "home": "Torna alla home"
   }
 }

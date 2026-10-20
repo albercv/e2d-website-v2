@@ -1,5 +1,6 @@
 import { HeroSection } from "@/components/sections/hero-section"
 import { ServicesSection } from "@/components/sections/services-section"
+import { ContactSection } from "@/components/sections/contact-section"
 import { Footer } from "@/components/layout/footer"
 import { Navigation } from "@/components/layout/navigation"
 import { Suspense } from "react"
@@ -28,6 +29,9 @@ export default function HomePage() {
         <Suspense fallback={<div className="py-24 bg-muted/30 animate-pulse" />}>
           <AdaptSectionLazy />
         </Suspense>
+
+        {/* Destino del ContactAction del JSON-LD (#contact): sin lazy para que el id esté en el HTML del servidor */}
+        <ContactSection />
       </main>
       <Footer />
       <ChatPanel />

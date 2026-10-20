@@ -2,6 +2,8 @@ import { Fragment } from "react"
 import type { LegalDocument, LegalSection } from "@/lib/legal/types"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { Navigation } from "@/components/layout/navigation"
+import { Footer } from "@/components/layout/footer"
 import { BlockView } from "./legal-blocks"
 
 function DocumentHeader({ document }: { document: LegalDocument }) {
@@ -39,27 +41,33 @@ function SectionView({ section }: { section: LegalSection }) {
 
 /** Server-rendered shell for every legal document (privacy, cookies, legal notice, annex). */
 export function LegalDocumentView({ document }: { document: LegalDocument }) {
+  // Navigation is fixed, so the pt-20 below reserves its height. The navigation carries
+  // the language selector and the footer the way back to the rest of the site.
   return (
-    <div className="min-h-screen bg-background pt-20">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <DocumentHeader document={document} />
-          <Card className="p-6 sm:p-8">
-            <div className="prose prose-neutral dark:prose-invert max-w-none">
-              {document.sections.map((section, index) => {
-                const previous = document.sections[index - 1]
-                const showSeparator = index > 0 && previous?.title !== undefined
-                return (
-                  <Fragment key={section.id}>
-                    {showSeparator && <Separator className="my-8" />}
-                    <SectionView section={section} />
-                  </Fragment>
-                )
-              })}
-            </div>
-          </Card>
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-background pt-20">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <DocumentHeader document={document} />
+            <Card className="p-6 sm:p-8">
+              <div className="prose prose-neutral dark:prose-invert max-w-none">
+                {document.sections.map((section, index) => {
+                  const previous = document.sections[index - 1]
+                  const showSeparator = index > 0 && previous?.title !== undefined
+                  return (
+                    <Fragment key={section.id}>
+                      {showSeparator && <Separator className="my-8" />}
+                      <SectionView section={section} />
+                    </Fragment>
+                  )
+                })}
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   )
 }

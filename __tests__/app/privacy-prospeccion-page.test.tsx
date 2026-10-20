@@ -2,6 +2,12 @@
 import { render, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 
+// The site navigation mounts LanguageSwitcher, which needs the App Router context.
+jest.mock("next/navigation", () => ({
+  usePathname: () => "/es/privacy/prospeccion",
+  useRouter: () => ({ push: jest.fn() }),
+}))
+
 import Page, { generateMetadata } from "@/app/[locale]/privacy/prospeccion/page"
 
 const TITLES = {
@@ -50,6 +56,17 @@ describe.each(["es", "en", "it"] as const)("Prospecting annex page — locale %s
     expect(screen.getByText(EYEBROWS[locale])).toBeInTheDocument()
     const backLink = screen.getByRole("link", { name: BACK_LINK_TEXT[locale] })
     expect(backLink).toHaveAttribute("href", `/${locale}/privacy`)
+  })
+
+  it("renders the site navigation with the language switcher", async () => {
+    render(await Page({ params: Promise.resolve({ locale }) }))
+    expect(screen.getByRole("navigation")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Switch language" })).toBeInTheDocument()
+  })
+
+  it("renders the site footer", async () => {
+    render(await Page({ params: Promise.resolve({ locale }) }))
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument()
   })
 
   it("renders the controller's NIF", async () => {
