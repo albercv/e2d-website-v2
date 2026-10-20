@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  *
- * Tests for sitemap correctness: docs slugs match actual valid routes,
- * no fabricated 404 docs URLs, and lastModified is stable (not new Date()).
+ * Tests for sitemap correctness: no docs URLs (internal docs are noindex),
+ * no fabricated 404 URLs, and lastModified is stable (not new Date()).
  */
 
 import * as fs from "fs"
@@ -37,42 +37,15 @@ describe("docs pages in sitemap", () => {
     expect(securityUrls).toEqual([])
   })
 
-  it("emits only docs with real content: principles, architecture", async () => {
-    // Stubs (components/i18n/seo/gdpr/performance/deployment) are noindexed
-    // in page metadata (audit C4) and must not appear in the sitemap.
-    const indexedSlugs = ["principles", "architecture"]
-    const stubSlugs = ["components", "i18n", "seo", "gdpr", "performance", "deployment"]
+  it("emits no docs URL for any locale: internal docs are noindex, so they are not sitemapped", async () => {
+    // Docs are publicly reachable but kept out of search results (audit
+    // 2026-10-20). Listing them in the sitemap would contradict noindex.
     const sitemap = await mod.generateAISitemap()
     const docUrls = sitemap
       .map((e: any) => e.url)
-      .filter((u: string) => /\/docs\/[a-z0-9-]+$/.test(u))
+      .filter((u: string) => /\/docs(\/|$)/.test(u))
 
-    for (const slug of indexedSlugs) {
-      for (const locale of ["es", "en", "it"]) {
-        expect(docUrls).toContain(`https://evolve2digital.com/${locale}/docs/${slug}`)
-      }
-    }
-
-    for (const slug of stubSlugs) {
-      for (const locale of ["es", "en", "it"]) {
-        expect(docUrls).not.toContain(`https://evolve2digital.com/${locale}/docs/${slug}`)
-      }
-    }
-  })
-
-  it("emits docs entries for all three locales", async () => {
-    const sitemap = await mod.generateAISitemap()
-    const docUrls = sitemap
-      .map((e: any) => e.url)
-      .filter((u: string) => /\/docs\/[a-z0-9-]+$/.test(u))
-
-    const esCount = docUrls.filter((u: string) => u.startsWith("https://evolve2digital.com/es/docs/")).length
-    const enCount = docUrls.filter((u: string) => u.startsWith("https://evolve2digital.com/en/docs/")).length
-    const itCount = docUrls.filter((u: string) => u.startsWith("https://evolve2digital.com/it/docs/")).length
-
-    expect(esCount).toBe(enCount)
-    expect(enCount).toBe(itCount)
-    expect(esCount).toBeGreaterThan(0)
+    expect(docUrls).toEqual([])
   })
 })
 
@@ -100,12 +73,13 @@ describe("lastModified stability", () => {
     expect(ts1).toBeLessThan(before + 100)
   })
 
-  it("docs lastModified is stable and not new Date() at call time", async () => {
+  it("legal lastModified is stable and not new Date() at call time", async () => {
+    // Legal pages share the stable date that docs entries used before noindex.
     const before = Date.now()
     const sitemap = await mod.generateAISitemap()
-    const docsEntry = sitemap.find((e: any) => e.url === "https://evolve2digital.com/es/docs/principles")
-    expect(docsEntry).toBeDefined()
-    const ts = new Date(docsEntry!.lastModified as any).getTime()
+    const legalEntry = sitemap.find((e: any) => e.url === "https://evolve2digital.com/es/legal")
+    expect(legalEntry).toBeDefined()
+    const ts = new Date(legalEntry!.lastModified as any).getTime()
     // Must be a real date in the past, not generated at test-run time
     expect(ts).toBeLessThan(before)
   })

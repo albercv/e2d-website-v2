@@ -19,15 +19,6 @@ const STATIC_SECTIONS = `## Sitio principal
 - [Home (en)](${BASE_URL}/en): English landing page
 - [Home (it)](${BASE_URL}/it): pagina principale in italiano
 
-## Documentación
-
-- [Principios](${BASE_URL}/es/docs/principles)
-- [Arquitectura](${BASE_URL}/es/docs/architecture)
-- [Seguridad](${BASE_URL}/es/docs/security)
-- [Performance](${BASE_URL}/es/docs/performance)
-- [Despliegue](${BASE_URL}/es/docs/deployment)
-- [GDPR](${BASE_URL}/es/docs/gdpr)
-
 `
 
 export async function GET(): Promise<Response> {

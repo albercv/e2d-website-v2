@@ -105,6 +105,14 @@ body
     expect(urls).toContain("https://evolve2digital.com/it/blog")
   })
 
+  it("does not include the docs index for any locale (docs are noindex)", async () => {
+    const sitemap = await mod.generateAISitemap()
+    const urls = sitemap.map((e: any) => e.url)
+    for (const locale of ["es", "en", "it"]) {
+      expect(urls).not.toContain(`https://evolve2digital.com/${locale}/docs`)
+    }
+  })
+
   it("uses post.date as lastModified for blog post entries", async () => {
     writeMdx(
       "posts/dated.mdx",
@@ -132,7 +140,7 @@ body
 
   it("returns empty post entries when the content directory has no posts", async () => {
     const sitemap = await mod.generateAISitemap()
-    // Static + docs + legal pages are still present, no blog post slugs.
+    // Static + legal pages are still present, no blog post slugs.
     const blogPostUrls = sitemap
       .map((e: any) => e.url)
       .filter((u: string) => /\/blog\/[a-z0-9-]+$/.test(u))

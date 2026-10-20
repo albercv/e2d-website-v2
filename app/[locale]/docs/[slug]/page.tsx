@@ -12,10 +12,6 @@ interface DocsSlugPageProps {
 
 const validSlugs = ["principles", "architecture", "components", "i18n", "seo", "gdpr", "performance", "deployment"]
 
-// Stub pages with placeholder bodies ("Contenido de X en español…"). Keep them
-// reachable but out of the index until they get real content (audit C4).
-const stubSlugs = ["components", "i18n", "seo", "gdpr", "performance", "deployment"]
-
 export function generateStaticParams() {
   const locales = ["es", "en", "it"]
   return locales.flatMap((locale) =>
@@ -102,9 +98,9 @@ export async function generateMetadata({ params }: DocsSlugPageProps): Promise<M
       title: `${title} - E2D Docs`,
       description: descriptions[locale] ?? descriptions.es,
     },
-    robots: stubSlugs.includes(slug)
-      ? { index: false, follow: true }
-      : { index: true, follow: true },
+    // Internal docs: reachable, but out of search results (audit 2026-10-20).
+    // Keep them fetchable so crawlers can read this directive.
+    robots: { index: false, follow: true },
     keywords: [
       locale === "es" ? "documentación" : locale === "it" ? "documentazione" : "documentation",
       title.toLowerCase(),

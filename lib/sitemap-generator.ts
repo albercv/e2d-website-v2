@@ -76,9 +76,6 @@ export class SitemapGenerator {
     // Add blog posts
     entries.push(...this.generateBlogPosts(posts))
 
-    // Add documentation pages
-    entries.push(...this.generateDocumentationPages())
-
     // Add legal pages
     entries.push(...this.generateLegalPages())
 
@@ -143,22 +140,6 @@ export class SitemapGenerator {
           crawlPriority: 9,
           lastContentUpdate: this.getLatestPostDate(posts),
           semanticTags: ["blog", "articles", "automation", "technology"],
-        },
-      })
-
-      // Documentation index pages
-      pages.push({
-        url: `${this.config.baseUrl}/${locale}/docs`,
-        lastModified: this.getStableDate(),
-        changeFrequency: "weekly",
-        priority: 0.8,
-        alternateLanguages: this.generateAlternateLanguages("/docs"),
-        aiMetadata: {
-          contentType: "documentation",
-          importance: "high",
-          crawlPriority: 8,
-          lastContentUpdate: this.getStableDate(),
-          semanticTags: ["documentation", "guides", "technical", "implementation"],
         },
       })
     })
@@ -227,38 +208,6 @@ export class SitemapGenerator {
         },
       }
     })
-  }
-
-  /**
-   * Generate documentation pages
-   */
-  private generateDocumentationPages(): SitemapEntry[] {
-    // Only docs with real content. Stubs (components/i18n/seo/gdpr/performance/
-    // deployment) are noindexed in the page metadata and must not be sitemapped.
-    const docSlugs = ["principles", "architecture"]
-
-    const pages: SitemapEntry[] = []
-
-    this.config.supportedLocales.forEach(locale => {
-      docSlugs.forEach(slug => {
-        pages.push({
-          url: `${this.config.baseUrl}/${locale}/docs/${slug}`,
-          lastModified: this.getStableDate(),
-          changeFrequency: "monthly",
-          priority: 0.6,
-          alternateLanguages: this.generateAlternateLanguages(`/docs/${slug}`),
-          aiMetadata: {
-            contentType: "documentation",
-            importance: "medium",
-            crawlPriority: 6,
-            lastContentUpdate: this.getStableDate(),
-            semanticTags: ["documentation", slug, "technical", "guide"],
-          },
-        })
-      })
-    })
-
-    return pages
   }
 
   /**

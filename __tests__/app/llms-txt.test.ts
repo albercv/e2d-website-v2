@@ -59,6 +59,14 @@ body`)
     expect(body).toContain("/es/blog/published")
     expect(body).not.toContain("/es/blog/draft")
   })
+
+  it("does not list the internal docs (noindex, so not advertised to AI indexes)", async () => {
+    const { GET } = require("../../app/llms.txt/route")
+    const res: Response = await GET()
+    const body = await res.text()
+    expect(body).not.toContain("/docs")
+    expect(body).not.toContain("## Documentación")
+  })
 })
 
 describe("GET /llms-full.txt", () => {
