@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { NextIntlClientProvider } from "next-intl"
 import { notFound } from "next/navigation"
-import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/seo/json-ld"
+import { SiteGraphSchema } from "@/components/seo/json-ld"
 import { CookieBanner } from "@/components/gdpr/cookie-banner"
 import { DebugProvider } from "@/components/debug/debug-provider"
 import { HtmlDocument } from "@/components/layout/html-document"
@@ -120,9 +120,7 @@ export default async function LocaleLayout({  children,
         )}
       </noscript>
 
-      <OrganizationSchema locale={locale} />
-      <ServiceSchema locale={locale} />
-      <WebsiteSchema locale={locale} />
+      <SiteGraphSchema locale={locale} />
     </NextIntlClientProvider>
     </HtmlDocument>
   )
