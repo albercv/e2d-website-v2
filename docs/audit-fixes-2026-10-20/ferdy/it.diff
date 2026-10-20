@@ -1,0 +1,73 @@
+--- original/it.mdx
++++ revisado/it.mdx
+@@ -2,6 +2,7 @@
+ title: 'Da rispondere ai curiosi a chiudere clienti: il sito di Ferdy'
+ description: 'Come Ferdy, coach emotivo, ha smesso di spiegare la stessa cosa su WhatsApp 20 volte al giorno. Un sito su misura che filtra, spiega, incassa e prenota. Caso reale, stack e numeri.'
+ date: 2026-05-06
++updated: 2026-10-20
+ locale: it
+ slug: da-rispondere-ai-curiosi-a-chiudere-clienti-il-sito-di-ferdy
+ tags: ['caso di successo', 'sito su misura', 'coaching', 'automazione', 'Next.js', 'Stripe']
+@@ -41,9 +42,9 @@
+ 
+ Quello di cui avevamo bisogno non era un sito. Era una **piattaforma che facesse il lavoro preliminare**: che spiegasse, che filtrasse, che lasciasse arrivare a Ferdy solo le persone che avevano già deciso di ingaggiarlo.
+ 
+-## Cosa abbiamo costruito
++## Funzionalità consegnate
+ 
+-[ferdycoachdesamor.com](https://ferdycoachdesamor.com/) è un sito fatto al 100% su misura. Non è un template, non è un Wordpress con plugin. È codice pensato per risolvere esattamente il problema di Ferdy.
++[ferdycoachdesamor.com](https://ferdycoachdesamor.com/) è un sito fatto al 100% su misura. Non è un template, non è un WordPress con plugin. È codice pensato per risolvere esattamente il problema di Ferdy.
+ 
+ **Dal punto di vista funzionale, ecco cosa il sito fa per lui:**
+ 
+@@ -53,19 +54,19 @@
+ - **Gestisce le email senza che lui debba scrivere nulla.** Conferma di prenotazione, promemoria del pagamento, consegna del prodotto digitale — tutto automatizzato.
+ - **Gli permette di modificare il sito senza programmatore.** Cambiare un testo, una foto, un prezzo o un intero programma non richiede di dipendere da nessuno.
+ 
+-Sotto il cofano, lo stack è Next.js, React Server Components, Stripe per i pagamenti e un sistema di email transazionali. Ma a Ferdy questo non interessa. Quello che gli importa è che **funziona e non si rompe**.
++Sotto il cofano, lo stack è Next.js, React Server Components, Stripe per i pagamenti e un sistema di email transazionali. Ma a Ferdy questo non interessa: quello che gli importa è che funzioni.
+ 
+-## Il cambiamento: da "spiegare" a "assistere"
++## Cosa osserva Ferdy
+ 
+-Il cambiamento più importante non si misura in ore risparmiate (per ora). Si misura nel **tipo di conversazione che ora Ferdy ha con chi gli scrive.**
++Il cambiamento più importante non sta nelle ore risparmiate, perché non le abbiamo misurate. Sta nel **tipo di conversazione** che Ferdy racconta di avere ora con chi gli scrive. Quello che segue è la sua osservazione, non una misurazione.
+ 
+-**Prima:**
+-Il 100% dei messaggi partiva da zero. Ferdy era il primo punto di contatto, la fonte di informazione, quello che rispondeva alle domande di base.
++**Prima, secondo Ferdy:**
++I messaggi partivano da zero. Ferdy era il primo punto di contatto, la fonte di informazione, quello che rispondeva alle domande di base.
+ 
+-**Ora:**
+-La maggior parte delle persone che scrivono ha già letto il sito, sa già in cosa consistono i programmi, ha già deciso quale le interessa. Gli scrivono **quando sono sicure di voler ingaggiarlo**, non quando stanno esplorando.
++**Ora, secondo Ferdy:**
++La maggior parte delle persone che scrivono ha già letto il sito, sa già in cosa consistono i programmi, ha già deciso quale le interessa. Gli scrivono **quando sono sicure di voler ingaggiarlo**, non quando stanno esplorando. Arrivano già informate e chiedono di programmi concreti, non di "cosa fai esattamente".
+ 
+-WhatsApp ha smesso di essere assistenza ai curiosi. È diventato l'ultimo passo prima di chiudere.
++Secondo questa osservazione, WhatsApp è passato dall'essere assistenza ai curiosi a essere l'ultimo passo prima di chiudere.
+ 
+ [video:testimonio]
+ 
+@@ -79,15 +80,17 @@
+ - **Ambito:** sito completo di vendita + prenotazione + pagamento + ebook + sistema di email + pannello di editing dei contenuti.
+ - **Investimento:** questo tipo di progetto parte da 3.000 €.
+ 
+-Un sito su misura con questo livello di funzionalità costruito in un'agenzia tradizionale si muove di solito tra gli 8.000 € e i 15.000 €, con tempi dai 3 ai 5 mesi. La differenza non sta nel codice — sta nell'evitare il sovradimensionamento, i plugin inutili e i mesi persi in riunioni.
++## Risultati misurati
+ 
+-## Metriche: perché non le pubblichiamo ancora
++Al 20 ottobre 2026 non ci sono metriche misurate che possiamo pubblicare. Quello che questo caso racconta sul cambiamento nelle conversazioni è l'osservazione di Ferdy descritta sopra, non un dato.
+ 
+-Ferdy ha il sito in produzione da poche settimane. Sta ricevendo richieste fin dal primo giorno — le persone arrivano già informate e chiedono di programmi concreti, non di "cosa fai esattamente".
++Per poter pubblicare dei risultati servirebbero questi dati, ancora in attesa da parte di Ferdy e dell'analytics del sito:
+ 
+-Ma non pubblicheremo numeri inventati. **Torneremo su questo caso tra 3 mesi con metriche reali:** percentuale di messaggi WhatsApp che non richiedono più la fase di spiegazione, tempo medio dal primo contatto alla prenotazione, ricavi generati direttamente dal sito.
++- Percentuale di messaggi WhatsApp che saltano la fase di spiegazione.
++- Tempo medio dal primo contatto alla prenotazione.
++- Prenotazioni e vendite che nascono direttamente dal sito.
+ 
+-Quando i dati ci saranno, i dati si pubblicano. Non prima.
++Quando i dati ci saranno, i dati si pubblicano, con la loro fonte e il periodo a cui si riferiscono. Non prima.
+ 
+ ## Hai lo stesso problema?
+ 
