@@ -33,6 +33,22 @@ export const SPANISH_ONLY_PAGES: readonly SpanishOnlyPageInfo[] = [
     summary:
       "Perfil profesional de Alberto Carrasco, desarrollador y fundador de Evolve2Digital: especialidades, tecnologías, proyectos y contacto.",
   },
+  {
+    slug: "desarrollo-software-madrid",
+    kind: "service",
+    lastModified: "2026-10-20",
+    label: "Desarrollo de software en Madrid",
+    summary:
+      "Desarrollo de software a medida para empresas de la Comunidad de Madrid y del resto de España, en remoto: problemas que resuelve, proceso, integraciones, presupuesto y mantenimiento.",
+  },
+  {
+    slug: "automatizacion-procesos-ia",
+    kind: "service",
+    lastModified: "2026-10-20",
+    label: "Automatización de procesos con IA",
+    summary:
+      "Automatización de procesos con IA: procesos concretos, herramientas conectables, datos necesarios, intervención humana, límites y mantenimiento, con ejemplos etiquetados como caso de cliente, proyecto propio o demostración.",
+  },
 ]
 
 export function spanishOnlyPath(slug: SpanishOnlySlug): string {

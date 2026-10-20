@@ -11,8 +11,15 @@ jest.mock("@/lib/analytics/track", () => ({ track: jest.fn() }))
 import { Footer } from "@/components/layout/footer"
 import { AboutSection } from "@/components/sections/about-section"
 
+const SPANISH_ONLY_HREFS = [
+  "/es/alberto-carrasco",
+  "/es/desarrollo-software-madrid",
+  "/es/automatizacion-procesos-ia",
+]
 const profileLinks = () =>
   screen.queryAllByRole("link").filter((a) => a.getAttribute("href") === "/es/alberto-carrasco")
+const spanishOnlyLinks = () =>
+  screen.queryAllByRole("link").filter((a) => SPANISH_ONLY_HREFS.includes(a.getAttribute("href") ?? ""))
 
 describe("footer links to the Spanish-only pages", () => {
   it("shows them in the navigation column for the Spanish site", () => {
@@ -20,12 +27,13 @@ describe("footer links to the Spanish-only pages", () => {
     render(<Footer />)
     expect(profileLinks()).toHaveLength(1)
     expect(profileLinks()[0]).toHaveTextContent("Alberto Carrasco")
+    expect(spanishOnlyLinks().map((a) => a.getAttribute("href"))).toEqual(SPANISH_ONLY_HREFS)
   })
 
   it.each(["en", "it"])("hides them on the %s site, where they would be untranslated", (locale) => {
     currentLocale = locale
     render(<Footer />)
-    expect(profileLinks()).toHaveLength(0)
+    expect(spanishOnlyLinks()).toHaveLength(0)
   })
 })
 

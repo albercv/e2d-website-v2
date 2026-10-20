@@ -5,9 +5,8 @@ export function ProfileMethod() {
   return (
     <PageSection id="como-trabajo" title="Cómo trabajo">
       <Paragraph>
-        Diseño, programo y despliego personalmente cada proyecto: hablas directamente con quien escribe el código.
-        Primero analizo el problema, después preparo una propuesta escrita con alcance y presupuesto, desarrollo por
-        entregas, despliego y me ocupo del mantenimiento.
+        Mi forma de trabajar es siempre la misma: primero analizo el problema, después preparo una propuesta escrita con
+        alcance y presupuesto, desarrollo por entregas, despliego y me ocupo del mantenimiento.
       </Paragraph>
       <Paragraph>
         Trabajo en remoto desde Madrid, en español o en inglés. El detalle de cada fase está en la página de{" "}

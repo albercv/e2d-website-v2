@@ -9,9 +9,8 @@ export function ProfileWho() {
         domicilio en Madrid, tal como consta en el <TextLink href={LEGAL_NOTICE_PATH}>aviso legal</TextLink>.
       </Paragraph>
       <Paragraph>
-        Trabajo con empresas de España y del norte de Europa, en español y en inglés. En Evolve2Digital diseño, programo
-        y despliego personalmente cada proyecto, de modo que quien te atiende en la primera conversación es también
-        quien escribe el código.
+        Trabajo con empresas de España y del norte de Europa, en español y en inglés. Quien te atiende en la primera
+        conversación es también quien escribe el código.
       </Paragraph>
     </PageSection>
   )
@@ -20,7 +19,7 @@ export function ProfileWho() {
 export function ProfileSpecialties() {
   return (
     <PageSection id="a-que-me-dedico" title="A qué me dedico">
-      <Paragraph>Tres líneas de trabajo, que suelen combinarse dentro de un mismo proyecto.</Paragraph>
+      <Paragraph>Tres líneas de trabajo:</Paragraph>
       <CardGrid>
         <InfoCard title="Software a medida">
           <p>

@@ -64,8 +64,7 @@ export const WHATSAPP_DASHBOARD: ShowcaseProject = {
   id: "whatsapp-dashboard",
   name: "Dashboard para un bot de WhatsApp",
   evidence: "client",
-  summary:
-    "Panel con estadísticas y visor de conversaciones. El cliente no tiene dominio público, por eso no hay enlace.",
+  summary: "Panel con estadísticas y visor de conversaciones. Es un proyecto sin enlace público.",
 }
 
 export const ARCHETYPEX: ShowcaseProject = {
@@ -101,6 +100,16 @@ export const OWN_SITE_ASSISTANT: ShowcaseProject = {
   name: "El asistente de este sitio",
   evidence: "own",
   summary: "Un asistente que responde a las preguntas de los visitantes a partir del contenido del blog.",
+}
+
+export const DEMO_CLAUDE_SKILLS: ShowcaseProject = {
+  id: "claude-code-skills",
+  name: "Análisis de dos skills de Claude Code",
+  evidence: "demo",
+  postPath: SKILLS_DEMO_POST_PATH,
+  postLinkText: "Leer el análisis",
+  summary:
+    "Un análisis de dos skills de Claude Code, una de auditoría SEO y otra de análisis de vídeo. Es una demostración: no es un caso de cliente.",
 }
 
 export const OWN_PORTFOLIO: ShowcaseProject = {

@@ -16,12 +16,15 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/components/contact/contact-modal", () => ({ ContactModal: () => null }))
 
 import ProfilePage, { generateMetadata as profileMetadata } from "@/app/[locale]/alberto-carrasco/page"
+import SoftwarePage, { generateMetadata as softwareMetadata } from "@/app/[locale]/desarrollo-software-madrid/page"
+import AutomationPage, { generateMetadata as automationMetadata } from "@/app/[locale]/automatizacion-procesos-ia/page"
 import { SpanishOnlyPage } from "@/components/pages/spanish-only-page"
 import { useLocaleAlternates } from "@/components/layout/locale-alternates-context"
 import { resolveTargetPath } from "@/components/layout/language-switcher"
 import { SPANISH_ONLY_PAGES, spanishOnlyUrl } from "@/lib/seo/static-pages"
 import { metadata as rootMetadata } from "@/app/layout"
 import {
+  AREA_SERVED,
   ORGANIZATION_ID,
   PERSON_ID,
   PERSON_PROFILE_URL,
@@ -44,6 +47,18 @@ const PAGES: PageModule[] = [
     Page: ProfilePage,
     generateMetadata: profileMetadata,
     titleIncludes: "Alberto Carrasco",
+  },
+  {
+    slug: "desarrollo-software-madrid",
+    Page: SoftwarePage,
+    generateMetadata: softwareMetadata,
+    titleIncludes: "Madrid",
+  },
+  {
+    slug: "automatizacion-procesos-ia",
+    Page: AutomationPage,
+    generateMetadata: automationMetadata,
+    titleIncludes: "Automatización",
   },
 ]
 
@@ -169,6 +184,141 @@ describe("/es/alberto-carrasco", () => {
     const text = container.textContent ?? ""
     expect(text).not.toMatch(/\d+\s?%/)
     expect(text).not.toMatch(/universidad|máster|grado en|ingeniero/i)
+  })
+})
+
+describe.each([
+  ["desarrollo-software-madrid", SoftwarePage],
+  ["automatizacion-procesos-ia", AutomationPage],
+] as const)("service page /es/%s", (slug, Page) => {
+  const url = `https://evolve2digital.com/es/${slug}`
+  const other =
+    slug === "desarrollo-software-madrid" ? "/es/automatizacion-procesos-ia" : "/es/desarrollo-software-madrid"
+  const renderPage = async () => render(await Page({ params: params("es") }))
+
+  it("publishes a Service provided by the #organization node, linked from its WebPage", async () => {
+    const { container } = await renderPage()
+    const nodes = readJsonLd(container)
+    const service = nodes.find((n) => n["@type"] === "Service")
+    const webPage = nodes.find((n) => n["@type"] === "WebPage")
+    expect(service).toMatchObject({
+      "@id": `${url}#service`,
+      url,
+      provider: { "@id": ORGANIZATION_ID },
+    })
+    expect(String(service?.name).length).toBeGreaterThan(10)
+    expect(String(service?.description).length).toBeGreaterThan(40)
+    expect(webPage).toMatchObject({
+      "@id": `${url}#webpage`,
+      url,
+      inLanguage: "es-ES",
+      isPartOf: { "@id": WEBSITE_ID },
+      about: { "@id": `${url}#service` },
+      dateModified: "2026-10-20",
+    })
+  })
+
+  it("links the other service, the profile, the contact section and a published price page", async () => {
+    const { container } = await renderPage()
+    const links = hrefs(container)
+    expect(links).toContain(other)
+    expect(links).toContain("/es/alberto-carrasco")
+    expect(links).toContain("/es#contact")
+    expect(links.filter((h) => h.startsWith("/es/servicios/")).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it("does not state any price: figures live only in the published price pages", async () => {
+    const { container } = await renderPage()
+    expect(container.textContent ?? "").not.toMatch(/\d[\d.,]*\s?(€|euros?)|€\s?\d/i)
+  })
+})
+
+describe("/es/desarrollo-software-madrid", () => {
+  const renderPage = async () => render(await SoftwarePage({ params: params("es") }))
+
+  it("covers the sections the brief asks for", async () => {
+    await renderPage()
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)
+    for (const topic of [/Problemas/, /Tipos de proyecto/, /Cómo trabajo/, /Integraciones/, /presupuesto/, /Ejemplos/, /Mantenimiento/]) {
+      expect(headings.some((h) => topic.test(h ?? ""))).toBe(true)
+    }
+  })
+
+  it("serves Madrid as a service area, not as an office", async () => {
+    const { container } = await renderPage()
+    const service = readJsonLd(container).find((n) => n["@type"] === "Service")
+    expect(service?.areaServed).toEqual([{ "@type": "AdministrativeArea", name: "Comunidad de Madrid" }, "ES"])
+    const json = JSON.stringify(readJsonLd(container))
+    expect(json).not.toMatch(/PostalAddress|"address"|streetAddress|LocalBusiness/)
+
+    const text = container.textContent ?? ""
+    expect(text).toContain("Comunidad de Madrid")
+    expect(text).toMatch(/en remoto/)
+    expect(text).not.toMatch(/oficina|presencial|reuniones en persona|sede/i)
+    expect(text).not.toMatch(/Alcobendas|Getafe|Leganés|Móstoles|Alcalá de Henares|Pozuelo|Las Rozas|Fuenlabrada|Torrejón/)
+  })
+
+  it("names every published price page and links the client examples", async () => {
+    const { container } = await renderPage()
+    const links = hrefs(container)
+    for (const href of [
+      "/es/servicios/agente-ia-chatbot",
+      "/es/servicios/consultoria-proyecto-pequeno",
+      "/es/servicios/consultoria-proyecto-mediano",
+      "/es/servicios/consultoria-proyecto-grande",
+      "https://ferdycoachdesamor.com",
+      "https://augustore.es",
+      "https://abyfoods.fi",
+    ]) {
+      expect(links).toContain(href)
+    }
+  })
+})
+
+describe("/es/automatizacion-procesos-ia", () => {
+  const renderPage = async () => render(await AutomationPage({ params: params("es") }))
+
+  it("serves the whole of Spain and the EU as area, like the rest of the site", async () => {
+    const { container } = await renderPage()
+    const service = readJsonLd(container).find((n) => n["@type"] === "Service")
+    expect(service?.areaServed).toEqual([...AREA_SERVED])
+  })
+
+  it("covers processes, tools, data, human intervention, limits and maintenance", async () => {
+    await renderPage()
+    const headings = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)
+    for (const topic of [/Procesos/, /Herramientas/, /datos/i, /intervención|persona/i, /Límites/, /Mantenimiento/]) {
+      expect(headings.some((h) => topic.test(h ?? ""))).toBe(true)
+    }
+  })
+
+  it("labels every example as client case, own project or demonstration", async () => {
+    await renderPage()
+    expect(screen.getAllByText("Caso de cliente").length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText("Proyecto propio").length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText("Demostración").length).toBeGreaterThanOrEqual(1)
+  })
+
+  it("puts each example under the label that matches the fact sheet", async () => {
+    const { container } = await renderPage()
+    const cardWith = (href: string) => container.querySelector(`a[href="${href}"]`)?.closest("article")
+    expect(cardWith("https://ferdycoachdesamor.com")).toHaveTextContent("Caso de cliente")
+    expect(cardWith("/es/blog/llevo-meses-sin-abrir-el-editor-de-mi-blog-publico-hablando-con-claude")).toHaveTextContent(
+      "Proyecto propio",
+    )
+    const demo = cardWith("/es/blog/automatizaciones-para-empresas-con-ia-dos-casos-reales")
+    expect(demo).toHaveTextContent("Demostración")
+    expect(demo).not.toHaveTextContent("Caso de cliente")
+  })
+
+  it("names the connectable tools and the limits of automation", async () => {
+    const { container } = await renderPage()
+    const text = container.textContent ?? ""
+    for (const tool of ["CRM", "ERP", "n8n", "WhatsApp", "Stripe"]) {
+      expect(text).toContain(tool)
+    }
+    expect(text).toMatch(/proveedores/)
+    expect(text).toMatch(/APIs de terceros/)
   })
 })
 

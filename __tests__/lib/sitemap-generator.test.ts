@@ -236,7 +236,7 @@ body
 })
 
 describe("Spanish-only pages in the sitemap", () => {
-  const SPANISH_ONLY_SLUGS = ["alberto-carrasco"]
+  const SPANISH_ONLY_SLUGS = ["alberto-carrasco", "desarrollo-software-madrid", "automatizacion-procesos-ia"]
 
   it.each(SPANISH_ONLY_SLUGS)("lists /es/%s once, dated with its content date", async (slug) => {
     const entries = await mod.generateAISitemap()
@@ -257,11 +257,5 @@ describe("Spanish-only pages in the sitemap", () => {
     const urls = (await mod.generateAISitemap()).map(e => e.url)
     expect(urls).not.toContain(`https://evolve2digital.com/en/${slug}`)
     expect(urls).not.toContain(`https://evolve2digital.com/it/${slug}`)
-  })
-
-  it("does not list pages that are not implemented yet", async () => {
-    const urls = (await mod.generateAISitemap()).map(e => e.url)
-    expect(urls).not.toContain("https://evolve2digital.com/es/desarrollo-software-madrid")
-    expect(urls).not.toContain("https://evolve2digital.com/es/automatizacion-procesos-ia")
   })
 })
