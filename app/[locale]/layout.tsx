@@ -93,35 +93,35 @@ export default async function LocaleLayout({  children,
 
   return (
     <HtmlDocument lang={locale}>
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
-      <CookieBanner />
-      <DebugProvider />
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        {children}
+        <CookieBanner />
+        <DebugProvider />
 
-      {/* Fallback para navegadores sin JS: resumen del negocio para buscadores */}
-      <noscript>
-        {locale === "es" && (
-          <p>
-            Evolve2Digital (E2D) desarrolla software a medida e integra IA para PYMEs de 10 a 50 empleados:
-            aplicaciones web, ERP/CRM y automatización de procesos. Sin SaaS genérico: tu software, tu negocio.
-          </p>
-        )}
-        {locale === "en" && (
-          <p>
-            Evolve2Digital (E2D) builds custom software and integrates AI for SMEs of 10 to 50 employees: web apps,
-            ERP/CRM and process automation. No generic SaaS: your software, your business.
-          </p>
-        )}
-        {locale === "it" && (
-          <p>
-            Evolve2Digital (E2D) sviluppa software su misura e integra l’IA per PMI di 10-50 dipendenti: applicazioni
-            web, ERP/CRM e automazione dei processi. Niente SaaS generico: il tuo software, il tuo business.
-          </p>
-        )}
-      </noscript>
+        {/* Fallback para navegadores sin JS: resumen del negocio para buscadores */}
+        <noscript>
+          {locale === "es" && (
+            <p>
+              Evolve2Digital (E2D) desarrolla software a medida e integra IA para PYMEs de 10 a 50 empleados:
+              aplicaciones web, ERP/CRM y automatización de procesos. Sin SaaS genérico: tu software, tu negocio.
+            </p>
+          )}
+          {locale === "en" && (
+            <p>
+              Evolve2Digital (E2D) builds custom software and integrates AI for SMEs of 10 to 50 employees: web apps,
+              ERP/CRM and process automation. No generic SaaS: your software, your business.
+            </p>
+          )}
+          {locale === "it" && (
+            <p>
+              Evolve2Digital (E2D) sviluppa software su misura e integra l’IA per PMI di 10-50 dipendenti: applicazioni
+              web, ERP/CRM e automazione dei processi. Niente SaaS generico: il tuo software, il tuo business.
+            </p>
+          )}
+        </noscript>
 
-      <SiteGraphSchema locale={locale} />
-    </NextIntlClientProvider>
+        <SiteGraphSchema locale={locale} />
+      </NextIntlClientProvider>
     </HtmlDocument>
   )
 }
