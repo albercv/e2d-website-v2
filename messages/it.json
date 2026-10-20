@@ -171,6 +171,13 @@
       "save": "Salva preferenze"
     }
   },
+  "contactSection": {
+    "title": "Raccontami il tuo progetto",
+    "subtitle": "Dimmi cosa vuoi automatizzare o sviluppare e lo valutiamo insieme. Parli direttamente con la persona che progetta e programma ogni soluzione.",
+    "openForm": "Apri il modulo di contatto",
+    "emailLabel": "Scrivimi a {email}",
+    "whatsappLabel": "Scrivimi su WhatsApp"
+  },
   "chat": {
     "openLabel": "Chatta con l'assistente IA",
     "title": "Assistente E2D",

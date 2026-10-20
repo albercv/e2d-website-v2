@@ -58,7 +58,7 @@ export default function Page() {
           {" "}(asunto: &quot;Solicitud de reembolso&quot;).
         </li>
         <li>
-          Formulario de contacto: <Link className="underline" href="/es#contacto">/es#contacto</Link>.
+          Formulario de contacto: <Link className="underline" href="/es#contact">/es#contact</Link>.
         </li>
       </ul>
       <p className="mt-4">

@@ -44,7 +44,7 @@ export default function Page() {
       </ul>
       <p className="mt-6 text-lg font-semibold">Precio: 3000€</p>
       <div className="mt-8">
-        <Link href="/es#contacto" prefetch={false}>
+        <Link href="/es#contact" prefetch={false}>
           <Button>Contactar</Button>
         </Link>
       </div>

@@ -171,6 +171,13 @@
       "save": "Save preferences"
     }
   },
+  "contactSection": {
+    "title": "Tell me about your project",
+    "subtitle": "Tell me what you want to automate or build and we will work it out together. You speak directly with the person who designs and codes each project.",
+    "openForm": "Open the contact form",
+    "emailLabel": "Email me at {email}",
+    "whatsappLabel": "Message me on WhatsApp"
+  },
   "chat": {
     "openLabel": "Chat with the AI assistant",
     "title": "E2D Assistant",

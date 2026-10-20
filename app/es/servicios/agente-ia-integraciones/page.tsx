@@ -39,7 +39,7 @@ export default function Page() {
         <li>Cambio de parámetros del agente</li>
       </ul>
       <div className="mt-8">
-        <Link href="/es#contacto" prefetch={false}>
+        <Link href="/es#contact" prefetch={false}>
           <Button>Contactar</Button>
         </Link>
       </div>
