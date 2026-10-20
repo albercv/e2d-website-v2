@@ -15,21 +15,9 @@ jest.mock("next/navigation", () => ({
 }))
 jest.mock("@/components/contact/contact-modal", () => ({ ContactModal: () => null }))
 
-import ProfilePage, { generateMetadata as profileMetadata } from "@/app/[locale]/alberto-carrasco/page"
 import SoftwarePage, { generateMetadata as softwareMetadata } from "@/app/[locale]/desarrollo-software-madrid/page"
 import AutomationPage, { generateMetadata as automationMetadata } from "@/app/[locale]/automatizacion-procesos-ia/page"
-import { SpanishOnlyPage } from "@/components/pages/spanish-only-page"
-import { useLocaleAlternates } from "@/components/layout/locale-alternates-context"
-import { resolveTargetPath } from "@/components/layout/language-switcher"
-import { SPANISH_ONLY_PAGES, spanishOnlyUrl } from "@/lib/seo/static-pages"
-import { metadata as rootMetadata } from "@/app/layout"
-import {
-  AREA_SERVED,
-  ORGANIZATION_ID,
-  PERSON_ID,
-  PERSON_PROFILE_URL,
-  WEBSITE_ID,
-} from "@/lib/seo/entities"
+import { AREA_SERVED, ORGANIZATION_ID, WEBSITE_ID } from "@/lib/seo/entities"
 
 type JsonNode = { "@type"?: string; "@id"?: string; [key: string]: unknown }
 type PageProps = { params: Promise<{ locale: string }> }
@@ -42,12 +30,6 @@ interface PageModule {
 }
 
 const PAGES: PageModule[] = [
-  {
-    slug: "alberto-carrasco",
-    Page: ProfilePage,
-    generateMetadata: profileMetadata,
-    titleIncludes: "Alberto Carrasco",
-  },
   {
     slug: "desarrollo-software-madrid",
     Page: SoftwarePage,
@@ -120,70 +102,6 @@ describe.each(PAGES)("Spanish-only page /es/$slug", ({ slug, Page, generateMetad
     for (const type of ["Organization", "Person", "WebSite"]) {
       expect(nodes.find((n) => n["@type"] === type)).toBeUndefined()
     }
-  })
-})
-
-describe("/es/alberto-carrasco", () => {
-  const renderProfile = async () => render(await ProfilePage({ params: params("es") }))
-
-  it("publishes a ProfilePage whose mainEntity is the #person node", async () => {
-    const { container } = await renderProfile()
-    const profile = readJsonLd(container).find((n) => n["@type"] === "ProfilePage")
-    expect(profile).toMatchObject({
-      "@id": `${PERSON_PROFILE_URL}#webpage`,
-      url: PERSON_PROFILE_URL,
-      inLanguage: "es-ES",
-      isPartOf: { "@id": WEBSITE_ID },
-      mainEntity: { "@id": PERSON_ID },
-      dateModified: "2026-10-20",
-    })
-    expect(String(profile?.name)).toContain("Alberto Carrasco")
-  })
-
-  it("links the services, the contact section, the confirmed profiles and the portfolio", async () => {
-    const { container } = await renderProfile()
-    const links = hrefs(container)
-    for (const href of [
-      "/es/desarrollo-software-madrid",
-      "/es/automatizacion-procesos-ia",
-      "/es#contact",
-      "https://github.com/albercv",
-      "https://e2dprojects.com/es/",
-      "mailto:hello@evolve2digital.com",
-      "/es/legal",
-    ]) {
-      expect(links).toContain(href)
-    }
-  })
-
-  it("lists every shipped project with its public link and the case post", async () => {
-    const { container } = await renderProfile()
-    const links = hrefs(container)
-    for (const href of [
-      "https://ferdycoachdesamor.com",
-      "https://augustore.es",
-      "https://abyfoods.fi",
-      "https://archetypex.es",
-      "https://e2dprojects.com/villacastin/",
-      "/es/blog/de-atender-curiosos-a-cerrar-clientes-la-web-de-ferdy",
-      "/es/blog/llevo-meses-sin-abrir-el-editor-de-mi-blog-publico-hablando-con-claude",
-    ]) {
-      expect(links).toContain(href)
-    }
-    expect(links.filter((h) => /linkedin|albertocarrasco/i.test(h))).toEqual([])
-  })
-
-  it("labels client cases and own projects apart", async () => {
-    await renderProfile()
-    expect(screen.getAllByText("Caso de cliente").length).toBeGreaterThanOrEqual(4)
-    expect(screen.getAllByText("Proyecto propio").length).toBeGreaterThanOrEqual(3)
-  })
-
-  it("has no unverified numbers: no years of experience, education or metrics", async () => {
-    const { container } = await renderProfile()
-    const text = container.textContent ?? ""
-    expect(text).not.toMatch(/\d+\s?%/)
-    expect(text).not.toMatch(/universidad|máster|grado en|ingeniero/i)
   })
 })
 
@@ -319,58 +237,5 @@ describe("/es/automatizacion-procesos-ia", () => {
     }
     expect(text).toMatch(/proveedores/)
     expect(text).toMatch(/APIs de terceros/)
-  })
-})
-
-describe("SpanishOnlyPage shell", () => {
-  function AlternatesProbe() {
-    const alternates = useLocaleAlternates()
-    return <output data-testid="alternates">{JSON.stringify(alternates)}</output>
-  }
-
-  it("sends the language switcher to the home of en and it, never to a missing translation", () => {
-    render(
-      <SpanishOnlyPage slug="alberto-carrasco">
-        <AlternatesProbe />
-      </SpanishOnlyPage>,
-    )
-    const alternates = JSON.parse(screen.getByTestId("alternates").textContent ?? "{}")
-    expect(alternates).toEqual({ es: "/es/alberto-carrasco", en: "/en", it: "/it" })
-    expect(resolveTargetPath("/es/alberto-carrasco", "en", alternates)).toBe("/en")
-    expect(resolveTargetPath("/es/alberto-carrasco", "it", alternates)).toBe("/it")
-    expect(resolveTargetPath("/es/alberto-carrasco", "es", alternates)).toBe("/es/alberto-carrasco")
-  })
-
-  it("wraps the content in a main landmark between navigation and footer", () => {
-    render(
-      <SpanishOnlyPage slug="alberto-carrasco">
-        <p>contenido</p>
-      </SpanishOnlyPage>,
-    )
-    expect(screen.getByRole("main")).toHaveTextContent("contenido")
-    expect(screen.getByRole("navigation")).toBeInTheDocument()
-    expect(screen.getByRole("contentinfo")).toBeInTheDocument()
-  })
-})
-
-describe("SPANISH_ONLY_PAGES and shared constants", () => {
-  it("dates every page with the content date, not the build date", () => {
-    for (const page of SPANISH_ONLY_PAGES) {
-      expect(page.lastModified).toBe("2026-10-20")
-    }
-  })
-
-  it("keeps the profile URL identical to the one the #person node publishes", () => {
-    expect(spanishOnlyUrl("alberto-carrasco")).toBe(PERSON_PROFILE_URL)
-    expect(PERSON_PROFILE_URL).toBe("https://evolve2digital.com/es/alberto-carrasco")
-  })
-
-  it("points the root metadata author at the profile page", () => {
-    expect(rootMetadata.authors).toEqual([{ name: "Alberto Carrasco", url: PERSON_PROFILE_URL }])
-  })
-
-  it("keeps ids stable for the nodes the pages reference", () => {
-    expect(ORGANIZATION_ID).toBe("https://evolve2digital.com#organization")
-    expect(PERSON_ID).toBe("https://evolve2digital.com#person")
   })
 })
