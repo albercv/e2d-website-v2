@@ -50,7 +50,7 @@ server {
     server_name e2dprojects.com villacastin.local 76.13.62.189 _;
 ```
 
-3. En el bloque 80, que `www` vaya directo al apex en un solo salto:
+3. En el bloque 80, **sustituir** el `if` de Certbot que ya existe para `www` (hoy devuelve `301 https://$host$request_uri`, que se queda en www) por este, para que `www` vaya al apex en un solo salto. No añadirlo debajo: nginx ejecuta el primer `return`.
 
 ```nginx
     if ($host = www.e2dprojects.com) {
