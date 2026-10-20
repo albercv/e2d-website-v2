@@ -58,7 +58,7 @@ Ver `es.diff`, `en.diff` e `it.diff` para el detalle exacto
 
 ### Mismo mecanismo en el código
 
-La rama `fix/audit-ferdy-dates` añade el campo opcional `updated`
+La rama `fix/audit-2026-10-20` añade el campo opcional `updated`
 (AAAA-MM-DD) al frontmatter: alimenta `dateModified` del JSON-LD
 (BlogPosting), el `lastmod` del sitemap y `article:modified_time` de Open
 Graph. Sin `updated`, o con un valor inválido, todo sigue usando `date`. La
@@ -175,7 +175,7 @@ larga.
 `force-dynamic`. Los cambios aparecen en la siguiente petición. **No llames a
 `posts_rebuild`** (tumba la web unos 3 minutos) ni hagas `pm2 restart` por
 esto. Lo que sí requiere build y `pm2 restart e2d` es desplegar el código de
-`updated` (rama `fix/audit-ferdy-dates`); hasta entonces `dateModified`,
+`updated` (rama `fix/audit-2026-10-20`); hasta entonces `dateModified`,
 `lastmod` y `modified_time` seguirán mostrando la fecha de publicación.
 Si hay caché por delante (Cloudflare, nginx), usa el parámetro de ejemplo del
 paso 4 para saltártela al verificar.
