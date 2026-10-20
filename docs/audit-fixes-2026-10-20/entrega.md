@@ -6,7 +6,7 @@ Encargo literal: [encargo.md](encargo.md) · Plan: [../superpowers/plans/2026-10
 
 | Entorno | Qué se comprobó |
 |---|---|
-| **Local (jest)** | Suite completa en `fix/audit-2026-10-20`: 115 de 119 suites en verde. Fallan las 4 suites que ya fallaban antes de empezar, por falta de `.env` o de `.contentlayer` en el worktree: `api/answers`, `api/mcp-streamable`, `api/register` y `components/blog/contact-cta`. |
+| **Local (jest)** | Suite completa en `fix/audit-2026-10-20`: 116 de 120 suites y 1013 de 1022 tests en verde. Fallan las 4 suites que ya fallaban antes de empezar, por falta de `.env` o de `.contentlayer` en el worktree: `api/answers`, `api/mcp-streamable`, `api/register` y `components/blog/contact-cta`. |
 | **Local (build + servidor)** | `next build` correcto (con `DATABASE_URL` ficticia y `NEXT_PUBLIC_WHATSAPP_NUMBER=34605497639`). Servidor standalone en `127.0.0.1:3091`. 97 comprobaciones HTTP sobre el HTML servido y 10 de navegador con Playwright/Chromium, todas en verde (detalle por tarea abajo). |
 | **Previsualización** | No hay entorno de previsualización: no se ha comprobado nada ahí. |
 | **Producción** | **Nada desplegado.** El 20/10 solo se capturó la línea base en producción: `lang="es"` en `/en` e `/it`, encabezado en español en `/en/cookies` e `/it/cookies`, ningún `id="contact"`, `Disallow: /_next/` sin excepciones, `/docs` en el sitemap y 404 en las tres rutas nuevas. |
