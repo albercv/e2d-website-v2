@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
-import LegalClientPage from "./LegalClientPage"
+import { legalNoticeDocument } from "@/lib/legal/content/legal-notice"
+import { getLegalDocument } from "@/lib/legal/get-document"
+import { LegalDocumentView } from "@/components/legal/legal-document"
 
 interface LegalPageProps {
   params: Promise<{ locale: string }>
@@ -61,6 +63,8 @@ export async function generateMetadata({ params }: LegalPageProps): Promise<Meta
   }
 }
 
-export default function LegalPage() {
-  return <LegalClientPage />
+export default async function LegalPage({ params }: LegalPageProps) {
+  const { locale } = await params
+  const document = getLegalDocument(legalNoticeDocument, locale)
+  return <LegalDocumentView document={document} />
 }

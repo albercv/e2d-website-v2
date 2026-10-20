@@ -15,7 +15,7 @@
  */
 
 import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
-import { buildHreflangLanguages, toRegionalHreflangKeys } from "./seo/hreflang"
+import { toRegionalHreflangKeys } from "./seo/hreflang"
 import type { MetadataRoute } from "next"
 
 export interface SitemapEntry {
@@ -265,7 +265,7 @@ export class SitemapGenerator {
    * Generate legal pages
    */
   private generateLegalPages(): SitemapEntry[] {
-    const legalPages = ["legal", "privacy", "cookies"]
+    const legalPages = ["legal", "privacy", "cookies", "privacy/prospeccion"]
     const pages: SitemapEntry[] = []
 
     this.config.supportedLocales.forEach(locale => {
@@ -287,34 +287,7 @@ export class SitemapGenerator {
       })
     })
 
-    // Spanish-only annex: no EN/IT translation exists yet, so — unlike the
-    // locale-looped pages above — this is a single entry whose alternates
-    // must not advertise /en or /it URLs that would 404.
-    pages.push(this.generateProspectingAnnexPage())
-
     return pages
-  }
-
-  /**
-   * Generate the Spanish-only commercial-prospecting privacy annex entry.
-   */
-  private generateProspectingAnnexPage(): SitemapEntry {
-    const url = `${this.config.baseUrl}/es/privacy/prospeccion`
-
-    return {
-      url,
-      lastModified: this.getStableDate(),
-      changeFrequency: "yearly",
-      priority: 0.3,
-      alternateLanguages: buildHreflangLanguages({ es: url }),
-      aiMetadata: {
-        contentType: "legal",
-        importance: "low",
-        crawlPriority: 3,
-        lastContentUpdate: this.getStableDate(),
-        semanticTags: ["legal", "privacy", "prospecting", "gdpr", "compliance"],
-      },
-    }
   }
 
   /**
