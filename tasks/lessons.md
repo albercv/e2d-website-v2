@@ -166,4 +166,4 @@ Desde una sesión aislada en un worktree, Write/Edit solo escriben dentro de ese
 
 ## 2026-10-20 — Identidad en JSON-LD: verificar titularidad, no coincidencia de nombre
 
-`github.com/albertocarrasco` era otra persona (API de GitHub: «Alberto Carrasco García», libnova). Solo se publican en `sameAs` perfiles acreditados (`github.com/albercv`: company Evolve2digital y dueño del repo). Los IDs y perfiles compartidos viven en `lib/seo/entities.ts` (y en `lib/entities.ts` del portfolio); cambiar uno exige cambiar el otro.
+`github.com/albertocarrasco` era otra persona (API de GitHub: «Alberto Carrasco García», libnova). Solo se publican en `sameAs` perfiles acreditados: verificados (`github.com/albercv`: company Evolve2digital y dueño del repo) o confirmados por escrito por el titular (LinkedIn personal; Instagram, TikTok y X de la marca, el 2026-10-20). Los personales van en `Person.sameAs` y los de marca en `Organization.sameAs`; nunca se mezclan. Los IDs y perfiles compartidos viven en `lib/seo/entities.ts` (y en `lib/entities.ts` del portfolio); cambiar uno exige cambiar el otro.
