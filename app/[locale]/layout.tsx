@@ -6,7 +6,7 @@ import { notFound } from "next/navigation"
 import { OrganizationSchema, ServiceSchema, WebsiteSchema } from "@/components/seo/json-ld"
 import { CookieBanner } from "@/components/gdpr/cookie-banner"
 import { DebugProvider } from "@/components/debug/debug-provider"
-import { LangAttribute } from "@/components/layout/lang-attribute"
+import { HtmlDocument } from "@/components/layout/html-document"
 
 const locales = ["es", "en", "it"]
 
@@ -92,8 +92,8 @@ export default async function LocaleLayout({  children,
   const messages = (await import(`@/messages/${locale}.json`)).default
 
   return (
+    <HtmlDocument lang={locale}>
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <LangAttribute locale={locale} />
       {children}
       <CookieBanner />
       <DebugProvider />
@@ -124,5 +124,6 @@ export default async function LocaleLayout({  children,
       <ServiceSchema locale={locale} />
       <WebsiteSchema locale={locale} />
     </NextIntlClientProvider>
+    </HtmlDocument>
   )
 }
