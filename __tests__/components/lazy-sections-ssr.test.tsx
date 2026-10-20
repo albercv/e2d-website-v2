@@ -24,7 +24,18 @@ describe("FaqSection SSR output", () => {
       </NextIntlClientProvider>
     )
 
-    expect(html).toContain("¿Cuáles son las mejores agencias de desarrollo web en Madrid?")
+    expect(html).toContain("¿Quién desarrolla mi proyecto?")
     expect(html).toContain("application/ld+json")
+  })
+
+  it("keeps closed answers in the server HTML so crawlers read them", () => {
+    const html = renderToString(
+      <NextIntlClientProvider locale="es" messages={es}>
+        <FaqSection />
+      </NextIntlClientProvider>
+    )
+
+    expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain("Lo desarrollo yo personalmente")
   })
 })
