@@ -147,3 +147,23 @@ Las factories de `jest.mock` se hoistean por encima de los `const` del test. Ref
 - Redirecciones por locale (o cualquier redirección conocida de antemano) van en `next.config.mjs > redirects()`, que se ejecuta antes de la ruta. Nunca `redirect()` dentro de una página prerenderizable.
 - En la página, el guard de locale no soportado es `notFound()`, que se prerenderiza bien como 404.
 - Tras desplegar cualquier redirección, comprobarla con `curl -sI <url> | grep -i location`: un test con `redirect` mockeado no detecta este fallo.
+
+## 2026-10-20 — `<html lang>` por locale: layout raíz de paso + documento por árbol
+
+**Síntoma**: `/en` e `/it` se servían con `lang="es"`; un `useEffect` (`LangAttribute`) lo corregía solo tras hidratar, así que crawlers y lectores sin JS veían español.
+
+**Patrón (Next 14.2 + next-intl)**: `app/layout.tsx` devuelve `children` (conserva `metadata` y `globals.css`) y `<html><body>` lo pinta `components/layout/html-document.tsx` desde `app/[locale]/layout.tsx` con `lang={locale}`. Cada árbol de primer nivel con páginas fuera de `[locale]` necesita su propio layout con `HtmlDocument` (`app/admin`, `app/authorize`, `app/es`) y la raíz necesita `app/not-found.tsx` con documento propio. `app/[locale]/not-found.tsx` NO debe pintar `<html>` (ya lo pinta el layout `[locale]`).
+
+**Regla**: si creas una carpeta nueva en `app/` con `page.tsx` fuera de `[locale]`, dale un `layout.tsx` con `HtmlDocument`, o el HTML saldrá sin `<html>`.
+
+## 2026-10-20 — Jest en paralelo entre worktrees: TMPDIR privado
+
+`jest.global-setup.js` escribe un handoff en `os.tmpdir()/e2d-jest-tmpdir.json`, ruta compartida por todos los worktrees. Dos ejecuciones simultáneas se pisan y fallan 50-90 suites con «no pude leer el handoff» (falso rojo). Lanzar siempre con `T=$(mktemp -d); TMPDIR=$T BLOG_POSTS_DIR=$(mktemp -d -p $T) npx jest …`.
+
+## 2026-10-20 — Subagentes en worktrees anidados
+
+Desde una sesión aislada en un worktree, Write/Edit solo escriben dentro de ese worktree. Los worktrees de tarea para subagentes van en `<worktree>/.claude/worktrees/<slug>` (ignorado por git y por jest). Al lanzar jest desde dentro hay que sobrescribir `--testPathIgnorePatterns '/node_modules/' '/.next/'`, porque la config ignora `/.claude/worktrees/`. Hay que borrarlos antes de `tsc` o `next build` en el worktree padre, porque `tsconfig` los incluiría.
+
+## 2026-10-20 — Identidad en JSON-LD: verificar titularidad, no coincidencia de nombre
+
+`github.com/albertocarrasco` era otra persona (API de GitHub: «Alberto Carrasco García», libnova). Solo se publican en `sameAs` perfiles acreditados (`github.com/albercv`: company Evolve2digital y dueño del repo). Los IDs y perfiles compartidos viven en `lib/seo/entities.ts` (y en `lib/entities.ts` del portfolio); cambiar uno exige cambiar el otro.
