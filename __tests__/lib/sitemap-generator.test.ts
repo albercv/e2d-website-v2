@@ -196,3 +196,41 @@ body`
     expect(langs?.["x-default"]).toBe("https://evolve2digital.com/es/blog/llm")
   })
 })
+
+describe("blog entry lastModified honours frontmatter `updated`", () => {
+  const post = (slug: string, extra: string) => `---
+title: ${slug}
+description: short description
+date: 2026-05-04
+locale: es
+slug: ${slug}
+published: true
+${extra}
+---
+
+body
+`
+  const lastModifiedOf = async (slug: string) => {
+    const sitemap = await mod.generateAISitemap()
+    const entry = sitemap.find(
+      (e: any) => e.url === `https://evolve2digital.com/es/blog/${slug}`,
+    )
+    expect(entry).toBeDefined()
+    return new Date(entry!.lastModified as any).toISOString().slice(0, 10)
+  }
+
+  it("uses `updated` when the post has one", async () => {
+    writeMdx("posts/with-updated.mdx", post("with-updated", "updated: 2026-10-20"))
+    expect(await lastModifiedOf("with-updated")).toBe("2026-10-20")
+  })
+
+  it("keeps `date` when the post has no `updated`", async () => {
+    writeMdx("posts/plain.mdx", post("plain", ""))
+    expect(await lastModifiedOf("plain")).toBe("2026-05-04")
+  })
+
+  it("keeps `date` when `updated` is invalid", async () => {
+    writeMdx("posts/bad.mdx", post("bad", "updated: not-a-date"))
+    expect(await lastModifiedOf("bad")).toBe("2026-05-04")
+  })
+})

@@ -15,6 +15,7 @@
  */
 
 import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
+import { postModifiedDate } from "./blog/post-dates"
 import { toRegionalHreflangKeys } from "./seo/hreflang"
 import type { MetadataRoute } from "next"
 
@@ -187,9 +188,13 @@ export class SitemapGenerator {
         alternateUrls = toRegionalHreflangKeys(langs)
       }
 
+      // Fecha de la última edición real (`updated`) o, si no hay, la de
+      // publicación: así el sitemap no declara frescura que no existe.
+      const modified = new Date(postModifiedDate(post))
+
       return {
         url: `${this.config.baseUrl}${post.url}`,
-        lastModified: new Date(post.date),
+        lastModified: modified,
         changeFrequency: "monthly" as const,
         priority: 0.7,
         alternateLanguages: alternateUrls,
@@ -197,7 +202,7 @@ export class SitemapGenerator {
           contentType: "blog" as const,
           importance: "medium" as const,
           crawlPriority: 7,
-          lastContentUpdate: new Date(post.date),
+          lastContentUpdate: modified,
           wordCount: post.wordCount,
           semanticTags: [
             ...(post.tags || []),

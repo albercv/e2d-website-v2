@@ -11,6 +11,7 @@ import Image from "next/image"
 import { MDXComponents } from "./mdx-components"
 import { BlogPostSchema, BreadcrumbSchema } from "@/components/seo/json-ld"
 import { useTranslations } from "next-intl"
+import { postModifiedDate } from "@/lib/blog/post-dates"
 
 interface BlogPostProps {
   post: CompiledPost
@@ -32,6 +33,7 @@ export function BlogPost({ post }: BlogPostProps) {
         description={post.description || ""}
         author={post.author || "Alberto Carrasco"}
         datePublished={post.date}
+        dateModified={postModifiedDate(post)}
         url={`https://evolve2digital.com${post.url}`}
         image={post.cover}
         locale={post.locale}

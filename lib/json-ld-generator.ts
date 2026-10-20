@@ -11,6 +11,7 @@
  */
 
 import type { RuntimePost as Post } from "@/lib/blog/posts-runtime"
+import { postModifiedDate } from "@/lib/blog/post-dates"
 import {
   AREA_SERVED,
   CONTACT_ANCHOR,
@@ -456,7 +457,7 @@ export class JsonLdGenerator {
       description: post.description || "",
       author: post.author || "Alberto Carrasco",
       datePublished: post.date,
-      dateModified: post.date, // Could be enhanced with actual modification date
+      dateModified: postModifiedDate(post),
       url: post.url,
       image: post.cover,
       locale: post.locale,
