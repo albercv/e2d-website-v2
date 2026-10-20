@@ -17,7 +17,7 @@ const SLUG = "desarrollo-software-madrid"
 const NAME = "Desarrollo de software a medida en Madrid"
 const TITLE = `${NAME} | Evolve2Digital`
 const DESCRIPTION =
-  "Software a medida para empresas de Madrid y de toda España, en remoto: análisis, propuesta escrita con alcance y presupuesto, desarrollo por entregas y mantenimiento."
+  "Software a medida para empresas de Madrid y España, en remoto: análisis, propuesta escrita con alcance y presupuesto, desarrollo, despliegue y mantenimiento acordado."
 const SERVICE_DESCRIPTION =
   "Desarrollo de software a medida para empresas de la Comunidad de Madrid y del resto de España, en remoto."
 

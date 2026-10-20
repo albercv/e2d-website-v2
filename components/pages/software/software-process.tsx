@@ -10,8 +10,8 @@ const STEPS = [
     text: "Recibes por escrito qué se va a construir, qué queda fuera y cuánto cuesta, antes de empezar.",
   },
   {
-    title: "Desarrollo por entregas",
-    text: "Construyo por partes que puedes ver y probar, en lugar de esperar al final para ver algo funcionando.",
+    title: "Desarrollo",
+    text: "Construyo la solución. Cómo entrego los avances y cómo los revisamos se fija en la propuesta, antes de empezar.",
   },
   {
     title: "Despliegue",
