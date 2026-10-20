@@ -234,3 +234,34 @@ body
     expect(await lastModifiedOf("bad")).toBe("2026-05-04")
   })
 })
+
+describe("Spanish-only pages in the sitemap", () => {
+  const SPANISH_ONLY_SLUGS = ["alberto-carrasco"]
+
+  it.each(SPANISH_ONLY_SLUGS)("lists /es/%s once, dated with its content date", async (slug) => {
+    const entries = await mod.generateAISitemap()
+    const url = `https://evolve2digital.com/es/${slug}`
+    const matches = entries.filter(e => e.url === url)
+    expect(matches).toHaveLength(1)
+    expect(new Date(matches[0].lastModified as any).toISOString().slice(0, 10)).toBe("2026-10-20")
+  })
+
+  it.each(SPANISH_ONLY_SLUGS)("declares only es-ES and x-default as alternates of /es/%s", async (slug) => {
+    const entries = await mod.generateAISitemap()
+    const url = `https://evolve2digital.com/es/${slug}`
+    const entry = entries.find(e => e.url === url)
+    expect((entry as any).alternates?.languages).toEqual({ "es-ES": url, "x-default": url })
+  })
+
+  it.each(SPANISH_ONLY_SLUGS)("does not invent /en or /it URLs for %s", async (slug) => {
+    const urls = (await mod.generateAISitemap()).map(e => e.url)
+    expect(urls).not.toContain(`https://evolve2digital.com/en/${slug}`)
+    expect(urls).not.toContain(`https://evolve2digital.com/it/${slug}`)
+  })
+
+  it("does not list pages that are not implemented yet", async () => {
+    const urls = (await mod.generateAISitemap()).map(e => e.url)
+    expect(urls).not.toContain("https://evolve2digital.com/es/desarrollo-software-madrid")
+    expect(urls).not.toContain("https://evolve2digital.com/es/automatizacion-procesos-ia")
+  })
+})

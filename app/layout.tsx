@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { PERSON_NAME, PERSON_PROFILE_URL } from "@/lib/seo/entities"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
     "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
   generator: "E2D - Evolve2Digital",
   keywords: ["software a medida", "desarrollo a medida", "ERP a medida", "CRM personalizado", "automatización de procesos", "integración IA empresas", "software para PYMEs"],
-  authors: [{ name: "Alberto Carrasco", url: "https://evolve2digital.com" }],
+  authors: [{ name: PERSON_NAME, url: PERSON_PROFILE_URL }],
   creator: "E2D - Evolve2Digital",
   publisher: "E2D - Evolve2Digital",
   openGraph: {

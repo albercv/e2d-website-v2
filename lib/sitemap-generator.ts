@@ -16,7 +16,8 @@
 
 import { listPostsFromDisk, type RuntimePost } from "./blog/posts-runtime"
 import { postModifiedDate } from "./blog/post-dates"
-import { toRegionalHreflangKeys } from "./seo/hreflang"
+import { buildHreflangLanguages, toRegionalHreflangKeys } from "./seo/hreflang"
+import { SPANISH_ONLY_PAGES } from "./seo/static-pages"
 import type { MetadataRoute } from "next"
 
 export interface SitemapEntry {
@@ -26,7 +27,7 @@ export interface SitemapEntry {
   priority: number
   alternateLanguages?: { [key: string]: string }
   aiMetadata?: {
-    contentType: "homepage" | "blog" | "documentation" | "service" | "legal"
+    contentType: "homepage" | "blog" | "documentation" | "service" | "legal" | "profile"
     importance: "critical" | "high" | "medium" | "low"
     crawlPriority: number
     lastContentUpdate?: Date
@@ -79,6 +80,9 @@ export class SitemapGenerator {
 
     // Add legal pages
     entries.push(...this.generateLegalPages())
+
+    // Add pages that only exist in Spanish
+    entries.push(...this.generateSpanishOnlyPages())
 
     // Sort by priority and last modified
     const sortedEntries = entries.sort((a, b) => {
@@ -242,6 +246,36 @@ export class SitemapGenerator {
     })
 
     return pages
+  }
+
+  /**
+   * Pages with no translation: only the es URL, dated with the content date
+   * declared next to the page, and only es-ES + x-default as alternates (an
+   * /en or /it URL here would point crawlers at a 404).
+   */
+  private generateSpanishOnlyPages(): SitemapEntry[] {
+    return SPANISH_ONLY_PAGES.map(page => {
+      const url = `${this.config.baseUrl}/es/${page.slug}`
+      const lastModified = new Date(page.lastModified)
+      const isProfile = page.kind === "profile"
+
+      return {
+        url,
+        lastModified,
+        changeFrequency: "monthly" as const,
+        priority: isProfile ? 0.6 : 0.8,
+        alternateLanguages: this.config.includeAlternateLanguages
+          ? buildHreflangLanguages({ es: url })
+          : undefined,
+        aiMetadata: {
+          contentType: isProfile ? ("profile" as const) : ("service" as const),
+          importance: isProfile ? ("medium" as const) : ("high" as const),
+          crawlPriority: isProfile ? 6 : 8,
+          lastContentUpdate: lastModified,
+          semanticTags: [page.slug, "español"],
+        },
+      }
+    })
   }
 
   /**

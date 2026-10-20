@@ -69,6 +69,17 @@ body`)
   })
 })
 
+describe("GET /llms.txt — Spanish-only pages", () => {
+  it("lists the profile page with its canonical URL", async () => {
+    const { GET } = require("../../app/llms.txt/route")
+    const body = await (await GET() as Response).text()
+    expect(body).toContain("https://evolve2digital.com/es/alberto-carrasco")
+    expect(body).toContain("Alberto Carrasco")
+    expect(body).not.toContain("/en/alberto-carrasco")
+    expect(body).not.toContain("/it/alberto-carrasco")
+  })
+})
+
 describe("GET /llms-full.txt", () => {
   it("returns the full markdown body of published posts and skips drafts", async () => {
     writeMdx("posts/draft.mdx", `---

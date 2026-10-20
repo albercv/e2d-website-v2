@@ -73,7 +73,8 @@
   "about": {
     "title": "Alberto Carrasco",
     "subtitle": "Desarrollador fullstack experto en React Javascript, Springboot Java, N8N, IA openAI, Claude y Gemini",
-    "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas."
+    "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas.",
+    "profileLink": "Más sobre mi trabajo"
   },
   "blog": {
     "list": {
@@ -232,5 +233,11 @@
       "labelIntent": "Tema",
       "labelMessage": "Mensaje"
     }
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o ha cambiado de dirección.",
+    "home": "Volver al inicio"
   }
 }

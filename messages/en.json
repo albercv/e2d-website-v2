@@ -73,7 +73,8 @@
   "about": {
     "title": "Alberto Carrasco",
     "subtitle": "Fullstack developer expert in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude and Gemini",
-    "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs."
+    "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs.",
+    "profileLink": "More about my work (page in Spanish)"
   },
   "blog": {
     "list": {
@@ -232,5 +233,11 @@
       "labelIntent": "Topic",
       "labelMessage": "Message"
     }
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has moved.",
+    "home": "Back to home"
   }
 }
