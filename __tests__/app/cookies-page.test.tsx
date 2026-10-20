@@ -1,6 +1,12 @@
 /** @jest-environment jsdom */
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
+
+// The site navigation mounts LanguageSwitcher, which needs the App Router context.
+jest.mock("next/navigation", () => ({
+  usePathname: () => "/es/cookies",
+  useRouter: () => ({ push: jest.fn() }),
+}))
 
 import Page from "@/app/[locale]/cookies/page"
 
@@ -23,10 +29,21 @@ describe.each(["es", "en", "it"] as const)("Cookies page — locale %s", (locale
   })
 
   it("renders the three cookie-type cards", async () => {
+    const { container } = render(await Page({ params: Promise.resolve({ locale }) }))
+    // Cards render as <h3> headings inside the "types of cookies" section; the footer has its own <h3>s.
+    const cookieTypes = container.querySelector("#cookie-types") as HTMLElement
+    expect(within(cookieTypes).getAllByRole("heading", { level: 3 })).toHaveLength(3)
+  })
+
+  it("renders the site navigation with the language switcher", async () => {
     render(await Page({ params: Promise.resolve({ locale }) }))
-    // Cards render as <h3> headings inside the "types of cookies" section.
-    const headings = screen.getAllByRole("heading", { level: 3 })
-    expect(headings).toHaveLength(3)
+    expect(screen.getByRole("navigation")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Switch language" })).toBeInTheDocument()
+  })
+
+  it("renders the site footer", async () => {
+    render(await Page({ params: Promise.resolve({ locale }) }))
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument()
   })
 })
 

@@ -18,4 +18,13 @@ describe("resolveTargetPath", () => {
   test("handles empty pathname gracefully", () => {
     expect(resolveTargetPath("", "en", null)).toBe("/en")
   })
+
+  // Legal pages have no locale alternates context, so the switch relies on the segment swap.
+  test("swaps the locale segment on a legal page without alternates", () => {
+    expect(resolveTargetPath("/en/cookies", "it", null)).toBe("/it/cookies")
+  })
+
+  test("swaps the locale segment on a nested legal page without alternates", () => {
+    expect(resolveTargetPath("/it/privacy/prospeccion", "es", null)).toBe("/es/privacy/prospeccion")
+  })
 })
