@@ -16,7 +16,7 @@ describe("Servicios pages – render", () => {
       screen.getByText(/Agente de IA para chatbot \(pack base\)/i)
     ).toBeInTheDocument();
     expect(screen.getByText(/Precio: 1500€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
     expect(container).toBeTruthy();
   });
 
@@ -24,35 +24,35 @@ describe("Servicios pages – render", () => {
     render(<IntegracionesPage />);
     expect(screen.getByText(/Integraciones y acciones extra/i)).toBeInTheDocument();
     expect(screen.getByText(/300€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
   });
 
   it("dashboard-agente-ia: renders heading, price and CTA", () => {
     render(<DashboardPage />);
     expect(screen.getByText(/Dashboard del agente de IA/i)).toBeInTheDocument();
     expect(screen.getByText(/Precio: 1500€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
   });
 
   it("consultoria-pequeno: renders heading, price and CTA", () => {
     render(<ConsultoriaSmallPage />);
     expect(screen.getByText(/Consultoría – Proyecto pequeño/i)).toBeInTheDocument();
     expect(screen.getByText(/Precio: 500€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
   });
 
   it("consultoria-mediano: renders heading, price and CTA", () => {
     render(<ConsultoriaMediumPage />);
     expect(screen.getByText(/Consultoría – Proyecto mediano/i)).toBeInTheDocument();
     expect(screen.getByText(/Precio: 1500€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
   });
 
   it("consultoria-grande: renders heading, price and CTA", () => {
     render(<ConsultoriaLargePage />);
     expect(screen.getByText(/Consultoría – Proyecto grande/i)).toBeInTheDocument();
     expect(screen.getByText(/Precio: 3000€/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Contactar/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Contactar/i })).toBeInTheDocument();
   });
 });
 

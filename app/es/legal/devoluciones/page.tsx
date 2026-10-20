@@ -6,8 +6,6 @@
  * Side-effects: Ninguno.
  */
 
-import Link from "next/link";
-
 export default function Page() {
   return (
     <section className="container mx-auto max-w-3xl px-4 py-12">
@@ -58,7 +56,7 @@ export default function Page() {
           {" "}(asunto: &quot;Solicitud de reembolso&quot;).
         </li>
         <li>
-          Formulario de contacto: <Link className="underline" href="/es#contacto">/es#contacto</Link>.
+          Formulario de contacto: <a className="underline" href="/es#contact">/es#contact</a>.
         </li>
       </ul>
       <p className="mt-4">

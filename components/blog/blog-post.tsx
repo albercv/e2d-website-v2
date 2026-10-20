@@ -11,6 +11,8 @@ import Image from "next/image"
 import { MDXComponents } from "./mdx-components"
 import { BlogPostSchema, BreadcrumbSchema } from "@/components/seo/json-ld"
 import { useTranslations } from "next-intl"
+import { postModifiedDate } from "@/lib/blog/post-dates"
+import { PERSON_NAME, PERSON_PROFILE_PATH } from "@/lib/seo/entities"
 
 interface BlogPostProps {
   post: CompiledPost
@@ -32,6 +34,7 @@ export function BlogPost({ post }: BlogPostProps) {
         description={post.description || ""}
         author={post.author || "Alberto Carrasco"}
         datePublished={post.date}
+        dateModified={postModifiedDate(post)}
         url={`https://evolve2digital.com${post.url}`}
         image={post.cover}
         locale={post.locale}
@@ -75,7 +78,14 @@ export function BlogPost({ post }: BlogPostProps) {
                 {post.readingTime.minutes} min
               </div>
               <span>•</span>
-              <span>{post.author}</span>
+              {post.author === PERSON_NAME ? (
+                // Same condition as the JSON-LD author node: only the site owner is linked to the profile.
+                <a href={PERSON_PROFILE_PATH} hrefLang="es" rel="author" className="hover:text-foreground transition-colors">
+                  {post.author}
+                </a>
+              ) : (
+                <span>{post.author}</span>
+              )}
             </div>
 
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">{post.title}</h1>

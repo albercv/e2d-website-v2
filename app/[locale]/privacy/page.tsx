@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
-import PrivacyClientPage from "./privacy-client"
+import { privacyDocument } from "@/lib/legal/content/privacy"
+import { getLegalDocument } from "@/lib/legal/get-document"
+import { LegalDocumentView } from "@/components/legal/legal-document"
 
 interface PrivacyPageProps {
   params: Promise<{ locale: string }>
@@ -60,6 +62,8 @@ export async function generateMetadata({ params }: PrivacyPageProps): Promise<Me
   }
 }
 
-export default function PrivacyPage() {
-  return <PrivacyClientPage />
+export default async function PrivacyPage({ params }: PrivacyPageProps) {
+  const { locale } = await params
+  const document = getLegalDocument(privacyDocument, locale)
+  return <LegalDocumentView document={document} />
 }

@@ -16,6 +16,7 @@ import * as path from "path"
 import matter from "gray-matter"
 import { readingTime } from "reading-time-estimator"
 import type { MDXRemoteSerializeResult } from "next-mdx-remote"
+import { parseUpdatedDate } from "./post-dates"
 
 export type RuntimeLocale = "es" | "en" | "it"
 
@@ -27,6 +28,9 @@ export interface RuntimePost {
   tags?: string[]
   author?: string
   date: string
+  // Fecha real de la última edición (YYYY-MM-DD); solo si el frontmatter la
+  // declara y es válida. Ver `postModifiedDate` para el fallback a `date`.
+  updated?: string
   published: boolean
   cover?: string
   translationKey: string
@@ -128,6 +132,7 @@ function parseFile(filePath: string, contentDir: string, raw: string): RuntimePo
     tags: Array.isArray(fm.tags) ? fm.tags.filter((t): t is string => typeof t === "string") : undefined,
     author: typeof fm.author === "string" ? fm.author : undefined,
     date,
+    updated: parseUpdatedDate(fm.updated),
     published: fm.published !== false,
     cover: typeof fm.cover === "string" ? fm.cover : undefined,
     translationKey:

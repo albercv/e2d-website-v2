@@ -1,4 +1,5 @@
 import { listPostsFromDisk, getCompiledPost, resolvePostCovers, type RuntimeLocale } from "@/lib/blog/posts-runtime"
+import { postModifiedDate } from "@/lib/blog/post-dates"
 import { buildBlogAlternates, toAbsoluteAlternates } from "@/lib/blog/alternates"
 import { buildHreflangLanguages } from "@/lib/seo/hreflang"
 import { BlogPost } from "@/components/blog/blog-post"
@@ -54,6 +55,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       description,
       type: "article",
       publishedTime: post.date,
+      modifiedTime: postModifiedDate(post),
       authors: [author],
       locale: ogLocale,
       url: canonical,

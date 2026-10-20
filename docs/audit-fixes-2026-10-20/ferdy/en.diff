@@ -1,0 +1,70 @@
+--- original/en.mdx
++++ revisado/en.mdx
+@@ -2,6 +2,7 @@
+ title: 'From fielding curious visitors to closing clients: Ferdy''s website'
+ description: 'Ferdy is an emotional coach. Every day he spent hours on WhatsApp explaining his services to people who weren''t ready to hire him. A fully custom website changed what kind of conversations he has now.'
+ date: 2026-05-11
++updated: 2026-10-20
+ locale: en
+ slug: from-fielding-curious-visitors-to-closing-clients-ferdys-website
+ tags: ['custom software', 'automation', 'small business', 'web development']
+@@ -41,7 +42,7 @@
+ 
+ What we needed wasn't a website. It was a **platform that did the groundwork**: explain, filter, and ensure that only people who had already decided to hire him reached Ferdy.
+ 
+-## What we built
++## Features delivered
+ 
+ [image:hero]
+ 
+@@ -55,19 +56,19 @@
+ - **Handles emails without him writing a thing.** Booking confirmation, payment reminder, digital product delivery — all automated.
+ - **Lets him edit the website without a developer.** Changing a text, a photo, a price, or an entire program doesn't require depending on anyone.
+ 
+-Under the hood: Next.js, React Server Components, Stripe for payments, and a transactional email system. But Ferdy doesn't care about that. What matters to him is that **it works and doesn't break**.
++Under the hood: Next.js, React Server Components, Stripe for payments, and a transactional email system. But Ferdy doesn't care about that: what matters to him is that it works.
+ 
+-## The shift: from explaining to attending
++## What Ferdy observes
+ 
+-The biggest change isn't measured in hours saved (yet). It's measured in **the kind of conversation Ferdy now has with people who reach out.**
++The biggest change isn't in hours saved, because we haven't measured them. It's in **the kind of conversation** Ferdy says he now has with people who reach out. What follows is his observation, not a measurement.
+ 
+-**Before:**
+-100% of messages started from zero. Ferdy was the first point of contact, the information source, the one answering basic questions.
++**Before, according to Ferdy:**
++Messages started from zero. Ferdy was the first point of contact, the information source, the one answering basic questions.
+ 
+-**Now:**
+-Most people who write have already read the website, already know what the programs involve, already decided which one interests them. They write **when they're sure they want to hire**, not when they're browsing.
++**Now, according to Ferdy:**
++Most people who write have already read the website, already know what the programs involve, already decided which one interests them. They write **when they're sure they want to hire**, not when they're browsing. They arrive already informed and ask about specific programs, not "what exactly do you do."
+ 
+-WhatsApp stopped being a curiosity helpdesk. It became the last step before closing.
++By Ferdy's account, WhatsApp has gone from being a curiosity helpdesk to being the last step before closing.
+ 
+ [video:testimonio]
+ 
+@@ -81,15 +82,17 @@
+ - **Scope:** full sales website + booking + payment + ebooks + email system + content editing panel.
+ - **Investment:** this type of project starts at 3,000 €.
+ 
+-A custom website at this level of functionality built by a traditional agency typically runs between 8,000 € and 15,000 €, with timelines of 3 to 5 months. The difference isn't in the code — it's in avoiding over-packaging, unnecessary plugins, and months lost in meetings.
++## Measured results
+ 
+-## Metrics: why we're not publishing them yet
++As of 20 October 2026, there are no measured metrics we can publish. What this case says about the change in conversations is Ferdy's observation described above, not data.
+ 
+-Ferdy has had the website live for a few weeks. Requests are coming in from day one — people arrive already informed and ask about specific programs, not "what exactly do you do."
++To publish results we would need the following data, which is still pending from Ferdy and from the website's analytics:
+ 
+-But we're not publishing made-up numbers. **We'll return to this case in 3 months with real metrics:** percentage of WhatsApp messages that no longer require an explanation phase, average time from first contact to booking, revenue generated directly from the website.
++- Share of WhatsApp messages that skip the explanation phase.
++- Average time from first contact to booking.
++- Bookings and sales that originate directly on the website.
+ 
+-When the data is there, the data gets published. Not before.
++When the data is there, the data gets published, with its source and the period it covers. Not before.
+ 
+ ## Do you have the same problem?
+ 

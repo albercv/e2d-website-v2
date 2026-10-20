@@ -1,16 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Plus, Minus } from "lucide-react"
 import { useLocale } from "next-intl"
-import { FAQ_DATA } from "@/lib/faq/faq-data"
+import { FAQ_DATA, type FaqItem } from "@/lib/faq/faq-data"
 import type { RuntimeLocale } from "@/lib/blog/posts-runtime"
 
-function FaqJsonLd({ items }: { items: { question: string; answer: string }[] }) {
+// Literal on purpose: the shared entity module lands in another task.
+const SITE_URL = "https://evolve2digital.com"
+
+function FaqJsonLd({ items, locale }: { items: FaqItem[]; locale: RuntimeLocale }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": `${SITE_URL}/${locale}#faq`,
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
@@ -35,16 +39,113 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
 }
 
+interface FaqAccordionItemProps {
+  index: number
+  item: FaqItem
+  isOpen: boolean
+  onToggle: (index: number) => void
+}
+
+function FaqAccordionItem({ index, item, isOpen, onToggle }: FaqAccordionItemProps) {
+  // Same 0-based index lib/rag/sources.ts writes into each FAQ document URL
+  // (`/<locale>#faq-<index>`), so those citations land on this very item.
+  const itemId = `faq-${index}`
+  const buttonId = `faq-question-${index}`
+  const panelId = `faq-answer-${index}`
+
+  return (
+    <motion.div id={itemId} variants={itemVariants}>
+      <div
+        className="relative rounded-xl border transition-colors duration-300 group overflow-hidden"
+        style={{
+          borderColor: isOpen ? "rgba(5,180,186,0.5)" : "rgba(255,255,255,0.07)",
+          background: isOpen
+            ? "linear-gradient(135deg, rgba(5,180,186,0.08) 0%, rgba(5,180,186,0.03) 100%)"
+            : "rgba(255,255,255,0.02)",
+        }}
+      >
+        {/* Glow on open */}
+        {isOpen && (
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: "inset 0 0 40px rgba(5,180,186,0.06)" }}
+          />
+        )}
+
+        <h3>
+          <button
+            type="button"
+            id={buttonId}
+            aria-expanded={isOpen}
+            aria-controls={panelId}
+            onClick={() => onToggle(index)}
+            className="flex w-full items-start gap-4 rounded-xl px-5 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#05b4ba]/70"
+          >
+            {/* Number badge */}
+            <span
+              aria-hidden
+              className="shrink-0 mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors duration-300"
+              style={{
+                background: isOpen ? "linear-gradient(135deg, #05b4ba, #7ee8eb)" : "rgba(5,180,186,0.12)",
+                color: isOpen ? "#050a0f" : "#05b4ba",
+              }}
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+
+            <span className="flex-1 text-sm font-semibold text-slate-100 leading-snug pr-2">
+              {item.question}
+            </span>
+
+            <span
+              aria-hidden
+              className="shrink-0 mt-0.5 w-6 h-6 rounded-md flex items-center justify-center transition-all duration-300"
+              style={{ background: isOpen ? "rgba(5,180,186,0.2)" : "rgba(255,255,255,0.05)" }}
+            >
+              {isOpen ? (
+                <Minus className="w-3.5 h-3.5 text-[#05b4ba]" />
+              ) : (
+                <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#05b4ba] transition-colors" />
+              )}
+            </span>
+          </button>
+        </h3>
+
+        {/* Always rendered so crawlers and the JSON-LD see the same text; the
+            grid row collapses it and `visibility` removes it from tab order and
+            the accessibility tree once the transition ends. */}
+        <div
+          id={panelId}
+          role="region"
+          aria-labelledby={buttonId}
+          className="grid transition-[grid-template-rows,opacity,visibility] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+          style={{
+            gridTemplateRows: isOpen ? "1fr" : "0fr",
+            opacity: isOpen ? 1 : 0,
+            visibility: isOpen ? "visible" : "hidden",
+          }}
+        >
+          <div className="overflow-hidden">
+            <p className="px-5 pb-5 text-sm text-slate-400 leading-relaxed pl-16">{item.answer}</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export function FaqSection() {
   const locale = useLocale() as RuntimeLocale
-  const data = FAQ_DATA[locale] ?? FAQ_DATA.es
+  const resolvedLocale: RuntimeLocale = locale in FAQ_DATA ? locale : "es"
+  const data = FAQ_DATA[resolvedLocale]
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   const toggle = (i: number) => setOpenIndex((prev) => (prev === i ? null : i))
 
   return (
     <section id="faq" className="relative py-28 overflow-hidden bg-[#050a0f]">
-      <FaqJsonLd items={data.items} />
+      <FaqJsonLd items={data.items} locale={resolvedLocale} />
 
       {/* Background grid */}
       <div
@@ -100,85 +201,15 @@ export function FaqSection() {
           viewport={{ once: true, margin: "-80px" }}
           className="space-y-3"
         >
-          {data.items.map((item, i) => {
-            const isOpen = openIndex === i
-            return (
-              <motion.div key={i} variants={itemVariants}>
-                <div
-                  className="relative rounded-xl border transition-colors duration-300 cursor-pointer group overflow-hidden"
-                  style={{
-                    borderColor: isOpen ? "rgba(5,180,186,0.5)" : "rgba(255,255,255,0.07)",
-                    background: isOpen
-                      ? "linear-gradient(135deg, rgba(5,180,186,0.08) 0%, rgba(5,180,186,0.03) 100%)"
-                      : "rgba(255,255,255,0.02)",
-                  }}
-                  onClick={() => toggle(i)}
-                >
-                  {/* Glow on open */}
-                  {isOpen && (
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        boxShadow: "inset 0 0 40px rgba(5,180,186,0.06)",
-                      }}
-                    />
-                  )}
-
-                  {/* Question row */}
-                  <div className="flex items-start gap-4 px-5 py-5">
-                    {/* Number badge */}
-                    <span
-                      className="shrink-0 mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-colors duration-300"
-                      style={{
-                        background: isOpen
-                          ? "linear-gradient(135deg, #05b4ba, #7ee8eb)"
-                          : "rgba(5,180,186,0.12)",
-                        color: isOpen ? "#050a0f" : "#05b4ba",
-                      }}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-
-                    <span className="flex-1 text-sm font-semibold text-slate-100 leading-snug pr-2">
-                      {item.question}
-                    </span>
-
-                    <span
-                      className="shrink-0 mt-0.5 w-6 h-6 rounded-md flex items-center justify-center transition-all duration-300"
-                      style={{
-                        background: isOpen ? "rgba(5,180,186,0.2)" : "rgba(255,255,255,0.05)",
-                      }}
-                    >
-                      {isOpen ? (
-                        <Minus className="w-3.5 h-3.5 text-[#05b4ba]" />
-                      ) : (
-                        <Plus className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#05b4ba] transition-colors" />
-                      )}
-                    </span>
-                  </div>
-
-                  {/* Answer */}
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        key="answer"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="overflow-hidden"
-                      >
-                        <p className="px-5 pb-5 text-sm text-slate-400 leading-relaxed pl-16">
-                          {item.answer}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )
-          })}
+          {data.items.map((item, i) => (
+            <FaqAccordionItem
+              key={item.question}
+              index={i}
+              item={item}
+              isOpen={openIndex === i}
+              onToggle={toggle}
+            />
+          ))}
         </motion.div>
       </div>
     </section>

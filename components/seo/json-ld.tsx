@@ -1,136 +1,15 @@
 import { JsonLdGenerator, defaultJsonLdConfig, type BlogPostData } from '@/lib/json-ld-generator'
 
-interface OrganizationSchemaProps {
+interface SiteGraphSchemaProps {
   locale: string
 }
 
-export function OrganizationSchema({ locale }: OrganizationSchemaProps) {
+// One script for the whole site identity: Organization, Person, WebSite and the
+// service catalogue share ids, so crawlers merge them into a single entity
+// graph instead of reading four unrelated documents.
+export function SiteGraphSchema({ locale }: SiteGraphSchemaProps) {
   const generator = new JsonLdGenerator(defaultJsonLdConfig)
-  const schema = generator.generateOrganizationSchema(locale)
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      suppressHydrationWarning
-    />
-  )
-}
-
-interface ServiceSchemaProps {
-  locale: string
-}
-
-export function ServiceSchema({ locale }: ServiceSchemaProps) {
-  const services = [
-    {
-      "@type": "Service",
-      name: locale === "es" ? "Desarrollo Web" : "Web Development",
-      description:
-        locale === "es"
-          ? "Desarrollo de sitios web con Next.js, SEO técnico, performance y accesibilidad WCAG AA"
-          : "Next.js website development, technical SEO, performance and WCAG AA accessibility",
-      provider: {
-        "@type": "Organization",
-        name: "E2D - Evolve2Digital",
-      },
-      serviceType: "Web Development",
-      category: "Technology",
-    },
-    {
-      "@type": "Service",
-      name: locale === "es" ? "Automatizaciones" : "Automations",
-      description:
-        locale === "es"
-          ? "n8n, voicebots, WhatsApp bots, scraping y outreach para PYMEs"
-          : "n8n, voicebots, WhatsApp bots, scraping and outreach for SMEs",
-      provider: {
-        "@type": "Organization",
-        name: "E2D - Evolve2Digital",
-      },
-      serviceType: "Business Automation",
-      category: "Technology",
-    },
-    {
-      "@type": "Service",
-      name: locale === "es" ? "Sistemas CRM" : "CRM Systems",
-      description:
-        locale === "es"
-          ? "Pipeline de ventas y automatizaciones de seguimiento personalizadas"
-          : "Custom sales pipeline and follow-up automations",
-      provider: {
-        "@type": "Organization",
-        name: "E2D - Evolve2Digital",
-      },
-      serviceType: "CRM Development",
-      category: "Technology",
-    },
-    {
-      "@type": "Service",
-      name: locale === "es" ? "Sistemas ERP" : "ERP Systems",
-      description:
-        locale === "es"
-          ? "Inventarios, facturación y compras integradas para PYMEs"
-          : "Integrated inventory, billing and purchasing for SMEs",
-      provider: {
-        "@type": "Organization",
-        name: "E2D - Evolve2Digital",
-      },
-      serviceType: "ERP Development",
-      category: "Technology",
-    },
-  ]
-
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: services.map((service, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      item: service,
-    })),
-  }
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      suppressHydrationWarning
-    />
-  )
-}
-
-interface WebsiteSchemaProps {
-  locale: string
-}
-
-export function WebsiteSchema({ locale }: WebsiteSchemaProps) {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "E2D - Evolve2Digital",
-    // url del WebSite = raíz canónica (ancla del Sitelinks Searchbox), no /locale.
-    url: "https://evolve2digital.com",
-    description:
-      locale === "es"
-        ? "Desarrollo de software a medida e integración de IA para PYMEs de 10 a 50 empleados. Tu software, tu negocio."
-        : locale === "it"
-          ? "Sviluppo di software su misura e integrazione IA per PMI di 10-50 dipendenti. Il tuo software, il tuo business."
-          : "Custom software development and AI integration for SMEs of 10 to 50 employees. Your software, your business.",
-    inLanguage: locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US",
-    about: {
-      "@type": "Organization",
-      name: "E2D - Evolve2Digital",
-    },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `https://evolve2digital.com/${locale}/blog?q={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
-  }
+  const schema = generator.generateSiteGraph(locale)
 
   return (
     <script

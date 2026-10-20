@@ -65,12 +65,16 @@
       "title": "Dashboard para WhatsApp Bot",
       "description": "Panel de control para gestionar un bot de WhatsApp, con estadísticas y visor de conversaciones.",
       "tags": ["Dashboard", "WhatsApp API", "Estadísticas"]
-    }
+    },
+    "visitSite": "visitar el sitio web (se abre en una pestaña nueva)",
+    "readCase": "Leer el caso",
+    "portfolioCta": "Más proyectos publicados en mi portfolio, <link>e2dProjects</link>."
   },
   "about": {
     "title": "Alberto Carrasco",
     "subtitle": "Desarrollador fullstack experto en React Javascript, Springboot Java, N8N, IA openAI, Claude y Gemini",
-    "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas."
+    "description": "Experto en React, Next.js, n8n y bases de datos vectoriales. Enfoque en ROI y cumplimiento GDPR para PYMEs españolas.",
+    "profileLink": "Más sobre mi trabajo"
   },
   "blog": {
     "list": {
@@ -171,44 +175,12 @@
       "save": "Guardar preferencias"
     }
   },
-  "privacy": {
-    "title": "Política de Privacidad",
-    "lastUpdated": "Última actualización",
-    "sections": {
-      "introduction": {
-        "title": "Introducción"
-      },
-      "dataCollection": {
-        "title": "Recopilación de Datos"
-      },
-      "dataUsage": {
-        "title": "Uso de Datos"
-      },
-      "legalBasis": {
-        "title": "Base Legal"
-      },
-      "cookies": {
-        "title": "Política de Cookies"
-      },
-      "rights": {
-        "title": "Sus Derechos"
-      },
-      "security": {
-        "title": "Seguridad"
-      },
-      "contact": {
-        "title": "Contacto"
-      },
-      "aiChat": {
-        "title": "Asistente de IA",
-        "description": "Si interactúas con el asistente IA, tus mensajes se envían a DeepSeek (LLM) y las consultas de búsqueda se vectorizan con embeddings de OpenAI para localizar contenido relevante de nuestra base de conocimiento. Conservamos las conversaciones durante 90 días y después se eliminan automáticamente. Los datos de contacto que decidas compartir se guardan como registro comercial."
-      },
-      "prospecting": {
-        "title": "Prospección comercial",
-        "description": "Si hemos analizado su negocio o le hemos contactado dentro de nuestra prospección comercial de empresas y profesionales, la información específica sobre ese tratamiento está en su anexo.",
-        "link": "Ver el anexo de prospección comercial."
-      }
-    }
+  "contactSection": {
+    "title": "Cuéntame tu proyecto",
+    "subtitle": "Dime qué quieres automatizar o desarrollar y lo estudiamos juntos. Hablas directamente con quien diseña y programa cada proyecto.",
+    "openForm": "Abrir el formulario de contacto",
+    "emailLabel": "Escríbeme a {email}",
+    "whatsappLabel": "Escríbeme por WhatsApp"
   },
   "chat": {
     "openLabel": "Chatear con el asistente IA",
@@ -261,5 +233,11 @@
       "labelIntent": "Tema",
       "labelMessage": "Mensaje"
     }
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o ha cambiado de dirección.",
+    "home": "Volver al inicio"
   }
 }

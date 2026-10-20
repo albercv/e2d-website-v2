@@ -20,8 +20,8 @@ describe("Política de devoluciones – render", () => {
     render(<ReturnsPage />);
     const mailLink = screen.getByRole("link", { name: /contacto@evolve2digital.com/i });
     expect(mailLink).toHaveAttribute("href", "mailto:contacto@evolve2digital.com");
-    const formLink = screen.getByRole("link", { name: "/es#contacto" });
-    expect(formLink).toHaveAttribute("href", "/es#contacto");
+    const formLink = screen.getByRole("link", { name: "/es#contact" });
+    expect(formLink).toHaveAttribute("href", "/es#contact");
   });
 });
 

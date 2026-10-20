@@ -247,3 +247,49 @@ body body body
     }
   })
 })
+
+describe("optional `updated` frontmatter date", () => {
+  const post = (extra: string) => `---
+title: Con fecha de actualización
+description: Descripcion suficientemente larga para validar el campo
+date: 2026-05-04
+locale: es
+slug: updated-post
+published: true
+${extra}
+---
+
+body body body
+`
+
+  it("exposes `updated` as YYYY-MM-DD when it is an unquoted YAML date", async () => {
+    await writeMdx("posts/updated.mdx", post("updated: 2026-10-20"))
+    const [parsed] = await mod.listPostsFromDisk()
+    expect(parsed.updated).toBe("2026-10-20")
+    expect(parsed.date).toBe("2026-05-04")
+  })
+
+  it("exposes `updated` when it is a quoted string", async () => {
+    await writeMdx("posts/updated-quoted.mdx", post('updated: "2026-10-20"'))
+    const [parsed] = await mod.listPostsFromDisk()
+    expect(parsed.updated).toBe("2026-10-20")
+  })
+
+  it("leaves `updated` undefined when the field is absent", async () => {
+    await writeMdx("posts/no-updated.mdx", post(""))
+    const [parsed] = await mod.listPostsFromDisk()
+    expect(parsed.updated).toBeUndefined()
+  })
+
+  it.each([
+    ["free text", "updated: not-a-date"],
+    ["impossible calendar day", 'updated: "2026-02-31"'],
+    ["wrong format", 'updated: "20/10/2026"'],
+    ["a number", "updated: 20261020"],
+  ])("ignores an invalid `updated` (%s)", async (_label, line) => {
+    await writeMdx("posts/bad-updated.mdx", post(line))
+    const [parsed] = await mod.listPostsFromDisk()
+    expect(parsed).toBeDefined()
+    expect(parsed.updated).toBeUndefined()
+  })
+})

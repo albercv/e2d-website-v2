@@ -1,23 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter, JetBrains_Mono } from "next/font/google"
+import { PERSON_NAME, PERSON_PROFILE_URL } from "@/lib/seo/entities"
 import "./globals.css"
-import { PreloadResources } from "@/components/performance/preload-resources"
-import { GoogleAnalytics } from "@/components/analytics/google-analytics"
-import { ApolloTracker } from "@/components/analytics/apollo-tracker"
-import { OpenAIPixel } from "@/components/analytics/openai-pixel"
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-})
 
 export const metadata: Metadata = {
   // Resuelve URLs relativas de OG/Twitter (ej. covers de blog `/uploads/...`) a
@@ -29,7 +13,7 @@ export const metadata: Metadata = {
     "Desarrollo de software a medida, automatización de procesos e integraciones con IA para PYMEs de 10 a 50 empleados. Sin SaaS genérico: tu software, tu negocio.",
   generator: "E2D - Evolve2Digital",
   keywords: ["software a medida", "desarrollo a medida", "ERP a medida", "CRM personalizado", "automatización de procesos", "integración IA empresas", "software para PYMEs"],
-  authors: [{ name: "Alberto Carrasco", url: "https://evolve2digital.com" }],
+  authors: [{ name: PERSON_NAME, url: PERSON_PROFILE_URL }],
   creator: "E2D - Evolve2Digital",
   publisher: "E2D - Evolve2Digital",
   openGraph: {
@@ -68,27 +52,15 @@ export const metadata: Metadata = {
   },
 }
 
+// Layout raíz de paso: no renderiza <html> porque el `lang` depende del árbol de
+// rutas. Cada árbol (app/[locale], app/admin, app/authorize, app/es y
+// app/not-found) monta su propio <HtmlDocument>. Es el patrón documentado de
+// next-intl para App Router; este archivo conserva `metadata` y los estilos
+// globales, que sí son comunes a todos los árboles.
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <html lang="es" className="dark">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-<link rel="dns-prefetch" href="https://www.google-analytics.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="https://assets.apollo.io" />
-        <link rel="dns-prefetch" href="https://bzrcdn.openai.com" />
-      </head>
-      <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        <PreloadResources />
-        <GoogleAnalytics />
-        <ApolloTracker />
-        <OpenAIPixel />
-        {children}
-      </body>
-    </html>
-  )}
+  return children
+}

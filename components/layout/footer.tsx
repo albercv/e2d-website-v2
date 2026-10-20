@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import { getWhatsAppHref } from "@/lib/contact/whatsapp"
 import { track } from "@/lib/analytics/track"
+import { SPANISH_ONLY_PAGES, spanishOnlyPath } from "@/lib/seo/static-pages"
 
 export function Footer() {
   const locale = useLocale()
@@ -73,6 +74,17 @@ export function Footer() {
                 <a href={`/${locale}#about`} className="hover:text-foreground transition-colors">
                   {tNav("about")}
                 </a>
+                {/* These pages exist only in Spanish: linking them from /en or /it would send visitors to a 404. */}
+                {locale === "es" &&
+                  SPANISH_ONLY_PAGES.map((page) => (
+                    <a
+                      key={page.slug}
+                      href={spanishOnlyPath(page.slug)}
+                      className="hover:text-foreground transition-colors"
+                    >
+                      {page.label}
+                    </a>
+                  ))}
               </div>
             </div>
 

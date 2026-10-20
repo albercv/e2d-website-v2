@@ -48,8 +48,10 @@ export async function generateMetadata({ params }: DocsPageProps): Promise<Metad
           ? "Documentación técnica completa del proyecto E2D: arquitectura, componentes, principios y mejores prácticas"
           : "Complete technical documentation for E2D project: architecture, components, principles and best practices",
     },
+    // Internal docs: reachable, but out of search results (audit 2026-10-20).
+    // Keep them fetchable so crawlers can read this directive.
     robots: {
-      index: true,
+      index: false,
       follow: true,
     },
     keywords: [

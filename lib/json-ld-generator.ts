@@ -11,6 +11,23 @@
  */
 
 import type { RuntimePost as Post } from "@/lib/blog/posts-runtime"
+import { postModifiedDate } from "@/lib/blog/post-dates"
+import {
+  AREA_SERVED,
+  CONTACT_ANCHOR,
+  ORGANIZATION_ID,
+  ORGANIZATION_SAME_AS,
+  PERSON_ID,
+  PERSON_NAME,
+  PERSON_PROFILE_URL,
+  PERSON_SAME_AS,
+  SITE_URL,
+  WEBSITE_ID,
+  organizationRef,
+  personRef,
+} from "@/lib/seo/entities"
+
+export type JsonLdNode = Record<string, unknown>
 
 export interface JsonLdConfig {
   baseUrl: string
@@ -32,9 +49,9 @@ export interface OrganizationData {
     country: string
     locality: string
   }
-  socialProfiles: string[]
   services: { [locale: string]: string[] }
-  areaServed: string
+  areaServed: readonly string[]
+  sameAs: readonly string[]
 }
 
 export interface PersonData {
@@ -43,7 +60,7 @@ export interface PersonData {
   description: { [locale: string]: string }
   url: string
   email: string
-  sameAs: string[]
+  sameAs: readonly string[]
   worksFor: string
   expertise: { [locale: string]: string[] }
 }
@@ -63,6 +80,11 @@ export interface BlogPostData {
   category?: string
 }
 
+const LANGUAGE_NAMES: Record<string, string> = { es: "Spanish", en: "English", it: "Italian" }
+
+// Home country of the business, shared by the occupation and the audience.
+const spain = (): JsonLdNode => ({ "@type": "Country", name: "Spain" })
+
 export class JsonLdGenerator {
   private config: JsonLdConfig
 
@@ -71,155 +93,49 @@ export class JsonLdGenerator {
   }
 
   /**
+   * Generate the whole site identity as one @graph. A single script means the
+   * entities cannot drift apart (the audit found two Organization ids and a
+   * WebSite described differently by two emitters); nodes reference each other
+   * through @id only.
+   */
+  generateSiteGraph(locale: string): { "@context": string; "@graph": JsonLdNode[] } {
+    return {
+      "@context": "https://schema.org",
+      "@graph": [
+        this.organizationNode(locale),
+        this.personNode(locale),
+        this.websiteNode(locale),
+        this.serviceNode(locale),
+      ],
+    }
+  }
+
+  /**
    * Generate Organization schema with AI-optimized metadata
    */
   generateOrganizationSchema(locale: string): object {
-    const org = this.config.organization
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "@id": `${this.config.baseUrl}#organization`,
-      name: org.name,
-      alternateName: org.alternateName,
-      // url de la entidad = raíz canónica, no la ruta de locale: identifica la
-      // marca para Knowledge Panel/Sitelinks, no su página en español.
-      url: this.config.baseUrl,
-      logo: {
-        "@type": "ImageObject",
-        url: `${this.config.baseUrl}${org.logo}`,
-        width: 512,
-        height: 512
-      },
-      description: org.description[locale] || org.description[this.config.defaultLocale],
-      foundingDate: "2023",
-      founder: {
-        "@type": "Person",
-        "@id": `${this.config.baseUrl}#person`,
-        name: this.config.author.name,
-        jobTitle: this.config.author.jobTitle[locale] || this.config.author.jobTitle[this.config.defaultLocale],
-        url: this.config.author.url,
-        sameAs: this.config.author.sameAs
-      },
-      contactPoint: {
-        "@type": "ContactPoint",
-        email: org.email,
-        telephone: org.telephone,
-        contactType: "customer service",
-        availableLanguage: this.config.supportedLocales.map(loc =>
-          loc === "es" ? "Spanish" : loc === "en" ? "English" : loc === "it" ? "Italian" : loc
-        )
-      },
-      address: {
-        "@type": "PostalAddress",
-        addressCountry: org.address.country,
-        addressLocality: org.address.locality
-      },
-      sameAs: org.socialProfiles,
-      serviceArea: {
-        "@type": "Country",
-        name: org.areaServed
-      },
-      areaServed: org.areaServed,
-      knowsAbout: org.services[locale] || org.services[this.config.defaultLocale],
-      hasOfferCatalog: {
-        "@type": "OfferCatalog",
-        name: locale === "es" ? "Servicios de Automatización" : locale === "it" ? "Servizi di Automazione" : "Automation Services",
-        itemListElement: (org.services[locale] || org.services[this.config.defaultLocale]).map((service, index) => ({
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: service
-          },
-          position: index + 1
-        }))
-      },
-      // AI-specific metadata
-      additionalType: "TechnologyCompany",
-      industry: "Information Technology",
-      numberOfEmployees: "1-10",
-      // Enhanced semantic context
-      mainEntityOfPage: `${this.config.baseUrl}/${locale}`,
-      potentialAction: {
-        "@type": "ContactAction",
-        target: `${this.config.baseUrl}/${locale}#contact`
-      },
-      // Legal and privacy information
-      privacyPolicy: `${this.config.baseUrl}/${locale}/privacy`,
-      termsOfService: `${this.config.baseUrl}/${locale}/legal`,
-      cookiePolicy: `${this.config.baseUrl}/${locale}/cookies`,
-      hasPart: [
-        {
-          "@type": "WebPage",
-          "@id": `${this.config.baseUrl}/${locale}/legal`,
-          name: locale === "es" ? "Aviso Legal" : locale === "it" ? "Avviso Legale" : "Legal Notice",
-          url: `${this.config.baseUrl}/${locale}/legal`,
-          dateModified: new Date().toISOString().split('T')[0]
-        },
-        {
-          "@type": "WebPage", 
-          "@id": `${this.config.baseUrl}/${locale}/privacy`,
-          name: locale === "es" ? "Política de Privacidad" : locale === "it" ? "Informativa sulla Privacy" : "Privacy Policy",
-          url: `${this.config.baseUrl}/${locale}/privacy`,
-          dateModified: new Date().toISOString().split('T')[0]
-        },
-        {
-          "@type": "WebPage",
-          "@id": `${this.config.baseUrl}/${locale}/cookies`,
-          name: locale === "es" ? "Política de Cookies" : locale === "it" ? "Politica sui Cookie" : "Cookie Policy", 
-          url: `${this.config.baseUrl}/${locale}/cookies`,
-          dateModified: new Date().toISOString().split('T')[0]
-        }
-      ]
-    }
+    return this.withContext(this.organizationNode(locale))
   }
 
   /**
    * Generate Person schema for author with enhanced AI context
    */
   generatePersonSchema(locale: string): object {
-    const person = this.config.author
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "@id": `${this.config.baseUrl}#person`,
-      name: person.name,
-      givenName: "Alberto",
-      familyName: "Carrasco",
-      jobTitle: person.jobTitle[locale] || person.jobTitle[this.config.defaultLocale],
-      description: person.description[locale] || person.description[this.config.defaultLocale],
-      url: person.url,
-      email: person.email,
-      sameAs: person.sameAs,
-      worksFor: {
-        "@type": "Organization",
-        "@id": `${this.config.baseUrl}#organization`,
-        name: this.config.organization.name
-      },
-      knowsAbout: person.expertise[locale] || person.expertise[this.config.defaultLocale],
-      hasOccupation: {
-        "@type": "Occupation",
-        name: person.jobTitle[locale] || person.jobTitle[this.config.defaultLocale],
-        occupationLocation: {
-          "@type": "Country",
-          name: this.config.organization.areaServed
-        },
-        skills: person.expertise[locale] || person.expertise[this.config.defaultLocale]
-      },
-      // AI-enhanced professional context
-      additionalType: "SoftwareDeveloper",
-      alumniOf: {
-        "@type": "EducationalOrganization",
-        name: "Universidad Politécnica de Madrid"
-      },
-      // Enhanced semantic relationships
-      mainEntityOfPage: `${this.config.baseUrl}/${locale}#about`,
-      potentialAction: {
-        "@type": "ContactAction",
-        target: `mailto:${person.email}`
-      }
-    }
+    return this.withContext(this.personNode(locale))
+  }
+
+  /**
+   * Generate Website schema with comprehensive metadata
+   */
+  generateWebsiteSchema(locale: string): object {
+    return this.withContext(this.websiteNode(locale))
+  }
+
+  /**
+   * Generate Service schema for business offerings
+   */
+  generateServiceSchema(locale: string): object {
+    return this.withContext(this.serviceNode(locale))
   }
 
   /**
@@ -239,23 +155,8 @@ export class JsonLdGenerator {
       "@id": fullUrl,
       headline: post.title,
       description: post.description,
-      author: {
-        "@type": "Person",
-        "@id": `${baseUrl}#person`,
-        name: post.author,
-        url: this.config.author.url
-      },
-      publisher: {
-        "@type": "Organization",
-        "@id": `${baseUrl}#organization`,
-        name: this.config.organization.name,
-        logo: {
-          "@type": "ImageObject",
-          url: `${baseUrl}${this.config.organization.logo}`,
-          width: 512,
-          height: 512
-        }
-      },
+      author: this.blogAuthorNode(post.author),
+      publisher: this.blogPublisherNode(),
       datePublished: post.datePublished,
       dateModified: post.dateModified || post.datePublished,
       url: fullUrl,
@@ -270,23 +171,7 @@ export class JsonLdGenerator {
         "@id": `${baseUrl}/${post.locale}/blog`,
         name: post.locale === "es" ? "Blog E2D" : "E2D Blog"
       },
-      // Enhanced content metadata
-      articleSection: post.category || (post.locale === "es" ? "Automatización" : "Automation"),
-      keywords: post.tags || [
-        "automatización", "chatbots", "WhatsApp", "voicebots", "PYME",
-        "desarrollo web", "React", "Next.js", "n8n", "IA"
-      ],
-      wordCount: post.wordCount,
-      timeRequired: post.readingTime ? `PT${Math.ceil(post.readingTime.minutes)}M` : "PT5M",
-      // AI-specific enhancements
-      about: {
-        "@type": "Thing",
-        name: post.locale === "es" ? "Automatización Empresarial" : "Business Automation"
-      },
-      mentions: post.tags?.map(tag => ({
-        "@type": "Thing",
-        name: tag
-      })) || [],
+      ...this.blogContentNodes(post),
       // Enhanced semantic context
       potentialAction: {
         "@type": "ReadAction",
@@ -298,29 +183,211 @@ export class JsonLdGenerator {
     }
   }
 
-  /**
-   * Generate Website schema with comprehensive metadata
-   */
-  generateWebsiteSchema(locale: string): object {
+  // Topic, keywords and size hints for AI readers, derived from the post itself.
+  private blogContentNodes(post: BlogPostData): JsonLdNode {
     return {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "@id": `${this.config.baseUrl}#website`,
-      name: this.config.organization.name,
-      alternateName: this.config.organization.alternateName,
-      url: `${this.config.baseUrl}/${locale}`,
-      description: this.config.organization.description[locale] || this.config.organization.description[this.config.defaultLocale],
-      publisher: {
-        "@type": "Organization",
-        "@id": `${this.config.baseUrl}#organization`
+      articleSection: post.category || (post.locale === "es" ? "Automatización" : "Automation"),
+      keywords: post.tags || [
+        "automatización", "chatbots", "WhatsApp", "voicebots", "PYME",
+        "desarrollo web", "React", "Next.js", "n8n", "IA"
+      ],
+      wordCount: post.wordCount,
+      timeRequired: post.readingTime ? `PT${Math.ceil(post.readingTime.minutes)}M` : "PT5M",
+      about: {
+        "@type": "Thing",
+        name: post.locale === "es" ? "Automatización Empresarial" : "Business Automation"
       },
+      mentions: post.tags?.map(tag => ({
+        "@type": "Thing",
+        name: tag
+      })) || []
+    }
+  }
+
+  /**
+   * Only the site owner is attached to #person: pointing a guest author at the
+   * owner's id would credit (and merge) another person's writing with his.
+   */
+  private blogAuthorNode(author: string): JsonLdNode {
+    if (author.trim() !== PERSON_NAME) return { "@type": "Person", name: author }
+    return { "@type": "Person", "@id": PERSON_ID, name: author, url: this.config.author.url }
+  }
+
+  private blogPublisherNode(): JsonLdNode {
+    return {
+      "@type": "Organization",
+      "@id": ORGANIZATION_ID,
+      name: this.config.organization.name,
+      logo: this.logoNode(),
+    }
+  }
+
+  private withContext(node: JsonLdNode): JsonLdNode {
+    return { "@context": "https://schema.org", ...node }
+  }
+
+  private pick<T>(byLocale: { [locale: string]: T }, locale: string): T {
+    return byLocale[locale] || byLocale[this.config.defaultLocale]
+  }
+
+  private servicesLabel(locale: string): string {
+    return locale === "es" ? "Servicios de Automatización" : locale === "it" ? "Servizi di Automazione" : "Automation Services"
+  }
+
+  private logoNode(): JsonLdNode {
+    return {
+      "@type": "ImageObject",
+      url: `${this.config.baseUrl}${this.config.organization.logo}`,
+      width: 512,
+      height: 512
+    }
+  }
+
+  private contactAction(locale: string): JsonLdNode {
+    return { "@type": "ContactAction", target: `${this.config.baseUrl}/${locale}#${CONTACT_ANCHOR}` }
+  }
+
+  private organizationNode(locale: string): JsonLdNode {
+    const org = this.config.organization
+    const services = this.pick(org.services, locale)
+
+    return {
+      "@type": "Organization",
+      "@id": ORGANIZATION_ID,
+      name: org.name,
+      alternateName: org.alternateName,
+      // url de la entidad = raíz canónica, no la ruta de locale: identifica la
+      // marca para Knowledge Panel/Sitelinks, no su página en español.
+      url: this.config.baseUrl,
+      logo: this.logoNode(),
+      description: this.pick(org.description, locale),
+      foundingDate: "2023",
+      // The Person node of the same graph holds the details; copying them here
+      // is what let the two descriptions of the founder drift apart.
+      founder: { ...personRef(), name: this.config.author.name },
+      contactPoint: this.contactPointNode(),
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: org.address.country,
+        addressLocality: org.address.locality
+      },
+      sameAs: [...org.sameAs],
+      areaServed: [...org.areaServed],
+      knowsAbout: services,
+      hasOfferCatalog: this.offerCatalogNode(this.servicesLabel(locale), services),
+      // AI-specific metadata
+      additionalType: "TechnologyCompany",
+      industry: "Information Technology",
+      numberOfEmployees: "1-10",
+      // Enhanced semantic context
+      mainEntityOfPage: `${this.config.baseUrl}/${locale}`,
+      potentialAction: this.contactAction(locale),
+      ...this.legalNodes(locale)
+    }
+  }
+
+  private contactPointNode(): JsonLdNode {
+    const org = this.config.organization
+    return {
+      "@type": "ContactPoint",
+      email: org.email,
+      telephone: org.telephone,
+      contactType: "customer service",
+      availableLanguage: this.config.supportedLocales.map(loc => LANGUAGE_NAMES[loc] ?? loc)
+    }
+  }
+
+  private offerCatalogNode(name: string, services: string[], category?: string): JsonLdNode {
+    return {
+      "@type": "OfferCatalog",
+      name,
+      itemListElement: services.map((service, index) => ({
+        "@type": "Offer",
+        itemOffered: { "@type": "Service", name: service, ...(category ? { category } : {}) },
+        position: index + 1
+      }))
+    }
+  }
+
+  // Legal and privacy information. hasPart deliberately has no dateModified:
+  // stamping today's date on every render advertised a freshness that never
+  // happened (the audit flagged it as fabricated).
+  private legalNodes(locale: string): JsonLdNode {
+    const base = `${this.config.baseUrl}/${locale}`
+    const page = (path: string, name: string): JsonLdNode => ({
+      "@type": "WebPage",
+      "@id": `${base}/${path}`,
+      name,
+      url: `${base}/${path}`
+    })
+
+    return {
+      privacyPolicy: `${base}/privacy`,
+      termsOfService: `${base}/legal`,
+      cookiePolicy: `${base}/cookies`,
+      hasPart: [
+        page("legal", locale === "es" ? "Aviso Legal" : locale === "it" ? "Avviso Legale" : "Legal Notice"),
+        page("privacy", locale === "es" ? "Política de Privacidad" : locale === "it" ? "Informativa sulla Privacy" : "Privacy Policy"),
+        page("cookies", locale === "es" ? "Política de Cookies" : locale === "it" ? "Politica sui Cookie" : "Cookie Policy")
+      ]
+    }
+  }
+
+  private personNode(locale: string): JsonLdNode {
+    const person = this.config.author
+    const jobTitle = this.pick(person.jobTitle, locale)
+    const expertise = this.pick(person.expertise, locale)
+
+    return {
+      "@type": "Person",
+      "@id": PERSON_ID,
+      name: person.name,
+      givenName: "Alberto",
+      familyName: "Carrasco",
+      jobTitle,
+      description: this.pick(person.description, locale),
+      url: person.url,
+      email: person.email,
+      sameAs: [...person.sameAs],
+      worksFor: { ...organizationRef(), name: this.config.organization.name },
+      knowsAbout: expertise,
+      hasOccupation: {
+        "@type": "Occupation",
+        name: jobTitle,
+        occupationLocation: spain(),
+        skills: expertise
+      },
+      // AI-enhanced professional context. No alumniOf: no evidence of the
+      // education was ever provided, so it stays out until Alberto confirms it.
+      additionalType: "SoftwareDeveloper",
+      mainEntityOfPage: person.url,
+      potentialAction: {
+        "@type": "ContactAction",
+        target: `mailto:${person.email}`
+      }
+    }
+  }
+
+  private websiteNode(locale: string): JsonLdNode {
+    const org = this.config.organization
+
+    return {
+      "@type": "WebSite",
+      "@id": WEBSITE_ID,
+      name: org.name,
+      alternateName: org.alternateName,
+      // url del WebSite = raíz canónica (ancla del Sitelinks Searchbox), no
+      // /locale: es el valor que ya publicaba el layout.
+      url: this.config.baseUrl,
+      description: this.pick(org.description, locale),
+      publisher: organizationRef(),
       inLanguage: locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US",
-      // Enhanced search functionality
+      // /blog reads the `q` param (app/[locale]/blog/page.tsx); `search` was ignored.
       potentialAction: {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: `${this.config.baseUrl}/${locale}/blog?search={search_term_string}`
+          urlTemplate: `${this.config.baseUrl}/${locale}/blog?q={search_term_string}`
         },
         "query-input": "required name=search_term_string"
       },
@@ -332,62 +399,38 @@ export class JsonLdGenerator {
       audience: {
         "@type": "BusinessAudience",
         audienceType: "SME",
-        geographicArea: {
-          "@type": "Country",
-          name: "Spain"
-        }
+        geographicArea: spain()
       }
     }
   }
 
-  /**
-   * Generate Service schema for business offerings
-   */
-  generateServiceSchema(locale: string): object {
-    const services = this.config.organization.services[locale] || this.config.organization.services[this.config.defaultLocale]
-    
+  private serviceNode(locale: string): JsonLdNode {
+    const services = this.pick(this.config.organization.services, locale)
+
     return {
-      "@context": "https://schema.org",
       "@type": "Service",
       "@id": `${this.config.baseUrl}/${locale}#services`,
-      name: locale === "es" ? "Servicios de Automatización" : locale === "it" ? "Servizi di Automazione" : "Automation Services",
+      name: this.servicesLabel(locale),
       description: locale === "es" 
         ? "Automatización empresarial, chatbots WhatsApp, desarrollo web y sistemas CRM/ERP"
         : locale === "it"
           ? "Automazione aziendale, chatbot WhatsApp, sviluppo web e sistemi CRM/ERP"
           : "Business automation, WhatsApp chatbots, web development and CRM/ERP systems",
-      provider: {
-        "@type": "Organization",
-        "@id": `${this.config.baseUrl}#organization`
-      },
-      areaServed: {
-        "@type": "Country",
-        name: this.config.organization.areaServed
-      },
+      provider: organizationRef(),
+      areaServed: [...this.config.organization.areaServed],
       serviceType: "Technology Consulting",
       category: "Business Automation",
-      hasOfferCatalog: {
-        "@type": "OfferCatalog",
-        name: locale === "es" ? "Catálogo de Servicios" : locale === "it" ? "Catalogo dei Servizi" : "Service Catalog",
-        itemListElement: services.map((service, index) => ({
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Service",
-            name: service,
-            category: "Business Automation"
-          },
-          position: index + 1
-        }))
-      },
+      hasOfferCatalog: this.offerCatalogNode(
+        locale === "es" ? "Catálogo de Servicios" : locale === "it" ? "Catalogo dei Servizi" : "Service Catalog",
+        services,
+        "Business Automation"
+      ),
       // AI-enhanced service context
       audience: {
         "@type": "BusinessAudience",
         audienceType: "SME"
       },
-      potentialAction: {
-        "@type": "ContactAction",
-        target: `${this.config.baseUrl}/${locale}#contact`
-      }
+      potentialAction: this.contactAction(locale)
     }
   }
 
@@ -416,7 +459,7 @@ export class JsonLdGenerator {
       description: post.description || "",
       author: post.author || "Alberto Carrasco",
       datePublished: post.date,
-      dateModified: post.date, // Could be enhanced with actual modification date
+      dateModified: postModifiedDate(post),
       url: post.url,
       image: post.cover,
       locale: post.locale,
@@ -430,7 +473,7 @@ export class JsonLdGenerator {
 
 // Default configuration for E2D
 export const defaultJsonLdConfig: JsonLdConfig = {
-  baseUrl: "https://evolve2digital.com",
+  baseUrl: SITE_URL,
   defaultLocale: "es",
   supportedLocales: ["es", "en", "it"],
   organization: {
@@ -442,20 +485,16 @@ export const defaultJsonLdConfig: JsonLdConfig = {
       it: "Sviluppo di software su misura, automazione dei processi e integrazioni IA per PMI di 10-50 dipendenti. Niente SaaS generico: il tuo software, il tuo business."
     },
     logo: "/e2d_logo.webp",
-    url: "https://evolve2digital.com",
+    url: SITE_URL,
     email: "hello@evolve2digital.com",
     // telephone omitido: no publicar número placeholder en el schema de
     // Organization (Google podría mostrarlo como teléfono real). El campo es
     // opcional; al quedar undefined, JSON.stringify lo elimina del JSON-LD.
+    // Domicilio published in the legal notice; a locality, not a country name.
     address: {
       country: "ES",
-      locality: "España"
+      locality: "Madrid"
     },
-    socialProfiles: [
-      "https://github.com/albertocarrasco",
-      "https://linkedin.com/in/albertocarrasco",
-      "https://twitter.com/albertocarrasco"
-    ],
     services: {
       es: [
         "Desarrollo Web",
@@ -488,7 +527,8 @@ export const defaultJsonLdConfig: JsonLdConfig = {
         "Ottimizzazione delle Performance"
       ]
     },
-    areaServed: "Spain"
+    areaServed: AREA_SERVED,
+    sameAs: ORGANIZATION_SAME_AS
   },
   author: {
     name: "Alberto Carrasco",
@@ -502,13 +542,9 @@ export const defaultJsonLdConfig: JsonLdConfig = {
       en: "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs.",
       it: "Esperto in React, Next.js, n8n e database vettoriali. Focus su ROI e conformità GDPR per le PMI spagnole."
     },
-    url: "https://evolve2digital.com",
+    url: PERSON_PROFILE_URL,
     email: "hello@evolve2digital.com",
-    sameAs: [
-      "https://github.com/albertocarrasco",
-      "https://linkedin.com/in/albertocarrasco",
-      "https://twitter.com/albertocarrasco"
-    ],
+    sameAs: PERSON_SAME_AS,
     worksFor: "E2D - Evolve2Digital",
     expertise: {
       es: [

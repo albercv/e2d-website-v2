@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { useComponentDebugLogger } from "@/lib/component-debug-logger";
+import { PERSON_PROFILE_PATH } from "@/lib/seo/entities";
 
 export function AboutSection() {
   const t = useTranslations("about");
@@ -40,6 +41,14 @@ export function AboutSection() {
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{t("title")}</h2>
             <p className="text-lg text-muted-foreground">{t("subtitle")}</p>
             <p className="text-base leading-7 text-muted-foreground">{t("description")}</p>
+            {/* The profile page is Spanish only; the label tells en/it visitors before they click. */}
+            <a
+              href={PERSON_PROFILE_PATH}
+              hrefLang="es"
+              className="inline-block text-base font-medium text-[#05b4ba] underline-offset-4 hover:underline"
+            >
+              {t("profileLink")}
+            </a>
           </div>
         </div>
       </div>

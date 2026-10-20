@@ -65,12 +65,16 @@
       "title": "WhatsApp Bot Dashboard",
       "description": "Control panel to manage a WhatsApp bot, with statistics and conversation viewer.",
       "tags": ["Dashboard", "WhatsApp API", "Statistics"]
-    }
+    },
+    "visitSite": "visit the website (opens in a new tab)",
+    "readCase": "Read the case study",
+    "portfolioCta": "More published projects in my portfolio, <link>e2dProjects</link>."
   },
   "about": {
     "title": "Alberto Carrasco",
     "subtitle": "Fullstack developer expert in React JavaScript, Spring Boot Java, n8n, OpenAI, Claude and Gemini",
-    "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs."
+    "description": "Expert in React, Next.js, n8n and vector databases. Focused on ROI and GDPR compliance for Spanish SMEs.",
+    "profileLink": "More about my work (page in Spanish)"
   },
   "blog": {
     "list": {
@@ -171,44 +175,12 @@
       "save": "Save preferences"
     }
   },
-  "privacy": {
-    "title": "Privacy Policy",
-    "lastUpdated": "Last updated",
-    "sections": {
-      "introduction": {
-        "title": "Introduction"
-      },
-      "dataCollection": {
-        "title": "Data Collection"
-      },
-      "dataUsage": {
-        "title": "Data Usage"
-      },
-      "legalBasis": {
-        "title": "Legal Basis"
-      },
-      "cookies": {
-        "title": "Cookie Policy"
-      },
-      "rights": {
-        "title": "Your Rights"
-      },
-      "security": {
-        "title": "Security"
-      },
-      "contact": {
-        "title": "Contact"
-      },
-      "aiChat": {
-        "title": "AI Assistant",
-        "description": "If you interact with the AI assistant, your messages are sent to DeepSeek (LLM) and your queries are vectorized using OpenAI embeddings to surface relevant content from our knowledge base. We keep conversations for 90 days, after which they are deleted automatically. Any contact details you choose to share are retained as a business record."
-      },
-      "prospecting": {
-        "title": "Commercial prospecting",
-        "description": "If we have analysed your business or contacted you as part of our commercial prospecting of companies and professionals, the specific information about that processing is in its annex (in Spanish).",
-        "link": "Read the prospecting annex."
-      }
-    }
+  "contactSection": {
+    "title": "Tell me about your project",
+    "subtitle": "Tell me what you want to automate or build and we will work it out together. You speak directly with the person who designs and codes each project.",
+    "openForm": "Open the contact form",
+    "emailLabel": "Email me at {email}",
+    "whatsappLabel": "Message me on WhatsApp"
   },
   "chat": {
     "openLabel": "Chat with the AI assistant",
@@ -261,5 +233,11 @@
       "labelIntent": "Topic",
       "labelMessage": "Message"
     }
+  },
+  "notFound": {
+    "code": "Error 404",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has moved.",
+    "home": "Back to home"
   }
 }

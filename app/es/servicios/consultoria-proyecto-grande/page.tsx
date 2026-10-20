@@ -6,7 +6,6 @@
  * Side-effects: Ninguno.
  */
 
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
@@ -44,9 +43,9 @@ export default function Page() {
       </ul>
       <p className="mt-6 text-lg font-semibold">Precio: 3000€</p>
       <div className="mt-8">
-        <Link href="/es#contacto" prefetch={false}>
-          <Button>Contactar</Button>
-        </Link>
+        <Button asChild>
+          <a href="/es#contact">Contactar</a>
+        </Button>
       </div>
     </section>
   );
