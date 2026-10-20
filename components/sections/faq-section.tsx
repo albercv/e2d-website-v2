@@ -47,11 +47,14 @@ interface FaqAccordionItemProps {
 }
 
 function FaqAccordionItem({ index, item, isOpen, onToggle }: FaqAccordionItemProps) {
+  // Same 0-based index lib/rag/sources.ts writes into each FAQ document URL
+  // (`/<locale>#faq-<index>`), so those citations land on this very item.
+  const itemId = `faq-${index}`
   const buttonId = `faq-question-${index}`
   const panelId = `faq-answer-${index}`
 
   return (
-    <motion.div variants={itemVariants}>
+    <motion.div id={itemId} variants={itemVariants}>
       <div
         className="relative rounded-xl border transition-colors duration-300 group overflow-hidden"
         style={{

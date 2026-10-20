@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event"
 import { NextIntlClientProvider } from "next-intl"
 import { FaqSection } from "@/components/sections/faq-section"
 import { FAQ_DATA } from "@/lib/faq/faq-data"
+import { readFaqs } from "@/lib/rag/sources"
 
 // next-intl is ESM-only and jest.setup.js stubs it with a fixed "es" locale.
 // Re-stub it here with a switchable locale so each language is really rendered.
@@ -145,6 +146,30 @@ describe.each(LOCALES)("FaqSection (%s)", (locale) => {
       expect(buttons[i]).toHaveTextContent(entity.name)
       expect(getRegion(buttons[i]).textContent).toBe(entity.acceptedAnswer.text)
     })
+  })
+})
+
+describe.each(LOCALES)("FAQ anchors the RAG index links to (%s)", (locale) => {
+  it("gives every FAQ item the id that lib/rag/sources.ts puts in the document URL", async () => {
+    renderFaq(locale)
+    const docs = (await readFaqs()).filter((doc) => doc.locale === locale)
+    expect(docs).toHaveLength(FAQ_DATA[locale].items.length)
+
+    docs.forEach((doc) => {
+      const id = new URL(doc.url).hash.slice(1)
+      expect(id).toMatch(/^faq-\d+$/)
+      const target = document.getElementById(id)
+      expect(target).not.toBeNull()
+      // The id must land on the item that holds this very question and answer.
+      expect(target).toHaveTextContent(doc.title)
+      expect(target).toHaveTextContent(doc.body)
+    })
+  })
+
+  it("uses unique ids that do not clash with the button and panel ids", () => {
+    const { container } = renderFaq(locale)
+    const ids = FAQ_DATA[locale].items.map((_, i) => `faq-${i}`)
+    ids.forEach((id) => expect(container.querySelectorAll(`[id="${id}"]`)).toHaveLength(1))
   })
 })
 
