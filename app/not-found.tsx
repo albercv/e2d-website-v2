@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { HtmlDocument } from "@/components/layout/html-document"
 
 // Las URLs que no casan con ninguna ruta se renderizan bajo el layout raíz de
@@ -13,12 +12,12 @@ export default function NotFound() {
         <p className="max-w-md text-muted-foreground">
           La página que buscas no existe o ha cambiado de dirección.
         </p>
-        <Link
+        <a
           href="/es"
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
         >
           Volver al inicio
-        </Link>
+        </a>
       </main>
     </HtmlDocument>
   )

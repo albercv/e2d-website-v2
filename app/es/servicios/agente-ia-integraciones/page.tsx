@@ -6,7 +6,6 @@
  * Side-effects: Ninguno.
  */
 
-import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
@@ -39,9 +38,9 @@ export default function Page() {
         <li>Cambio de parámetros del agente</li>
       </ul>
       <div className="mt-8">
-        <Link href="/es#contact" prefetch={false}>
-          <Button>Contactar</Button>
-        </Link>
+        <Button asChild>
+          <a href="/es#contact">Contactar</a>
+        </Button>
       </div>
     </section>
   );
